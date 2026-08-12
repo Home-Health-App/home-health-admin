@@ -4,7 +4,59 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: 'DM-San-Bold';
+  src: url(../assests/fonts/DMSans-Bold.ttf);
+  font-weight: bolder;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DM-San-Medium';
+  src: url(../assests/fonts/DMSans-Medium.ttf);
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DM-San-Regular';
+  src: url(../assests/fonts/DMSans-Regular.ttf);
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DM-San-Light';
+  src: url(../assests/fonts/DMSans-Light.ttf);
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme inline {
+  /* Fonts */
+  --font-dm-san-bold: 'DM-San-Bold';
+  --font-dm-san-medium: 'DM-San-Medium';
+  --font-dm-san-regular: 'DM-San-Regular';
+  --font-dm-san-light: 'DM-San-Light';
+
+  /** COLORS **/
+  --color-primary-color: #0B1F41;
+  --color-secondary-color: #648FCC;
+  --color-error: #C43A3A;
+  --color-card: #D0DFEE;
+  --color-active-btn: #EEF7F3;
+  --color-active-border: #3AC485;
+  --color-pending-btn: #FBF7EA;
+  --color-pending-border: #F0C630;
+  --color-warning-btn: #F7EEEE;
+  --color-warning-border: #C43A3A;
+  --color-heading-text: #2B2B2B;
+  --color-body-text: #2B2B2B;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
@@ -39,6 +91,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /** Radius **/
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -121,9 +175,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
