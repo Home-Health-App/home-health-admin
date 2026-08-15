@@ -1,9 +1,17 @@
-import React from 'react'
+import React, { Suspense } from "react"
+import PatientsView from "@/components/patients/patients-list/patients-list-view"
+import PatientLoader from "@/components/patients/patients-list/loader"
 
-const Patients = () => {
-  return (
-    <div>Patients</div>
-  )
+// Simulates a 3-second data fetch delay to trigger Suspense fallback
+async function DelayedPatientsView() {
+  await new Promise((resolve) => setTimeout(resolve, 3000))
+  return <PatientsView />
 }
 
-export default Patients
+export default function Patients() {
+  return (
+    <Suspense fallback={<PatientLoader />}>
+      <DelayedPatientsView />
+    </Suspense>
+  )
+}

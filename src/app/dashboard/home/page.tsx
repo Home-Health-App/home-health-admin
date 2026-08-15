@@ -1,10 +1,17 @@
-import React from 'react'
-import HomeView from '@/components/home/home-view'
+import React, { Suspense } from "react"
+import HomeView from "@/components/home/home-view"
+import HomeLoader from "@/components/home/loader"
 
-function Home() {
-    return (
-        <HomeView />
-    )
+// Simulates a 3-second data fetch delay to trigger Suspense fallback
+async function DelayedHomeView() {
+  await new Promise((resolve) => setTimeout(resolve, 3000))
+  return <HomeView />
 }
 
-export default Home
+export default function Home() {
+  return (
+    <Suspense fallback={<HomeLoader />}>
+      <DelayedHomeView />
+    </Suspense>
+  )
+}
