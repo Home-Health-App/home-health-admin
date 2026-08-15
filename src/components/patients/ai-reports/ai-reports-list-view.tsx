@@ -80,7 +80,7 @@ export default function AiReportsListView({ patientId }: AiReportsListViewProps)
         {mockReports.map((report) => (
           <div
             key={report.id}
-            className="bg-white border border-zinc-200/60 rounded-2xl p-6 shadow-2xs flex flex-col justify-between gap-6"
+            className="bg-white border border-zinc-200/60 rounded-[8px] p-6 shadow-2xs flex flex-col justify-between gap-6"
           >
             {/* Date Range & Generated Date */}
             <div className="flex items-center justify-between">
