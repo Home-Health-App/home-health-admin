@@ -46,6 +46,8 @@ export function Breadcrumbs() {
       "daily-logs": "Daily Logs",
       messages: "Messages",
       notifications: "Notifications",
+      refunds: "Refunds",
+      "refund-details": "Refund Details",
     }
 
     // Iterate segments starting after '/dashboard'
@@ -64,7 +66,8 @@ export function Breadcrumbs() {
       // 1. Check static mapping
       // 2. Check if parent was "patients" (meaning this is a dynamic patient ID)
       // 3. Check if parent was "ai-report" (meaning this is a dynamic report ID)
-      // 4. Fallback to formatting the segment string directly
+      // 4. Check if parent was "billing" (meaning this is a dynamic patient ID)
+      // 5. Fallback to formatting the segment string directly
       let name = routeNames[segment]
       if (!name) {
         if (prevSegment === "patients") {
@@ -73,6 +76,8 @@ export function Breadcrumbs() {
           name = "AI Health Report"
         } else if (prevSegment === "caregivers") {
           name = "Caregiver Information"
+        } else if (prevSegment === "billing" && segment !== "manage-plans" && segment !== "refunds") {
+          name = "Billing Details"
         } else {
           // Capitalize first letter and replace hyphens with spaces
           name = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ")

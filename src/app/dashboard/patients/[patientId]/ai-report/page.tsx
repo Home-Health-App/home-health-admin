@@ -9,15 +9,5 @@ interface PageProps {
 export default async function AiReportsPage({ params }: PageProps) {
   const { patientId } = await params
 
-  // Awrapper component with 1.5s artificial delay for testing loading skeleton
-  async function DelayedListView() {
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    return <AiReportsListView patientId={patientId} />
-  }
-
-  return (
-    <Suspense fallback={<PatientLoader />}>
-      <DelayedListView />
-    </Suspense>
-  )
+  return <AiReportsListView patientId={patientId} />
 }
