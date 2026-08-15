@@ -200,7 +200,7 @@ export default function AuditLogsPage() {
 
   return (
     <div className="w-full space-y-6 pb-12 select-none">
-      
+
       {/* Page Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight font-sans text-zinc-950">
@@ -213,7 +213,7 @@ export default function AuditLogsPage() {
 
       {/* Filters Row */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        
+
         {/* Search Input bar */}
         <div className="relative w-full md:w-80">
           <IconSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
@@ -232,7 +232,10 @@ export default function AuditLogsPage() {
         {/* Dropdowns Filters */}
         <div className="flex items-center gap-3 self-end md:self-auto">
           {/* Timeframe Select */}
-          <Select value={timeframe} onValueChange={(val) => { setTimeframe(val); setCurrentPage(1); }}>
+          <Select
+            value={timeframe}
+            onValueChange={(val) => { setTimeframe(val!); setCurrentPage(1); }}
+          >
             <SelectTrigger className="h-10 rounded-lg border border-zinc-200 bg-white font-sans text-sm font-semibold text-zinc-800 focus:ring-0 w-[120px] shadow-none">
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
@@ -246,7 +249,7 @@ export default function AuditLogsPage() {
           </Select>
 
           {/* Event Type Select */}
-          <Select value={eventType} onValueChange={(val) => { setEventType(val); setCurrentPage(1); }}>
+          <Select value={eventType} onValueChange={(val) => { setEventType(val!); setCurrentPage(1); }}>
             <SelectTrigger className="h-10 rounded-lg border border-zinc-200 bg-white font-sans text-sm font-semibold text-zinc-800 focus:ring-0 w-[150px] shadow-none">
               <SelectValue placeholder="Event Type" />
             </SelectTrigger>
@@ -262,7 +265,7 @@ export default function AuditLogsPage() {
           </Select>
 
           {/* User Role Select */}
-          <Select value={userRole} onValueChange={(val) => { setUserRole(val); setCurrentPage(1); }}>
+          <Select value={userRole} onValueChange={(val) => { setUserRole(val!); setCurrentPage(1); }}>
             <SelectTrigger className="h-10 rounded-lg border border-zinc-200 bg-white font-sans text-sm font-semibold text-zinc-800 focus:ring-0 w-[150px] shadow-none">
               <SelectValue placeholder="User Role" />
             </SelectTrigger>
@@ -336,11 +339,10 @@ export default function AuditLogsPage() {
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`size-7.5 rounded-full flex items-center justify-center text-xs font-semibold font-sans outline-hidden cursor-pointer transition-colors ${
-                      isActive
+                    className={`size-7.5 rounded-full flex items-center justify-center text-xs font-semibold font-sans outline-hidden cursor-pointer transition-colors ${isActive
                         ? "bg-[#5D89C3] text-white"
                         : "hover:bg-zinc-100 text-zinc-500"
-                    }`}
+                      }`}
                   >
                     {pageNum}
                   </button>
