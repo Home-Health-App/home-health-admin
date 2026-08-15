@@ -4,6 +4,9 @@ import React, { useState, useMemo } from "react"
 import { IconDots } from "@tabler/icons-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/libs/utils"
 
 interface AlertNotification {
   id: string
@@ -94,39 +97,38 @@ export default function NotificationsPage() {
 
   return (
     <div className="w-full space-y-6 pb-12 select-none">
-      
+
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight font-sans text-zinc-950">
+        <h1 className="text-3xl font-semibold tracking-tight font-dm-san-regular text-zinc-950">
           Notification Center
         </h1>
-        <p className="text-zinc-500 font-sans mt-1 text-sm">
+        <p className="text-zinc-500 font-dm-san-regular mt-1 text-sm">
           Review and manage clinical alerts.
         </p>
       </div>
 
       <Tabs defaultValue="all" orientation="vertical" className="w-full flex flex-col md:flex-row gap-8 items-start">
-        
+
         {/* Left Column Sidebar (Vertical Tabs & Filter checkboxes) */}
         <div className="w-full md:w-64 space-y-6 shrink-0">
-          
           {/* Vertical tabs options */}
-          <TabsList variant="line" className="flex flex-col gap-1 w-full bg-transparent p-0 border-none justify-start shrink-0">
+          <TabsList variant="default" className="flex flex-col gap-1 w-full bg-transparent p-0 border-none justify-start shrink-0">
             <TabsTrigger
               value="all"
-              className="w-full justify-between text-sm font-semibold font-sans py-3.5 px-4.5 rounded-xl border-none data-active:bg-[#EEF2F6] data-active:text-[#0C1E3E] text-zinc-500 hover:text-zinc-900 transition-all flex items-center shadow-none bg-transparent outline-hidden cursor-pointer"
+              className="w-full justify-start text-base font-normal font-dm-san-regular py-3.5 px-4.5 rounded-[8px] border-none data-active:bg-primary-light data-active:text-body-text text-body-text transition-all flex items-center shadow-none bg-transparent outline-hidden cursor-pointer"
             >
               <span>All Notifications</span>
-              <span className="size-5 bg-[#5D89C3] text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
+              <span className="size-5 bg-[#5D89C3] text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 ml-auto">
                 12
               </span>
             </TabsTrigger>
             <TabsTrigger
               value="unread"
-              className="w-full justify-between text-sm font-semibold font-sans py-3.5 px-4.5 rounded-xl border-none data-active:bg-[#EEF2F6] data-active:text-[#0C1E3E] text-zinc-500 hover:text-zinc-900 transition-all flex items-center shadow-none bg-transparent outline-hidden cursor-pointer"
+              className="w-full justify-between text-base font-normal font-dm-san-regular py-3.5 px-4.5 rounded-[8px] border-none data-active:bg-primary-light data-active:text-[#0C1E3E] text-body-text transition-all flex items-center shadow-none bg-transparent outline-hidden cursor-pointer"
             >
               <span>Unread</span>
-              <span className="size-5 bg-[#0B1E3F] text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
+              <span className="size-5 bg-[#0B1E3F] text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 ml-auto">
                 {unreadCount}
               </span>
             </TabsTrigger>
@@ -136,19 +138,19 @@ export default function NotificationsPage() {
 
           {/* Filter Categories list */}
           <div className="space-y-4 px-1">
-            <h3 className="text-xs font-bold text-zinc-700 tracking-wide font-sans block uppercase">
+            <h3 className="text-base font-normal text-body-text tracking-wide font-dm-san-regular block uppercase">
               Filter by Categories
             </h3>
             <div className="space-y-3">
               {categories.map((cat) => (
                 <label key={cat} className="flex items-center gap-3 cursor-pointer group">
-                  <input
+                  <Input
                     type="checkbox"
                     checked={selectedCategories.includes(cat)}
                     onChange={() => handleCategoryToggle(cat)}
-                    className="size-4.5 rounded-md border-zinc-300 accent-[#0B1E3F] cursor-pointer"
+                    className="size-7 rounded-[8px] border-zinc-300 accent-[#0B1E3F] cursor-pointer"
                   />
-                  <span className="text-sm font-semibold text-zinc-600 font-sans group-hover:text-zinc-900 transition-colors">
+                  <span className="text-base font-normal text-body-text font-dm-san-regular group-hover:text-body-text transition-colors">
                     {cat}
                   </span>
                 </label>
@@ -159,13 +161,13 @@ export default function NotificationsPage() {
         </div>
 
         {/* Right Column Contents workspace */}
-        <div className="flex-1 w-full bg-transparent min-h-[450px] relative">
-          
+        <div className="flex-1 w-full bg-transparent min-h-112.5 relative">
+
           {/* Mark all as read link */}
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="absolute top-0 right-0 text-xs font-bold text-[#0B1E3F] hover:underline cursor-pointer font-sans z-10"
+              className="absolute top-0 right-0 text-sm font-bold text-primary-color hover:underline cursor-pointer font-dm-san-regular z-10"
             >
               Mark all as read
             </button>
@@ -178,58 +180,39 @@ export default function NotificationsPage() {
                 <div
                   key={a.id}
                   onClick={() => markAsRead(a.id)}
-                  className="bg-white border border-zinc-200/50 rounded-2xl p-6 shadow-3xs flex relative cursor-pointer hover:bg-zinc-50/40 transition-all"
+                  className={cn("bg-white rounded-[8px] p-4 shadow-2xs flex relative cursor-pointer  transition-all", a.unread && "border-l-2 border-primary-color ")}
                 >
                   {/* Left indicator blue border */}
-                  {a.unread && (
-                    <span className="absolute left-0 top-6 bottom-6 w-1 bg-[#0B1E3F] rounded-r-md" />
-                  )}
+                  {/* {a.unread && (
+                    <span className="absolute left-0 top-6 bottom-6 w-1 bg-[#0B1E3F] rounded-r-lg" />
+                  )} */}
 
-                  <div className="flex-1 min-w-0 font-sans pl-1.5 space-y-4">
-                    <div className="flex justify-between items-start gap-4">
+                  <div className="flex-1 min-w-0 font-dm-san-regular pl-1.5 space-y-4">
+                    <div className="flex justify-between items-start gap-2.5">
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-lg font-bold text-zinc-950 block">
+                        <div className="flex items-center gap-2.5">
+                          <h3 className="text-lg font-semibold font-dm-san-regular text-zinc-950 block">
                             {a.title}
                           </h3>
-                        </div>
-                        <div className="flex items-center gap-2.5 text-xs text-zinc-400 font-medium">
-                          <span>{a.timeString}</span>
-                          <span className="bg-[#EEF2F6] text-[#0C1E3E] border border-zinc-200/50 font-sans font-semibold px-2.5 py-0.5 text-3xs rounded-full uppercase tracking-wider">
+                          <Badge className="bg-secondary-light hover:bg-secondary-light text-primary-color font-normal border border-primary-color font-dm-san-regular px-2.5 py-0.5 text-3xs rounded-full tracking-wider">
                             {a.label}
-                          </span>
+                          </Badge>
                         </div>
                       </div>
-                      <button className="p-1 hover:bg-zinc-100 rounded-md outline-hidden shrink-0">
-                        <IconDots className="size-5 text-zinc-500" />
-                      </button>
                     </div>
 
-                    <p className="text-sm text-zinc-600 leading-relaxed font-sans font-medium">
+                    <p className="text-sm text-zinc-600 leading-relaxed font-dm-san-regular font-medium">
                       {a.snippet}
                     </p>
-
-                    {a.patient && (
-                      <div className="flex items-center gap-6 pt-1 text-xs text-zinc-500 font-medium">
-                        <div>
-                          <span className="font-bold text-zinc-900 font-sans">Patient</span>{" "}
-                          <span className="font-sans font-semibold text-zinc-600">{a.patient}</span>
-                        </div>
-                        <div>
-                          <span className="font-bold text-zinc-900 font-sans">Caregiver</span>{" "}
-                          <span className="font-sans font-semibold text-zinc-600">{a.caregiver}</span>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               ))
             ) : (
               <div className="text-center py-24 space-y-2">
-                <h3 className="text-lg font-bold text-zinc-950 font-sans">
+                <h3 className="text-lg font-bold text-zinc-950 font-dm-san-regular">
                   No Notifications
                 </h3>
-                <p className="text-sm text-zinc-500 font-sans">
+                <p className="text-sm text-zinc-500 font-dm-san-regular">
                   You're all caught up. Check back later for updates.
                 </p>
               </div>
@@ -243,55 +226,35 @@ export default function NotificationsPage() {
                 <div
                   key={a.id}
                   onClick={() => markAsRead(a.id)}
-                  className="bg-white border border-zinc-200/50 rounded-2xl p-6 shadow-3xs flex relative cursor-pointer hover:bg-zinc-50/40 transition-all"
+                  className={cn("bg-white rounded-[8px] p-4 shadow-2xs flex relative cursor-pointer  transition-all", a.unread && "border-l-2 border-primary-color ")}
                 >
-                  <span className="absolute left-0 top-6 bottom-6 w-1 bg-[#0B1E3F] rounded-r-md" />
 
-                  <div className="flex-1 min-w-0 font-sans pl-1.5 space-y-4">
-                    <div className="flex justify-between items-start gap-4">
+                  <div className="flex-1 min-w-0 font-dm-san-regular pl-1.5 space-y-4">
+                    <div className="flex justify-between items-start gap-2.5">
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-lg font-bold text-zinc-950 block">
+                        <div className="flex items-center gap-2.5">
+                          <h3 className="text-lg font-semibold font-dm-san-regular text-zinc-950 block">
                             {a.title}
                           </h3>
-                        </div>
-                        <div className="flex items-center gap-2.5 text-xs text-zinc-400 font-medium">
-                          <span>{a.timeString}</span>
-                          <span className="bg-[#EEF2F6] text-[#0C1E3E] border border-zinc-200/50 font-sans font-semibold px-2.5 py-0.5 text-3xs rounded-full uppercase tracking-wider">
+                          <Badge className="bg-secondary-light hover:bg-secondary-light text-primary-color font-normal border border-primary-color font-dm-san-regular px-2.5 py-0.5 text-3xs rounded-full tracking-wider">
                             {a.label}
-                          </span>
+                          </Badge>
                         </div>
                       </div>
-                      <button className="p-1 hover:bg-zinc-100 rounded-md outline-hidden shrink-0">
-                        <IconDots className="size-5 text-zinc-500" />
-                      </button>
                     </div>
 
-                    <p className="text-sm text-zinc-600 leading-relaxed font-sans font-medium">
+                    <p className="text-sm text-zinc-600 leading-relaxed font-dm-san-regular font-medium">
                       {a.snippet}
                     </p>
-
-                    {a.patient && (
-                      <div className="flex items-center gap-6 pt-1 text-xs text-zinc-500 font-medium">
-                        <div>
-                          <span className="font-bold text-zinc-900 font-sans">Patient</span>{" "}
-                          <span className="font-sans font-semibold text-zinc-600">{a.patient}</span>
-                        </div>
-                        <div>
-                          <span className="font-bold text-zinc-900 font-sans">Caregiver</span>{" "}
-                          <span className="font-sans font-semibold text-zinc-600">{a.caregiver}</span>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               ))
             ) : (
               <div className="text-center py-24 space-y-1.5 flex flex-col justify-center items-center h-full min-h-[300px]">
-                <h3 className="text-xl font-bold text-zinc-950 font-sans block">
+                <h3 className="text-xl font-bold text-zinc-950 font-dm-san-regular block">
                   No Notifications
                 </h3>
-                <p className="text-xs text-zinc-500 font-sans leading-relaxed block">
+                <p className="text-xs text-zinc-500 font-dm-san-regular leading-relaxed block">
                   You're all caught up. Check back later for updates.
                 </p>
               </div>

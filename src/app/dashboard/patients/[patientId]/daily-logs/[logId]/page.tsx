@@ -8,16 +8,5 @@ interface PageProps {
 
 export default async function DailyLogDetailsPage({ params }: PageProps) {
   const { patientId, logId } = await params
-
-  // Awrapper component with 1.5s artificial delay for testing loading skeleton
-  async function DelayedTabsView() {
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    return <DailyLogTabsView patientId={patientId} logId={logId} />
-  }
-
-  return (
-    <Suspense fallback={<PatientLoader />}>
-      <DelayedTabsView />
-    </Suspense>
-  )
+  return <DailyLogTabsView patientId={patientId} logId={logId} />
 }

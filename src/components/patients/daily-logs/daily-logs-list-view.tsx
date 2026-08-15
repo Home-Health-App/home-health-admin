@@ -1,9 +1,8 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ColumnDef } from "@tanstack/react-table"
-import { Badge } from "@/components/ui/badge"
 import { DataTable } from "@/components/shared/data-table"
 import { MOCK_PATIENTS } from "../mock-data"
 
@@ -12,48 +11,41 @@ interface DailyLogsListViewProps {
 }
 
 export interface DailyLogEntry {
-  id: string // alphanumeric e.g. "22u26guqwwtq"
-  dateString: string // e.g. "Aug 05, 2026"
-  recordedBy: string
-  vitals: string
-  medications: string
-  symptoms: string
-  mood: string
+  id: string
+  dateString: string
+  caregiver: string
+  flag: "Incident" | "No Issues" | "High BP"
 }
 
-const MOCK_LOGS: DailyLogEntry[] = [
-  {
-    id: "22u26guqwwtq",
-    dateString: "Aug 05, 2026",
-    recordedBy: "Bobby Singer",
-    vitals: "Recorded",
-    medications: "Metformin, Lisinopril",
-    symptoms: "Shortness of Breath, Nausea",
-    mood: "Sad",
-  },
-  {
-    id: "19p83xyzabcq",
-    dateString: "Aug 04, 2026",
-    recordedBy: "Bobby Singer",
-    vitals: "Recorded",
-    medications: "Metformin, Lisinopril",
-    symptoms: "None",
-    mood: "Positive",
-  },
-  {
-    id: "12a90klmnoqr",
-    dateString: "Aug 03, 2026",
-    recordedBy: "Bobby Singer",
-    vitals: "Recorded",
-    medications: "Metformin",
-    symptoms: "Fatigue",
-    mood: "Neutral",
-  },
+const INITIAL_LOGS: DailyLogEntry[] = [
+  { id: "1", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "Incident" },
+  { id: "2", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "No Issues" },
+  { id: "3", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "No Issues" },
+  { id: "4", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "High BP" },
+  { id: "5", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "No Issues" },
+  { id: "6", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "No Issues" },
+  { id: "7", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "No Issues" },
+  { id: "8", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "No Issues" },
 ]
 
 export default function DailyLogsListView({ patientId }: DailyLogsListViewProps) {
   const router = useRouter()
   const patient = MOCK_PATIENTS.find((p) => p.id === patientId) || MOCK_PATIENTS[1]
+  const [logs, setLogs] = useState<DailyLogEntry[]>(INITIAL_LOGS)
+
+  const handleRowClick = (row: DailyLogEntry) => {
+    router.push(`/dashboard/patients/${patientId}/daily-logs/22u26guqwwtq`)
+  }
+
+  const handleLoadMore = () => {
+    const moreLogs: DailyLogEntry[] = [
+      { id: String(logs.length + 1), dateString: "Aug. 03 2026", caregiver: "Bobby Singer", flag: "No Issues" },
+      { id: String(logs.length + 2), dateString: "Aug. 03 2026", caregiver: "Bobby Singer", flag: "No Issues" },
+      { id: String(logs.length + 3), dateString: "Aug. 03 2026", caregiver: "Bobby Singer", flag: "No Issues" },
+      { id: String(logs.length + 4), dateString: "Aug. 03 2026", caregiver: "Bobby Singer", flag: "No Issues" },
+    ]
+    setLogs((prev) => [...prev, ...moreLogs])
+  }
 
   const columns: ColumnDef<DailyLogEntry>[] = [
     {
@@ -61,109 +53,49 @@ export default function DailyLogsListView({ patientId }: DailyLogsListViewProps)
       header: "Date",
       meta: { align: "left" },
       cell: ({ getValue }) => (
-        <span className="font-dm-san-medium font-semibold text-body-text text-sm">
+        <span className="text-base font-dm-san-regular font-normal text-body-text">
           {getValue() as string}
         </span>
       ),
     },
     {
-      accessorKey: "recordedBy",
-      header: "Recorded By",
+      accessorKey: "caregiver",
+      header: "Caregiver",
       meta: { align: "left" },
       cell: ({ getValue }) => (
-        <span className="text-body-text text-sm font-sans">
+        <span className="text-base font-dm-san-regular font-normal text-body-text">
           {getValue() as string}
         </span>
       ),
     },
     {
-      accessorKey: "vitals",
-      header: "Vitals Status",
+      accessorKey: "flag",
+      header: "Flags",
       meta: { align: "left" },
       cell: ({ getValue }) => {
         const val = getValue() as string
-        return (
-          <Badge
-            variant="outline"
-            className="bg-active-btn text-active-border border-active-border/20 font-sans font-medium px-4 py-0.5 rounded-full shadow-none text-xs"
-          >
-            {val}
-          </Badge>
-        )
-      },
-    },
-    {
-      accessorKey: "medications",
-      header: "Medications",
-      meta: { align: "left" },
-      cell: ({ getValue }) => (
-        <span className="text-body-text text-sm font-sans max-w-[200px] truncate block">
-          {getValue() as string}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "symptoms",
-      header: "Symptoms",
-      meta: { align: "left" },
-      cell: ({ getValue }) => {
-        const val = getValue() as string
-        if (val === "None") {
-          return (
-            <span className="text-zinc-400 text-sm font-sans italic">
-              None
-            </span>
-          )
+        let badgeColor = "bg-[#FAF0F0] text-[#C53929] border-[#F7C6C1]"
+        if (val === "No Issues") {
+          badgeColor = "bg-[#EBF3EF] text-[#2E7D32] border-[#D5E6DE]"
         }
+
         return (
-          <span className="text-zinc-900 font-semibold text-sm font-sans max-w-[220px] truncate block">
+          <span className={`inline-block border px-3.5 py-0.5 rounded-full text-xs font-normal font-dm-san-regular ${badgeColor}`}>
             {val}
           </span>
         )
       },
     },
-    {
-      accessorKey: "mood",
-      header: "Mood",
-      meta: { align: "center" },
-      cell: ({ getValue }) => {
-        const val = getValue() as string
-        let emoji = "😊"
-        let badgeClass = "bg-active-btn text-active-border border-active-border/20"
-        if (val === "Sad") {
-          emoji = "😞"
-          badgeClass = "bg-warning-btn text-warning-border border-warning-border/20"
-        } else if (val === "Neutral") {
-          emoji = "😐"
-          badgeClass = "bg-[#FDF6E2] text-pending-border border-pending-border/20"
-        }
-        return (
-          <div className="flex justify-center">
-            <Badge
-              variant="outline"
-              className={`${badgeClass} font-sans font-medium px-3.5 py-0.5 rounded-full shadow-none text-xs flex items-center gap-1`}
-            >
-              <span>{emoji}</span>
-              <span>{val}</span>
-            </Badge>
-          </div>
-        )
-      },
-    },
   ]
 
-  const handleRowClick = (row: DailyLogEntry) => {
-    router.push(`/dashboard/patients/${patientId}/daily-logs/${row.id}`)
-  }
-
   return (
-    <div className="w-full space-y-6 pb-8">
+    <div className="w-full space-y-6 pb-8 flex flex-col">
       {/* Top Header Section */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight font-sans text-zinc-900">
+        <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-body-text">
           Daily Logs
         </h1>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-zinc-500 font-sans text-sm mt-1">
+        <div className="flex flex-wrap items-center gap-2 text-[#2B2B2B] font-dm-san-regular text-sm mt-1">
           <span>{patient.name}</span>
           <span className="text-zinc-300">•</span>
           <span>ID: {10000000 + Number(patient.id)}</span>
@@ -174,13 +106,21 @@ export default function DailyLogsListView({ patientId }: DailyLogsListViewProps)
         </div>
       </div>
 
-      {/* Directory Table component */}
+      {/* Reusable Data Table Component */}
       <DataTable
         columns={columns}
-        data={MOCK_LOGS}
+        data={logs}
         onRowClick={handleRowClick}
-        pageSize={6}
+        // isPaginated={false}
       />
+
+      {/* Load More Action Button */}
+      {/* <button
+        onClick={handleLoadMore}
+        className="bg-[#E9C43F] hover:bg-[#d8b535] transition-colors text-zinc-900 font-dm-san-regular font-semibold text-sm px-6 py-3 rounded-[24px] cursor-pointer shadow-xs self-end mt-4 select-none outline-hidden"
+      >
+        Load More
+      </button> */}
     </div>
   )
 }

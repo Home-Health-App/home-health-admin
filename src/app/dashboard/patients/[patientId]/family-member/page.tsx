@@ -9,15 +9,5 @@ interface PageProps {
 export default async function FamilyMemberDetailPage({ params }: PageProps) {
   const { patientId } = await params
 
-  // Awrapper component with 1.5s artificial delay for testing loading skeleton
-  async function DelayedFamilyView() {
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    return <FamilyMemberView patientId={patientId} />
-  }
-
-  return (
-    <Suspense fallback={<PatientLoader />}>
-      <DelayedFamilyView />
-    </Suspense>
-  )
+  return <FamilyMemberView patientId={patientId} />
 }

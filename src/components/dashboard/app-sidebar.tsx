@@ -33,7 +33,7 @@ export default function AppSidebar() {
 
       {/* Sidebar Navigation Items */}
       <SidebarContent className="flex-1 px-6 py-2 flex flex-col justify-between">
-        <SidebarMenu className="">
+        <SidebarMenu className="space-y-1">
           {SIDEBAR_ITEMS.map((item) => {
             const isActive = pathname.startsWith(item.href)
             const Icon = item.icon

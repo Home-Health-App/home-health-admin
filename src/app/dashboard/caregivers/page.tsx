@@ -11,7 +11,7 @@ export default function CaregiversPage() {
 
   return (
     <Suspense fallback={<PatientLoader />}>
-      <DelayedListView />
+      <CaregiversListView />
     </Suspense>
   )
 }

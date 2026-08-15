@@ -10,6 +10,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover"
+import { Button } from "../ui/button"
 
 export interface CaregiverItem {
   id: string
@@ -49,9 +50,9 @@ export const columns: ColumnDef<CaregiverItem>[] = [
       const val = getValue() as string
       let badgeClass = ""
       if (val === "Active") {
-        badgeClass = "bg-active-btn text-active-border border-active-border/20"
+        badgeClass = "bg-active-btn text-active-border border-active-border"
       } else {
-        badgeClass = "bg-warning-btn text-warning-border border-warning-border/20"
+        badgeClass = "bg-warning-btn text-warning-border border-warning-border"
       }
       return (
         <Badge
@@ -106,20 +107,20 @@ export const columns: ColumnDef<CaregiverItem>[] = [
                 </button>
               }
             />
-            <PopoverContent className="w-fit min-w-44 p-1.5 bg-white border border-zinc-200 rounded-xl shadow-md flex flex-col gap-0.5 z-50">
+            <PopoverContent className="w-fit min-w-44 bg-white border border-zinc-200 rounded-[8px] shadow-xs flex flex-col gap-0.5 z-50">
               <Link
                 href={`/dashboard/caregivers/${caregiver.id}`}
-                className="w-full text-left text-xs font-semibold px-3 py-2 hover:bg-zinc-100 rounded-md text-body-text cursor-pointer outline-hidden font-sans block"
+                className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block"
               >
                 View Profile
               </Link>
-              <button className="w-full text-left text-xs font-semibold px-3 py-2 hover:bg-zinc-100 rounded-md text-body-text cursor-pointer outline-hidden font-sans">
+              <Button variant="ghost" className="w-full text-left text-base font-normal rounded-md px-2 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block">
                 Resend Invitation
-              </button>
-              <div className="h-px bg-zinc-100 my-1" />
-              <button className="w-full text-left text-xs font-semibold px-3 py-2 hover:bg-[#F7EEEE] hover:text-[#C43A3A] rounded-md text-error cursor-pointer outline-hidden font-sans">
+              </Button>
+              <div className="h-px bg-secondary-light my-1" />
+              <Button variant="ghost" className="w-full text-left text-sm font-normal px-2 py-1 hover:bg-warning-btn hover:text-[#C43A3A] rounded-md text-error cursor-pointer outline-hidden font-dm-san-regular block">
                 Suspend Account
-              </button>
+              </Button>
             </PopoverContent>
           </Popover>
         </div>
