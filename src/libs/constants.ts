@@ -33,11 +33,6 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
     icon: IconHeart,
   },
   {
-    title: "Assignments",
-    href: "/dashboard/assignments",
-    icon: IconArrowLeft,
-  },
-  {
     title: "Billing",
     href: "/dashboard/billing",
     icon: IconCreditCard,
