@@ -9,7 +9,7 @@ interface NotesTabProps {
 export default function NotesTab({ notes }: NotesTabProps) {
   if (notes.length === 0) {
     return (
-      <div className="py-12 text-center text-zinc-400 font-sans text-sm italic">
+      <div className="py-12 text-center text-zinc-400 font-dm-san-regular text-sm italic">
         No notes recorded at this time.
       </div>
     )
@@ -20,12 +20,12 @@ export default function NotesTab({ notes }: NotesTabProps) {
       {notes.map((note, index) => (
         <div
           key={index}
-          className="p-5 bg-[#EEF2F6]/40 border border-zinc-200/50 rounded-2xl font-sans text-sm leading-relaxed text-body-text flex flex-col gap-2"
+          className="p-6 flex items-start justify-start bg-secondary-light rounded-[8px] font-dm-san-regular text-sm leading-relaxed text-body-text gap-4"
         >
-          <span className="font-bold text-zinc-800 text-xs uppercase tracking-wider block">
+          <span className="font-bold text-zinc-800 text-sm uppercase tracking-wider block">
             Note
           </span>
-          <p>{note.text}</p>
+          <p className="text-sm text-body-text font-normal">{note.text}</p>
         </div>
       ))}
     </div>

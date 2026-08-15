@@ -2,7 +2,7 @@
 
 import React from "react"
 import Link from "next/link"
-import { IconDownload, IconChevronDown } from "@tabler/icons-react"
+import { IconDownload, IconChevronDown, IconFileDownload } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { MOCK_PATIENTS } from "../mock-data"
 
@@ -84,17 +84,17 @@ export default function AiReportsListView({ patientId }: AiReportsListViewProps)
           >
             {/* Date Range & Generated Date */}
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold font-sans text-zinc-950">
+              <h3 className="text-[22px] font-medium font-dm-san-regular text-body-text">
                 {report.dateRange}
               </h3>
-              <span className="text-xs font-medium text-zinc-400 font-sans">
+              <span className="text-xs font-medium text-body-text font-dm-san-regular">
                 {report.generatedDate}
               </span>
             </div>
 
             {/* Blurb Body */}
-            <div className="bg-[#EEF2F6]/50 border border-[#EEF2F6] rounded-xl p-5">
-              <p className="text-sm font-sans leading-relaxed text-body-text">
+            <div className="bg-secondary-light rounded-[8px] p-4">
+              <p className="text-base font-dm-san-regular font-normal leading-relaxed text-body-text">
                 {report.summary}
               </p>
             </div>
@@ -106,7 +106,7 @@ export default function AiReportsListView({ patientId }: AiReportsListViewProps)
                 render={
                   <Link href={`/dashboard/patients/${patientId}/ai-report/${report.id}`} />
                 }
-                className="rounded-full border border-[#648FCC] text-[#648FCC] hover:bg-[#648FCC]/5 font-sans font-semibold text-xs px-5 py-1.5 h-8.5 cursor-pointer outline-hidden shadow-none"
+                className="rounded-full border border-secondary-color text-secondary-color bg-white hover:text-secondary-color hover:bg-transparent font-dm-san-regular font-normal text-xs p-3 cursor-pointer outline-hidden shadow-none"
               >
                 View Report
               </Button>
@@ -114,11 +114,11 @@ export default function AiReportsListView({ patientId }: AiReportsListViewProps)
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
-                  className="rounded-full border border-[#648FCC] p-2 hover:bg-[#648FCC]/5 size-8.5 flex items-center justify-center cursor-pointer outline-hidden shadow-none"
+                  className="rounded-full border border-secondary-color p-3 hover:bg-transparent flex items-center justify-center cursor-pointer outline-hidden shadow-none"
                 >
-                  <IconDownload className="size-4.5 text-[#648FCC]" />
+                  <IconFileDownload className="size-6 text-secondary-color" />
                 </Button>
-                <Button className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-sans font-semibold text-xs px-5 py-1.5 h-8.5 cursor-pointer outline-hidden border-none shadow-none">
+                <Button className="rounded-full bg-[#1B335B] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs p-3 cursor-pointer outline-hidden border-none shadow-none">
                   Send to caregivers
                 </Button>
               </div>

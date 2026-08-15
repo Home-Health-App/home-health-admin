@@ -106,21 +106,21 @@ export const columns: ColumnDef<Patient>[] = [
                 </button>
               }
             />
-            <PopoverContent className="w-fit min-w-52 p-4 bg-white border border-zinc-200 rounded-xl shadow-md flex flex-col gap-0 z-50">
+            <PopoverContent className="w-fit min-w-44 bg-white border border-zinc-200 rounded-[8px] shadow-xs flex flex-col gap-0.5 z-50">
               <Link
                 href={`/dashboard/patients/${patient.id}`}
-                className="w-full text-left text-base font-normal rounded-md px-2 py-3 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-sans block"
+                className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block"
               >
                 View Patient Details
               </Link>
-              <button className="w-full text-left text-base font-normal rounded-md px-2 py-3 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-sans">
+              <button className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular">
                 Unassign Caregiver
               </button>
-              <button className="w-full text-left text-base font-normal rounded-md px-2 py-3 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-sans">
+              <button className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular">
                 Message Family Member
               </button>
-              <div className="h-px bg-zinc-100" />
-              <button className="w-full text-left text-sm font-normal px-2 py-3 hover:bg-warning-btn hover:text-[#C43A3A] rounded-md text-error cursor-pointer outline-hidden font-sans">
+              <div className="h-px bg-secondary-light" />
+              <button className="w-full text-left text-sm font-normal px-2 py-1 hover:bg-warning-btn hover:text-[#C43A3A] rounded-md text-error cursor-pointer outline-hidden font-dm-san-regular">
                 Archive Patient
               </button>
             </PopoverContent>
