@@ -70,16 +70,16 @@ export default function CaregiversListView() {
       {/* Top Header Section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight font-sans text-zinc-900">
+          <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-body-text">
             Caregiver Directory
           </h1>
-          <p className="text-zinc-500 font-sans mt-1 text-sm">
+          <p className="text-body-text font-dm-san-regular font-normal mt-1 text-sm">
             Manage caregiver accounts, assignments, and onboarding status.
           </p>
         </div>
 
         {/* Invite Caregiver button */}
-        <Button className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-sans font-semibold text-xs px-5 h-9.5 cursor-pointer outline-hidden border-none shadow-none self-start sm:self-auto">
+        <Button className="rounded-full bg-primary-color hover:bg-primary-color text-white font-dm-san-regular font-semibold text-sm px-6 h-9.5 cursor-pointer outline-hidden border-none shadow-none self-start sm:self-auto">
           Invite Caregiver
         </Button>
       </div>
@@ -87,31 +87,31 @@ export default function CaregiversListView() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Total Caregivers */}
-        <div className="p-5 bg-[#EEF2F6]/60 border border-zinc-200/40 rounded-2xl shadow-2xs space-y-2">
-          <span className="text-xs font-semibold text-body-text opacity-60 font-sans block">
+        <div className="p-6 bg-primary-light rounded-[8px] shadow-2xs space-y-2.5">
+          <span className="text-base font-semibold text-body-text font-dm-san-regular block">
             Total Caregivers
           </span>
-          <span className="text-3xl font-bold font-sans text-zinc-900 block">
+          <span className="text-2xl font-semibold font-dm-san-medium text-body-text block">
             {isEmpty ? 0 : 100}
           </span>
         </div>
 
         {/* Pending Invitations */}
-        <div className="p-5 bg-[#EEF2F6]/60 border border-zinc-200/40 rounded-2xl shadow-2xs space-y-2">
-          <span className="text-xs font-semibold text-body-text opacity-60 font-sans block">
+        <div className="p-6 bg-primary-light border rounded-[8px] shadow-2xs space-y-2.5">
+          <span className="text-base font-semibold text-body-text font-dm-san-regular block">
             Pending Invitations
           </span>
-          <span className="text-3xl font-bold font-sans text-zinc-900 block">
+          <span className="text-2xl font-semibold font-dm-san-medium text-body-text block">
             {isEmpty ? 0 : 15}
           </span>
         </div>
 
         {/* Suspended Accounts */}
-        <div className="p-5 bg-[#EEF2F6]/60 border border-zinc-200/40 rounded-2xl shadow-2xs space-y-2">
-          <span className="text-xs font-semibold text-body-text opacity-60 font-sans block">
+        <div className="p-6 bg-primary-light rounded-[8px] shadow-2xs space-y-2.5">
+          <span className="text-base font-semibold text-body-text font-dm-san-regular block">
             Suspended Accounts
           </span>
-          <span className="text-3xl font-bold font-sans text-zinc-900 block">
+          <span className="text-2xl font-semibold font-dm-san-medium text-body-text block">
             {isEmpty ? 0 : 4}
           </span>
         </div>
@@ -137,7 +137,7 @@ export default function CaregiversListView() {
             variant="outline"
             className="rounded-lg border border-zinc-200 bg-white font-sans font-semibold text-xs text-body-text flex items-center gap-1.5 px-4 h-9.5 shadow-none"
           >
-            <span>All Statuses</span>
+            <span>All Status</span>
             <IconChevronDown className="size-4 opacity-75 text-body-text" />
           </Button>
 
@@ -173,7 +173,7 @@ export default function CaregiversListView() {
               You have not invited any caregiver. They will appear here when you add them
             </p>
           </div>
-          <Button className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-sans font-semibold text-xs px-6 h-9.5 border-none shadow-none cursor-pointer outline-hidden">
+          <Button className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-sans font-semibold text-sm px-6 h-9.5 border-none shadow-none cursor-pointer outline-hidden">
             Invite Caregiver
           </Button>
         </div>

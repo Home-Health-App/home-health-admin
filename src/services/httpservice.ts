@@ -18,7 +18,7 @@ httpService.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // Attach token if available (client-side only)
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('access_token');
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -42,7 +42,7 @@ httpService.interceptors.response.use(
       // Handle 401 Unauthorized (e.g. token expired)
       if (status === 401) {
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('token');
+          localStorage.removeItem('access_token');
           if (window.location.pathname !== '/login') {
             window.location.href = '/login';
           }

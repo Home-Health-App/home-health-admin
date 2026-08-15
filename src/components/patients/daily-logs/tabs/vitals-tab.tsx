@@ -13,36 +13,38 @@ export default function VitalsTab({ vitals }: VitalsTabProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {vitals.map((v, index) => {
-        let badgeClass = "bg-active-btn text-active-border border-active-border/20"
+        let badgeClass = "text-active-border"
         if (v.status === "No change") {
-          badgeClass = "bg-zinc-100 text-zinc-500 border-zinc-200/30"
+          badgeClass = "text-[#6F6F6F]"
         } else if (v.status === "Mid") {
-          badgeClass = "bg-[#FDF6E2] text-pending-border border-pending-border/20"
+          badgeClass = "text-pending-border"
         } else if (v.status === "High" || v.status === "Serious") {
-          badgeClass = "bg-warning-btn text-warning-border border-warning-border/20"
+          badgeClass = "text-warning-border"
         }
         return (
           <div
             key={index}
-            className="p-4 bg-zinc-50/50 border border-zinc-200/50 rounded-2xl space-y-2.5 flex flex-col justify-between"
+            className="p-4 bg-secondary-light rounded-[8px] shadow-2xs space-y-2.5 flex flex-col justify-between"
           >
-            <span className="text-2xs font-semibold text-body-text opacity-60 font-sans block">
+            <span className="text-xs font-normal text-body-text font-dm-san-regular block">
               {v.label}
             </span>
-            <div className="space-y-1">
-              <span className="text-lg font-bold font-sans text-zinc-950 block">
-                {v.value.split(" ")[0]}
-              </span>
-              <span className="text-3xs text-zinc-500 font-sans font-semibold uppercase tracking-wider block">
-                {v.value.split(" ").slice(1).join(" ")}
-              </span>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1">
+                <span className="text-2xl font-semibold font-dm-san-regular text-body-text block">
+                  {v.value.split(" ")[0]}
+                </span>
+                <span className="text-xs text-bosy-text font-dm-san-regular font-normal tracking-wider block">
+                  {v.value.split(" ").slice(1).join(" ")}
+                </span>
+              </div>
             </div>
-            <Badge
-              variant="outline"
-              className={`${badgeClass} font-sans font-semibold px-2.5 py-0.5 rounded-full shadow-none text-3xs self-start`}
+            <span
+              // variant="secondary"
+              className={`${badgeClass} font-dm-san-regular font-bold text-xs self-start`}
             >
               {v.status}
-            </Badge>
+            </span>
           </div>
         )
       })}

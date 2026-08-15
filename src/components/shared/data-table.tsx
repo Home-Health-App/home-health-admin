@@ -84,7 +84,7 @@ export function DataTable<TData, TValue>({
                   return (
                     <TableHead
                       key={header.id}
-                      className="text-white font-dm-san-regular font-bold text-base py-4 tracking-wider first:pl-6 last:pr-6 select-none"
+                      className="text-white font-dm-san-regular font-normal text-base py-4 tracking-wider first:pl-6 last:pr-6 select-none"
                       style={{ textAlign: alignment }}
                     >
                       {header.isPlaceholder
@@ -133,7 +133,7 @@ export function DataTable<TData, TValue>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-32 text-center text-body-text opacity-60 font-sans"
+                  className="h-32 text-center text-body-text font-dm-san-regular"
                 >
                   No items found.
                 </TableCell>
@@ -147,7 +147,7 @@ export function DataTable<TData, TValue>({
       {isPaginated && totalRows > 0 && (
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mt-4">
           {/* Item counts */}
-          <span className="text-sm font-sans text-body-text opacity-70">
+          <span className="text-sm font-dm-san-regular text-body-text">
             Showing {startRow} to {endRow} of {totalRows}
           </span>
 
@@ -163,18 +163,63 @@ export function DataTable<TData, TValue>({
             </button>
 
             {/* Page number buttons */}
-            {Array.from({ length: table.getPageCount() }).map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => table.setPageIndex(idx)}
-                className={`size-8.5 flex items-center justify-center rounded-full text-xs font-bold font-sans cursor-pointer transition-colors outline-hidden ${pageIndex === idx
-                  ? "bg-[#4f73b8] text-white"
-                  : "text-body-text border border-transparent hover:bg-zinc-100"
-                  }`}
-              >
-                {idx + 1}
-              </button>
-            ))}
+            {(() => {
+              const totalPageCount = table.getPageCount()
+              const currentPage = pageIndex + 1
+
+              if (totalPageCount <= 6) {
+                return Array.from({ length: totalPageCount }).map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => table.setPageIndex(idx)}
+                    className={`size-8.5 flex items-center justify-center rounded-full text-xs font-bold font-dm-san-regular cursor-pointer transition-colors outline-hidden ${pageIndex === idx
+                      ? "bg-[#4f73b8] text-white"
+                      : "text-body-text border border-transparent hover:bg-zinc-100"
+                      }`}
+                  >
+                    {idx + 1}
+                  </button>
+                ))
+              }
+
+              // Collapsed logic
+              const pages: (number | string)[] = []
+
+              if (currentPage <= 3) {
+                pages.push(1, 2, 3, 4, "...", totalPageCount)
+              } else if (currentPage >= totalPageCount - 2) {
+                pages.push(1, "...", totalPageCount - 3, totalPageCount - 2, totalPageCount - 1, totalPageCount)
+              } else {
+                pages.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPageCount)
+              }
+
+              return pages.map((page, idx) => {
+                if (page === "...") {
+                  return (
+                    <span
+                      key={`ellipsis-${idx}`}
+                      className="size-8.5 flex items-center justify-center text-xs font-bold text-zinc-400 select-none font-dm-san-regular"
+                    >
+                      ...
+                    </span>
+                  )
+                }
+
+                const pageIdx = (page as number) - 1
+                return (
+                  <button
+                    key={`page-${page}`}
+                    onClick={() => table.setPageIndex(pageIdx)}
+                    className={`size-8.5 flex items-center justify-center rounded-full text-xs font-bold font-dm-san-regular cursor-pointer transition-colors outline-hidden ${pageIndex === pageIdx
+                      ? "bg-[#4f73b8] text-white"
+                      : "text-body-text border border-transparent hover:bg-zinc-100"
+                      }`}
+                  >
+                    {page}
+                  </button>
+                )
+              })
+            })()}
 
             {/* Next button */}
             <button

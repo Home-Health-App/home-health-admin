@@ -106,7 +106,7 @@ const LOG_DATA_BY_ID: Record<string, {
         mood: {
           emoji: "😐",
           name: "Neutral",
-          note: "Resting quietly in bed. Cooperation level has improved.",
+          note: "Resting quietly in her room. Administered mid-morning medications without issue. Vitals stable. Did not want to turn on the TV, preferred to look out the window.",
           severityClass: "border-l-yellow-500 bg-zinc-50",
         },
         notes: [],
@@ -126,8 +126,8 @@ const LOG_DATA_BY_ID: Record<string, {
         symptoms: [],
         mood: {
           emoji: "😊",
-          name: "Positive",
-          note: "Visited by Sam. Alert and conversational.",
+          name: "Happy",
+          note: "She had a wonderful afternoon in the sunroom. She participated in a knitting activity and was very talkative with me. Ate 100% of her lunch. Seemed very bright and energetic.",
           severityClass: "border-l-green-500 bg-zinc-50",
         },
         notes: [],
@@ -147,8 +147,8 @@ const LOG_DATA_BY_ID: Record<string, {
         symptoms: [],
         mood: {
           emoji: "😊",
-          name: "Positive",
-          note: "Settling in for the evening.",
+          name: "Happy",
+          note: "She had a wonderful afternoon in the sunroom. She participated in a knitting activity and was very talkative with me. Ate 100% of her lunch. Seemed very bright and energetic.",
           severityClass: "border-l-green-500 bg-zinc-50",
         },
         notes: [],
@@ -221,10 +221,10 @@ const LOG_DATA_BY_ID: Record<string, {
 
 export default function DailyLogTabsView({ patientId, logId }: DailyLogTabsViewProps) {
   const patient = MOCK_PATIENTS.find((p) => p.id === patientId) || MOCK_PATIENTS[1]
-  
+
   // Resolve active dataset based on log ID
   const activeLog = LOG_DATA_BY_ID[logId] || LOG_DATA_BY_ID["22u26guqwwtq"]
-  
+
   // Local states for times selection
   const times = Object.keys(activeLog.timesData)
   const [activeTime, setActiveTime] = useState<string>(times[0] || "08:00 AM")
@@ -233,86 +233,125 @@ export default function DailyLogTabsView({ patientId, logId }: DailyLogTabsViewP
   const resolvedTime = times.includes(activeTime) ? activeTime : times[0] || "08:00 AM"
   const currentData = activeLog.timesData[resolvedTime] || activeLog.timesData["08:00 AM"]
 
+  // Controlled tab state — needed so we can style the active trigger directly
+  // from React state (below) instead of depending on the data-[state=active]
+  // CSS selector, which can be silently overridden by the base TabsTrigger
+  // component's own default active-state classes.
+  const [activeTab, setActiveTab] = useState("vitals")
+
+  const tabTriggerClass = (tab: string) =>
+    `text-sm font-normal font-dm-san-regular px-4 py-2 rounded-[6px] border border-transparent transition-all cursor-pointer shadow-none ${activeTab === tab
+      ? "bg-[#648FCC] text-white"
+      : "bg-transparent text-[#2B2B2B] hover:bg-zinc-50/60"
+    }`
+
   return (
     <div className="w-full space-y-6 pb-12">
       {/* Top Header Section */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight font-sans text-zinc-900">
-            Daily Logs
-          </h1>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-zinc-500 font-sans text-sm mt-1">
-            <span>{patient.name}</span>
-            <span className="text-zinc-300">•</span>
-            <span>ID: {10000000 + Number(patient.id)}</span>
-            <span className="text-zinc-300">•</span>
-            <span>Registered: Aug. 5 2026</span>
-            <span className="text-zinc-300">•</span>
-            <span>Age: 66</span>
-          </div>
-        </div>
-
-        {/* Date Selector input */}
-        <div className="flex items-center gap-2.5 self-start sm:self-auto">
-          <span className="text-xs font-semibold text-body-text opacity-60 font-sans select-none">
-            Enter Date
-          </span>
-          <div className="relative">
-            <input
-              type="text"
-              readOnly
-              value={activeLog.pickerDate}
-              className="border border-zinc-300 font-sans font-semibold text-xs text-body-text px-4 py-2 rounded-lg bg-white select-none outline-hidden h-9.5"
-            />
-          </div>
+      <div>
+        <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-body-text">
+          Daily Logs
+        </h1>
+        <div className="flex flex-wrap items-center gap-2 text-[#2B2B2B] font-dm-san-regular text-sm mt-1">
+          <span>{patient.name}</span>
+          <span className="text-zinc-300">•</span>
+          <span>ID: {10000000 + Number(patient.id)}</span>
+          <span className="text-zinc-300">•</span>
+          <span>Registered: Aug. 5 2026</span>
+          <span className="text-zinc-300">•</span>
+          <span>Age: 66</span>
         </div>
       </div>
 
       {/* Tabs Layout */}
-      <Tabs defaultValue="vitals" className="w-full">
-        {/* Tabs Triggers Bar */}
-        <TabsList variant="line" className="border-b border-zinc-200/60 pb-0.5 w-full justify-start gap-6">
-          <TabsTrigger value="vitals" className="text-base font-bold font-sans px-1 pb-2">Vitals</TabsTrigger>
-          <TabsTrigger value="medication" className="text-base font-bold font-sans px-1 pb-2">Medication</TabsTrigger>
-          <TabsTrigger value="symptoms" className="text-base font-bold font-sans px-1 pb-2">Symptoms</TabsTrigger>
-          <TabsTrigger value="mood" className="text-base font-bold font-sans px-1 pb-2">Mood</TabsTrigger>
-          <TabsTrigger value="notes" className="text-base font-bold font-sans px-1 pb-2">Notes</TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="flex flex-row justify-between items-center gap-10 pb-3">
+          {/* Tabs Triggers Bar */}
+          <TabsList className="p-1.5 h-auto w-full bg-white flex justify-start items-center gap-2 border-0 rounded-[8px] shadow-none ring-0 overflow-hidden">
+            <div className="h-full flex gap-4 rounded-[8px]">
+              <TabsTrigger
+                value="vitals"
+                className={`${tabTriggerClass("vitals")} whitespace-nowrap data-active:bg-secondary-color data-active:text-white data-active:hover:bg-secondary-color data-active:hover:text-white`}
+              >
+                Vitals
+              </TabsTrigger>
+              <TabsTrigger
+                value="medication"
+                className={`${tabTriggerClass("medication")} whitespace-nowrap data-active:bg-secondary-color data-active:text-white data-active:hover:bg-secondary-color data-active:hover:text-white`}
+              >
+                Medication
+              </TabsTrigger>
+              <TabsTrigger
+                value="symptoms"
+                className={`${tabTriggerClass("symptoms")} whitespace-nowrap data-active:bg-secondary-color data-active:text-white data-active:hover:bg-secondary-color data-active:hover:text-white`}
+              >
+                Symptoms
+              </TabsTrigger>
+              <TabsTrigger
+                value="mood"
+                className={`${tabTriggerClass("mood")} whitespace-nowrap data-active:bg-secondary-color data-active:text-white data-active:hover:bg-secondary-color data-active:hover:text-white`}
+              >
+                Mood
+              </TabsTrigger>
+              <TabsTrigger
+                value="notes"
+                className={`${tabTriggerClass("notes")} whitespace-nowrap data-active:bg-secondary-color data-active:text-white data-active:hover:bg-secondary-color data-active:hover:text-white`}
+              >
+                Notes
+              </TabsTrigger>
+            </div>
+
+          </TabsList>
+
+          {/* Date Selector input */}
+          <div className="flex items-center gap-3.5 shrink-0 select-none">
+            <span className="text-sm font-normal text-body-text font-dm-san-regular whitespace-nowrap">
+              Enter Date
+            </span>
+            <div className="relative">
+              <input
+                type="text"
+                readOnly
+                value={activeLog.pickerDate}
+                className="border border-zinc-950 font-dm-san-regular font-normal text-sm text-body-text px-4 py-1.5 rounded-[12px] bg-white select-none outline-hidden h-9 w-[130px] text-center"
+              />
+            </div>
+          </div>
+        </div>
 
         {/* Outer Card Container */}
-        <div className="bg-white border border-zinc-200/50 rounded-2xl p-6 shadow-2xs mt-6 space-y-6">
-          
+        <div className="bg-white border border-zinc-200/60 rounded-[8px] p-6 shadow-2xs mt-6 space-y-6">
+
           {/* Card Sub-header: Date and Recorded By */}
-          <div className="flex justify-between items-center border-b border-zinc-100 pb-4">
+          <div className="flex justify-between items-center pb-4">
             <div className="flex items-center gap-2">
-              <IconCalendar className="size-5 text-zinc-900" />
-              <span className="font-dm-san-medium font-bold text-zinc-900 text-lg">
+              <IconCalendar className="size-5 text-body-text" />
+              <span className="text-[22px] font-dm-san-regular text-body-text font-medium">
                 {activeLog.displayDate}
               </span>
             </div>
-            <span className="text-sm font-semibold text-body-text opacity-85 font-sans">
+            <span className="text-base font-medium text-body-text font-dm-san-regular">
               Recorded by Bobby Singer
             </span>
           </div>
 
           {/* Columns Grid Layout */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
-            
+
             {/* Left Side: Time logs Selector */}
-            <div className="md:col-span-1 border border-zinc-200/60 rounded-2xl p-2 flex flex-col gap-1.5 bg-zinc-50/30">
+            <div className="md:col-span-1 border border-[#B3CBE6] rounded-[8px] p-2 flex flex-col gap-1.5 bg-white shadow-2xs">
               {times.map((t) => {
                 const isActive = resolvedTime === t
                 return (
                   <button
                     key={t}
                     onClick={() => setActiveTime(t)}
-                    className={`w-full flex items-center gap-3.5 px-4.5 py-4 rounded-xl font-dm-san-medium font-bold text-sm transition-all cursor-pointer outline-hidden ${
-                      isActive
-                        ? "bg-[#648FCC]/15 text-[#648FCC]"
-                        : "text-body-text hover:bg-zinc-100/70"
-                    }`}
+                    className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-[8px] font-dm-san-regular font-normal text-sm transition-all cursor-pointer outline-hidden ${isActive
+                        ? "bg-primary-light text-body-text shadow-xs"
+                        : "text-body-text border-transparent hover:bg-zinc-50"
+                      }`}
                   >
-                    <IconClock className={`size-4.5 ${isActive ? "text-[#648FCC]" : "text-zinc-400"}`} />
+                    <IconClock className="text-body-text size-6" />
                     <span>{t}</span>
                   </button>
                 )
@@ -321,7 +360,7 @@ export default function DailyLogTabsView({ patientId, logId }: DailyLogTabsViewP
 
             {/* Right Side: Tab Contents Panel */}
             <div className="md:col-span-3">
-              
+
               {/* Vitals Tab */}
               <TabsContent value="vitals" className="mt-0">
                 <VitalsTab vitals={currentData.vitals} />
