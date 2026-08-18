@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { columns, CaregiverItem } from "./columns"
 import { DataTable } from "@/components/shared/data-table"
+import InviteModal from "@/components/shared/invite-modal"
 
 const MOCK_CAREGIVERS: CaregiverItem[] = [
   {
@@ -52,6 +53,7 @@ const MOCK_CAREGIVERS: CaregiverItem[] = [
 
 export default function CaregiversListView() {
   const [globalFilter, setGlobalFilter] = useState<string>("")
+  const [isInviteOpen, setIsInviteOpen] = useState(false)
 
   // Filter based on search input
   const filteredData = useMemo(() => {
@@ -79,7 +81,10 @@ export default function CaregiversListView() {
         </div>
 
         {/* Invite Caregiver button */}
-        <Button className="rounded-full bg-primary-color hover:bg-primary-color text-white font-dm-san-regular font-semibold text-sm px-6 h-9.5 cursor-pointer outline-hidden border-none shadow-none self-start sm:self-auto">
+        <Button
+          onClick={() => setIsInviteOpen(true)}
+          className="rounded-full bg-primary-color hover:bg-primary-color text-white font-dm-san-regular font-semibold text-sm px-6 h-9.5 cursor-pointer outline-hidden border-none shadow-none self-start sm:self-auto"
+        >
           Invite Caregiver
         </Button>
       </div>
@@ -173,7 +178,10 @@ export default function CaregiversListView() {
               You have not invited any caregiver. They will appear here when you add them
             </p>
           </div>
-          <Button className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-sans font-semibold text-sm px-6 h-9.5 border-none shadow-none cursor-pointer outline-hidden">
+          <Button
+            onClick={() => setIsInviteOpen(true)}
+            className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-sans font-semibold text-sm px-6 h-9.5 border-none shadow-none cursor-pointer outline-hidden"
+          >
             Invite Caregiver
           </Button>
         </div>
@@ -184,6 +192,12 @@ export default function CaregiversListView() {
           pageSize={6}
         />
       )}
+
+      <InviteModal
+        open={isInviteOpen}
+        onOpenChange={setIsInviteOpen}
+        type="CARE_GIVER"
+      />
     </div>
   )
 }
