@@ -1,113 +1,39 @@
 "use client"
 
 import React, { useState } from "react"
-import PlansListView, { SubscriptionPlan } from "@/components/billing/plans-list-view"
+import PlansListView from "@/components/billing/plans-list-view"
 import PlanFormView from "@/components/billing/plan-form-view"
-
-const INITIAL_PLANS: SubscriptionPlan[] = [
-  {
-    id: 1,
-    name: "Bronze Tier Plan",
-    category: "Elderly Care",
-    staffingLevel: "Caregiver",
-    tier: "Bronze",
-    monthlyRate: 50,
-    yearlyRate: 500,
-    benefits: [
-      "Bathing & Grooming",
-      "Toilet Care & Hygiene",
-      "Vital Signs Monitoring",
-      "Feeding Assistance",
-      "Medication Management & Reminders (Non-administered)",
-      "Mobility Assistance & Fall Prevention",
-      "Companionship & Mental Stimulation",
-      "Escorting to Appointments & Social Functions",
-      "Emotional Support & Reducing Isolation",
-      "Communication Management (Phone, email, etc.)",
-    ],
-  },
-  {
-    id: 2,
-    name: "Silver Tier Plan",
-    category: "Elderly Care",
-    staffingLevel: "Caregiver",
-    tier: "Silver",
-    monthlyRate: 50,
-    yearlyRate: 500,
-    benefits: [
-      "Bathing & Grooming",
-      "Toilet Care & Hygiene",
-      "Vital Signs Monitoring",
-      "Feeding Assistance",
-      "Medication Management & Reminders (Non-administered)",
-      "Mobility Assistance & Fall Prevention",
-      "Companionship & Mental Stimulation",
-      "Escorting to Appointments & Social Functions",
-      "Emotional Support & Reducing Isolation",
-      "Communication Management (Phone, email, etc.)",
-    ],
-  },
-  {
-    id: 3,
-    name: "Gold Tier Plan",
-    category: "Elderly Care",
-    staffingLevel: "Caregiver",
-    tier: "Gold",
-    monthlyRate: 50,
-    yearlyRate: 500,
-    benefits: [
-      "Bathing & Grooming",
-      "Toilet Care & Hygiene",
-      "Vital Signs Monitoring",
-      "Feeding Assistance",
-      "Medication Management & Reminders (Non-administered)",
-      "Mobility Assistance & Fall Prevention",
-      "Companionship & Mental Stimulation",
-      "Escorting to Appointments & Social Functions",
-      "Emotional Support & Reducing Isolation",
-      "Communication Management (Phone, email, etc.)",
-    ],
-  },
-  {
-    id: 4,
-    name: "Diamond Tier Plan",
-    category: "Elderly Care",
-    staffingLevel: "Caregiver",
-    tier: "Diamond",
-    monthlyRate: 50,
-    yearlyRate: 500,
-    benefits: [
-      "Bathing & Grooming",
-      "Toilet Care & Hygiene",
-      "Vital Signs Monitoring",
-      "Feeding Assistance",
-      "Medication Management & Reminders (Non-administered)",
-      "Mobility Assistance & Fall Prevention",
-      "Companionship & Mental Stimulation",
-      "Escorting to Appointments & Social Functions",
-      "Emotional Support & Reducing Isolation",
-      "Communication Management (Phone, email, etc.)",
-    ],
-  },
-]
+import {
+  useGetAllPlans,
+  useCreatePlan,
+  useUpdatePlan,
+  useDeletePlan,
+} from "@/hooks/billing.hook"
+import { CreatePlanType } from "@/types/billing.type"
 
 export default function ManagePlansPage() {
-  const [plans, setPlans] = useState<SubscriptionPlan[]>(INITIAL_PLANS)
+  const { data: plansData, isPending: isLoadingPlans } = useGetAllPlans()
+  const { mutate: createPlan } = useCreatePlan()
+  const { mutate: updatePlan } = useUpdatePlan()
+  const { mutate: deletePlan } = useDeletePlan()
+
   const [view, setView] = useState<"list" | "create" | "edit">("list")
-  const [editingPlanId, setEditingPlanId] = useState<number | null>(null)
+  const [editingPlanId, setEditingPlanId] = useState<string | null>(null)
 
   const handleCreatePlan = () => {
     setEditingPlanId(null)
     setView("create")
   }
 
-  const handleEditPlan = (id: number) => {
+  const handleEditPlan = (id: string) => {
     setEditingPlanId(id)
     setView("edit")
   }
 
-  const handleDeletePlan = (id: number) => {
-    setPlans((prev) => prev.filter((p) => p.id !== id))
+  const handleDeletePlan = (id: string) => {
+    if (confirm("Are you sure you want to delete this subscription plan?")) {
+      deletePlan(id)
+    }
   }
 
   const handleCancelForm = () => {
@@ -115,25 +41,42 @@ export default function ManagePlansPage() {
     setEditingPlanId(null)
   }
 
-  const handleSavePlan = (planData: Omit<SubscriptionPlan, "id"> & { id?: number }) => {
-    if (view === "edit" && planData.id !== undefined) {
-      setPlans((prev) =>
-        prev.map((p) => (p.id === planData.id ? (planData as SubscriptionPlan) : p))
+  const handleSavePlan = (planData: CreatePlanType & { id?: string }) => {
+    if (view === "edit" && planData.id) {
+      updatePlan(
+        { id: planData.id, payload: planData },
+        {
+          onSuccess: () => {
+            setView("list")
+            setEditingPlanId(null)
+          },
+        }
       )
     } else {
-      const newPlan: SubscriptionPlan = {
-        ...planData,
-        id: plans.length > 0 ? Math.max(...plans.map((p) => p.id)) + 1 : 1,
-      }
-      setPlans((prev) => [...prev, newPlan])
+      createPlan(planData, {
+        onSuccess: () => {
+          setView("list")
+          setEditingPlanId(null)
+        },
+      })
     }
-    setView("list")
-    setEditingPlanId(null)
   }
 
+  const plans = plansData?.data || []
   const planToEdit = editingPlanId
     ? plans.find((p) => p.id === editingPlanId) || null
     : null
+
+  if (isLoadingPlans) {
+    return (
+      <div className="w-full h-80 flex flex-col items-center justify-center space-y-3">
+        <div className="size-8 rounded-full border-4 border-zinc-200 border-t-[#0B1E3F] animate-spin" />
+        <p className="text-sm font-normal text-zinc-500 font-dm-san-regular">
+          Loading subscription plans...
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="w-full">

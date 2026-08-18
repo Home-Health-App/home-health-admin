@@ -3,33 +3,22 @@
 import React, { useState, useMemo } from "react"
 import { IconPlus, IconTrash, IconMessageOff } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-
-export interface SubscriptionPlan {
-  id: number
-  name: string
-  category: string
-  staffingLevel: string
-  tier: "Bronze" | "Silver" | "Gold" | "Diamond"
-  monthlyRate: number
-  yearlyRate: number
-  benefits: string[]
-}
+import { PlanType, PlanCategory } from "@/types/billing.type"
 
 interface PlansListViewProps {
-  plans: SubscriptionPlan[]
+  plans: PlanType[]
   onCreatePlan: () => void
-  onEditPlan: (id: number) => void
-  onDeletePlan: (id: number) => void
+  onEditPlan: (id: string) => void
+  onDeletePlan: (id: string) => void
 }
 
-const CATEGORIES = [
-  "Elderly Care",
-  "Special Health Conditions",
-  "Pediatric (Special Needs)",
-  "Post-surgery Recovery",
-  "Pre & Post Natal Care",
-]
+const CATEGORIES_UI = [
+  { key: "Elderly_Care", label: "Elderly Care" },
+  { key: "Special_Health_Condition", label: "Special Health Condition" },
+  { key: "Pediatric_Care", label: "Pediatric (Special Needs)" },
+  { key: "Post_surgery_Recovery_Care", label: "Post-surgery Recovery" },
+  { key: "Pre_Post_Natal_Care", label: "Pre & Post Natal Care" },
+] as const
 
 const TIER_COLORS = {
   Bronze: "text-[#A16207]",
@@ -44,8 +33,7 @@ export default function PlansListView({
   onEditPlan,
   onDeletePlan,
 }: PlansListViewProps) {
-  const [activeCategory, setActiveCategory] = useState("Elderly Care")
-  const [rateType, setRateType] = useState<"Monthly" | "Yearly">("Monthly")
+  const [activeCategory, setActiveCategory] = useState<PlanCategory>("Elderly_Care")
 
   // Filter plans based on the active tab category
   const filteredPlans = useMemo(() => {
@@ -73,41 +61,27 @@ export default function PlansListView({
         </Button>
       </div>
 
-      {/* Navigation Category Tabs and Rate Type Switcher */}
+      {/* Navigation Category Tabs */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-2">
         <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map((cat) => {
-            const isActive = activeCategory === cat
+          {CATEGORIES_UI.map((cat) => {
+            const isActive = activeCategory === cat.key
             return (
               <button
-                key={cat}
+                key={cat.key}
                 type="button"
-                onClick={() => setActiveCategory(cat)}
+                onClick={() => setActiveCategory(cat.key)}
                 className={`px-4 py-1.5 rounded-[6px] text-xs font-dm-san-regular transition-all cursor-pointer select-none ${
                   isActive
                     ? "bg-[#648FCC] text-white font-normal shadow-xs"
                     : "text-body-text hover:text-zinc-800 bg-transparent"
                 }`}
               >
-                {cat}
+                {cat.label}
               </button>
             )
           })}
         </div>
-
-        {filteredPlans.length > 0 && (
-          <div className="self-end md:self-auto">
-            <Select value={rateType} onValueChange={(val) => setRateType(val as "Monthly" | "Yearly")}>
-              <SelectTrigger className="h-9.5 rounded-lg border border-zinc-200 bg-white font-dm-san-regular text-xs font-normal text-body-text focus:ring-0 w-[120px] shadow-none">
-                <SelectValue placeholder="Billing cycle" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem className="font-dm-san-regular font-normal text-xs" value="Monthly">Monthly</SelectItem>
-                <SelectItem className="font-dm-san-regular font-normal text-xs" value="Yearly">Yearly</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
       </div>
 
       {/* Main Content Area */}
@@ -116,8 +90,6 @@ export default function PlansListView({
           <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-zinc-200">
             {filteredPlans.map((plan) => {
               const tierColor = TIER_COLORS[plan.tier] || "text-body-text"
-              const rate = rateType === "Monthly" ? plan.monthlyRate : plan.yearlyRate
-              const rateSuffix = rateType === "Monthly" ? "/month" : "/year"
 
               return (
                 <div key={plan.id} className="p-6 flex flex-col justify-between min-h-[500px]">
@@ -127,22 +99,27 @@ export default function PlansListView({
                       <h3 className={`text-base font-semibold font-dm-san-regular ${tierColor}`}>
                         {plan.tier} Tier
                       </h3>
-                      <div className="mt-2.5 flex items-baseline">
-                        <span className="text-3xl font-semibold font-dm-san-regular text-body-text">
-                          ${rate}
-                        </span>
-                        <span className="text-xs font-normal font-dm-san-regular text-zinc-400 ml-1">
-                          {rateSuffix}
+                      <div className="mt-2.5 flex flex-col gap-0.5">
+                        <div className="flex items-baseline">
+                          <span className="text-3xl font-semibold font-dm-san-regular text-body-text">
+                            ${plan.price_in_usd}
+                          </span>
+                          <span className="text-xs font-normal font-dm-san-regular text-zinc-400 ml-1">
+                            /month
+                          </span>
+                        </div>
+                        <span className="text-xs font-normal font-dm-san-regular text-zinc-500">
+                          ₦{plan.price.toLocaleString()} NGN
                         </span>
                       </div>
-                      <p className="text-xs font-normal font-dm-san-regular text-zinc-400 mt-1">
-                        {plan.staffingLevel}
+                      <p className="text-xs font-normal font-dm-san-regular text-body-text font-semibold mt-2.5">
+                        {plan.name}
                       </p>
                     </div>
 
                     {/* Benefits Checklist */}
                     <ul className="space-y-3 pt-3">
-                      {plan.benefits.map((benefit, idx) => (
+                      {plan.coverage.map((benefit, idx) => (
                         <li key={idx} className="flex items-start text-xs font-normal font-dm-san-regular text-body-text leading-relaxed">
                           <svg
                             className="size-4 shrink-0 stroke-[2.5] stroke-zinc-800 mr-2 mt-0.5"
