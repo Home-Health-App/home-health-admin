@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState } from "react"
 import { IconPlus } from "@tabler/icons-react"
 import {
   ResponsiveContainer,
@@ -24,8 +24,12 @@ import {
 } from "@/components/ui/select"
 import { CONTENT_STATE_DATA } from "./mock-data"
 import { Button } from "../ui/button"
+import InviteModal from "@/components/shared/invite-modal"
 
 export default function HomeView() {
+  const [isInviteOpen, setIsInviteOpen] = useState(false)
+  const [inviteType, setInviteType] = useState<"USER" | "CARE_GIVER">("USER")
+
   // To test empty states, you can swap CONTENT_STATE_DATA with EMPTY_STATE_DATA
   const data = CONTENT_STATE_DATA
 
@@ -194,13 +198,25 @@ export default function HomeView() {
             </h2>
             <div className="space-y-4">
               {/* Invite Family Member */}
-              <Button className="w-full flex items-center justify-start gap-3 pl-4 bg-pending-border hover:bg-pending-border/75 text-primary-color h-14.5 rounded-[8px] border-2 border-dashed border-primary-color transition-all outline-none cursor-pointer">
+              <Button
+                onClick={() => {
+                  setInviteType("USER")
+                  setIsInviteOpen(true)
+                }}
+                className="w-full flex items-center justify-start gap-3 pl-4 bg-pending-border hover:bg-pending-border/75 text-primary-color h-14.5 rounded-[8px] border-2 border-dashed border-primary-color transition-all outline-none cursor-pointer"
+              >
                 <IconPlus className="size-5" />
                 <span className="font-semibold font-dm-san-regular text-sm tracking-wider">Invite Family Member</span>
               </Button>
 
               {/* Invite Caregiver */}
-              <Button className="w-full flex items-center justify-start gap-3 pl-4 bg-pending-btn hover:bg-pending-btn text-body-text font-semibold h-14.5 rounded-[8px] border-2 border-dashed border-primary-color transition-all outline-none cursor-pointer">
+              <Button
+                onClick={() => {
+                  setInviteType("CARE_GIVER")
+                  setIsInviteOpen(true)
+                }}
+                className="w-full flex items-center justify-start gap-3 pl-4 bg-pending-btn hover:bg-pending-btn text-body-text font-semibold h-14.5 rounded-[8px] border-2 border-dashed border-primary-color transition-all outline-none cursor-pointer"
+              >
                 <IconPlus className="size-5 text-body-text" />
                 <span className="font-semibold font-dm-san-regular text-sm tracking-wider">Invite Caregiver</span>
               </Button>
@@ -353,6 +369,12 @@ export default function HomeView() {
           )}
         </Card>
       </div>
+
+      <InviteModal
+        open={isInviteOpen}
+        onOpenChange={setIsInviteOpen}
+        type={inviteType}
+      />
     </div>
   )
 }

@@ -4,23 +4,25 @@ import React, { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import { SubscriptionPlan } from "./plans-list-view"
+import { PlanType, CreatePlanType, PlanCategory, PlanTier } from "@/types/billing.type"
 
 interface PlanFormViewProps {
-  planToEdit?: SubscriptionPlan | null
-  onSave: (plan: Omit<SubscriptionPlan, "id"> & { id?: number }) => void
+  planToEdit?: PlanType | null
+  onSave: (plan: CreatePlanType & { id?: string }) => void
   onCancel: () => void
 }
 
-const CATEGORIES = [
-  "Elderly Care",
-  "Special Health Conditions",
-  "Pediatric (Special Needs)",
-  "Post-surgery Recovery",
-  "Pre & Post Natal Care",
-]
+const CATEGORY_MAP: Record<PlanCategory, string> = {
+  Elderly_Care: "Elderly Care",
+  Special_Health_Condition: "Special Health Condition",
+  Pediatric_Care: "Pediatric (Special Needs)",
+  Post_surgery_Recovery_Care: "Post-surgery Recovery",
+  Pre_Post_Natal_Care: "Pre & Post Natal Care",
+}
 
-const TIERS: SubscriptionPlan["tier"][] = ["Bronze", "Silver", "Gold", "Diamond"]
+const CATEGORY_KEYS = Object.keys(CATEGORY_MAP) as PlanCategory[]
+
+const TIERS: PlanTier[] = ["Bronze", "Silver", "Gold", "Diamond"]
 
 export default function PlanFormView({
   planToEdit,
@@ -28,55 +30,49 @@ export default function PlanFormView({
   onCancel,
 }: PlanFormViewProps) {
   const [name, setName] = useState("")
-  const [category, setCategory] = useState("Elderly Care")
-  const [staffingLevel, setStaffingLevel] = useState("Caregiver")
-  const [tier, setTier] = useState<SubscriptionPlan["tier"]>("Bronze")
-  const [monthlyRate, setMonthlyRate] = useState("50")
-  const [yearlyRate, setYearlyRate] = useState("500")
+  const [category, setCategory] = useState<PlanCategory>("Elderly_Care")
+  const [tier, setTier] = useState<PlanTier>("Bronze")
+  const [price, setPrice] = useState("50000")
+  const [priceInUsd, setPriceInUsd] = useState("50")
   
-  // Benefits checklist state
-  const [benefits, setBenefits] = useState<string[]>([])
-  const [newBenefit, setNewBenefit] = useState("")
+  // Coverage checklist state
+  const [coverage, setCoverage] = useState<string[]>([])
+  const [newCoverageItem, setNewCoverageItem] = useState("")
 
   // Load existing plan details if editing
   useEffect(() => {
     if (planToEdit) {
       setName(planToEdit.name)
       setCategory(planToEdit.category)
-      setStaffingLevel(planToEdit.staffingLevel)
       setTier(planToEdit.tier)
-      setMonthlyRate(planToEdit.monthlyRate.toString())
-      setYearlyRate(planToEdit.yearlyRate.toString())
-      setBenefits(planToEdit.benefits)
+      setPrice(planToEdit.price.toString())
+      setPriceInUsd(planToEdit.price_in_usd.toString())
+      setCoverage(planToEdit.coverage)
     } else {
       setName("")
-      setCategory("Elderly Care")
-      setStaffingLevel("Caregiver")
+      setCategory("Elderly_Care")
       setTier("Bronze")
-      setMonthlyRate("50")
-      setYearlyRate("500")
-      setBenefits([
-        "Bathing & Grooming",
-        "Toilet Care & Hygiene",
-        "Vital Signs Monitoring",
-        "Feeding Assistance",
-        "Medication Management & Reminders (Non-administered)",
-        "Mobility Assistance & Fall Prevention",
+      setPrice("50000")
+      setPriceInUsd("50")
+      setCoverage([
+        "Weekly doctor visit",
+        "24/7 Nurse support",
+        "Vital signs monitoring",
       ])
     }
   }, [planToEdit])
 
-  const handleAddBenefit = (e: React.FormEvent) => {
+  const handleAddCoverageItem = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newBenefit.trim()) return
-    if (!benefits.includes(newBenefit.trim())) {
-      setBenefits((prev) => [...prev, newBenefit.trim()])
+    if (!newCoverageItem.trim()) return
+    if (!coverage.includes(newCoverageItem.trim())) {
+      setCoverage((prev) => [...prev, newCoverageItem.trim()])
     }
-    setNewBenefit("")
+    setNewCoverageItem("")
   }
 
-  const handleRemoveBenefit = (idx: number) => {
-    setBenefits((prev) => prev.filter((_, i) => i !== idx))
+  const handleRemoveCoverageItem = (idx: number) => {
+    setCoverage((prev) => prev.filter((_, i) => i !== idx))
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -85,11 +81,10 @@ export default function PlanFormView({
       id: planToEdit?.id,
       name: name.trim() || `${tier} Tier Plan`,
       category,
-      staffingLevel: staffingLevel.trim() || "Caregiver",
       tier,
-      monthlyRate: parseFloat(monthlyRate) || 0,
-      yearlyRate: parseFloat(yearlyRate) || 0,
-      benefits,
+      price: parseFloat(price) || 0,
+      price_in_usd: parseFloat(priceInUsd) || 0,
+      coverage,
     })
   }
 
@@ -135,33 +130,19 @@ export default function PlanFormView({
               <label className="text-sm font-normal text-body-text">
                 Category
               </label>
-              <Select value={category} onValueChange={(val) => setCategory(val!)}>
+              <Select value={category} onValueChange={(val) => setCategory(val as PlanCategory)}>
                 <SelectTrigger className="h-11 rounded-[8px] border border-zinc-300 bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-full shadow-none">
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
                 <SelectContent className="max-h-60 overflow-y-auto">
-                  {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} className="font-dm-san-regular font-normal text-sm" value={cat}>
-                      {cat}
+                  {CATEGORY_KEYS.map((catKey) => (
+                    <SelectItem key={catKey} className="font-dm-san-regular font-normal text-sm" value={catKey}>
+                      {CATEGORY_MAP[catKey]}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          {/* Staffing Level */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-normal text-body-text">
-              Staffing Level
-            </label>
-            <Input
-              type="text"
-              placeholder="Staffing Level"
-              value={staffingLevel}
-              onChange={(e) => setStaffingLevel(e.target.value)}
-              className="h-11 px-4 rounded-[8px] border border-zinc-300 font-dm-san-regular text-sm font-normal focus-visible:border-zinc-400 focus-visible:ring-0 shadow-none bg-white w-full text-body-text"
-            />
           </div>
         </div>
 
@@ -216,24 +197,24 @@ export default function PlanFormView({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="space-y-1.5">
               <label className="text-sm font-normal text-body-text">
-                Monthly Rate (USD)
+                Base Price (NGN)
               </label>
               <Input
                 type="number"
-                value={monthlyRate}
-                onChange={(e) => setMonthlyRate(e.target.value)}
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
                 className="h-11 px-4 rounded-[8px] border border-zinc-300 font-dm-san-regular text-sm font-normal focus-visible:border-zinc-400 focus-visible:ring-0 shadow-none bg-white w-full text-body-text"
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-sm font-normal text-body-text">
-                Yearly Rate (USD)
+                Price (USD)
               </label>
               <Input
                 type="number"
-                value={yearlyRate}
-                onChange={(e) => setYearlyRate(e.target.value)}
+                value={priceInUsd}
+                onChange={(e) => setPriceInUsd(e.target.value)}
                 className="h-11 px-4 rounded-[8px] border border-zinc-300 font-dm-san-regular text-sm font-normal focus-visible:border-zinc-400 focus-visible:ring-0 shadow-none bg-white w-full text-body-text"
               />
             </div>
@@ -255,19 +236,19 @@ export default function PlanFormView({
               <Input
                 type="text"
                 placeholder="Coverage description"
-                value={newBenefit}
-                onChange={(e) => setNewBenefit(e.target.value)}
+                value={newCoverageItem}
+                onChange={(e) => setNewCoverageItem(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault()
-                    handleAddBenefit(e)
+                    handleAddCoverageItem(e)
                   }
                 }}
                 className="h-11 px-4 rounded-[8px] border border-zinc-300 font-dm-san-regular text-sm font-normal focus-visible:border-zinc-400 focus-visible:ring-0 shadow-none bg-white flex-1 text-body-text placeholder:text-zinc-400"
               />
               <button
                 type="button"
-                onClick={handleAddBenefit}
+                onClick={handleAddCoverageItem}
                 className="rounded-full border border-[#648FCC] bg-white font-dm-san-regular font-semibold text-xs text-[#648FCC] hover:bg-[#648FCC]/10 px-8 h-11 cursor-pointer transition-colors outline-hidden shadow-none flex items-center justify-center"
               >
                 Add
@@ -277,7 +258,7 @@ export default function PlanFormView({
 
           {/* Checklist with check icon and remove handlers */}
           <div className="space-y-3 pt-2">
-            {benefits.map((benefit, idx) => (
+            {coverage.map((benefit, idx) => (
               <div
                 key={idx}
                 className="flex items-center justify-between text-sm font-dm-san-regular font-normal text-body-text group"
@@ -299,7 +280,7 @@ export default function PlanFormView({
 
                 <button
                   type="button"
-                  onClick={() => handleRemoveBenefit(idx)}
+                  onClick={() => handleRemoveCoverageItem(idx)}
                   className="text-red-500 hover:text-red-600 font-normal text-xs transition-colors cursor-pointer"
                 >
                   Remove
@@ -307,7 +288,7 @@ export default function PlanFormView({
               </div>
             ))}
 
-            {benefits.length === 0 && (
+            {coverage.length === 0 && (
               <p className="text-sm font-normal text-zinc-400 italic pt-2">
                 No benefits added. Add at least one benefit to this plan.
               </p>
