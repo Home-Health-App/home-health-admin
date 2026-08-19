@@ -6,69 +6,73 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
+import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import { useLoginAdmin, useVerifyOtpAdmin } from "@/hooks/auth.hook"
+import { useForm } from "@/hooks/use-form"
+import { loginSchema, verifyOtpSchema } from "@/schemas/auth.schema"
 import { useSetAtom } from "jotai"
 import { authAtom } from "@/states/auth.atom"
+import { Controller } from "react-hook-form"
 
 export default function LoginPage() {
   const router = useRouter()
   const setAuth = useSetAtom(authAtom)
   const [step, setStep] = useState<"email" | "otp">("email")
-  const [email, setEmail] = useState("")
-  const [emailFocused, setEmailFocused] = useState(false)
-  const [otp, setOtp] = useState("")
 
   const loginMutation = useLoginAdmin()
   const otpMutation = useVerifyOtpAdmin()
 
-  // Email validation regex helper
-  const isEmailValid = (val: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
-  }
+  // Focus states for input styling
+  const [emailFocused, setEmailFocused] = useState(false)
+
+  // Hooks for form management
+  const emailForm = useForm({
+    schema: loginSchema,
+    defaultValues: { email: "" },
+  })
+
+  const otpForm = useForm({
+    schema: verifyOtpSchema,
+    defaultValues: { email: "", code: "" },
+  })
 
   // Handle email submit
-  const handleEmailSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (isEmailValid(email)) {
-      loginMutation.mutate(
-        { email },
-        {
-          onSuccess: () => {
-            setStep("otp")
-          },
-        }
-      )
-    }
-  }
+  const handleEmailSubmit = emailForm.handleSubmit((values) => {
+    loginMutation.mutate(
+      { email: values.email },
+      {
+        onSuccess: () => {
+          otpForm.setValue("email", values.email)
+          setStep("otp")
+        },
+      }
+    )
+  })
 
   // Handle OTP form submission
-  const handleOtpSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (otp.length === 6) {
-      otpMutation.mutate(
-        { email, code: otp },
-        {
-          onSuccess: (res) => {
-            if (res.data) {
-              setAuth(res.data)
-              if (res.data.access_token) {
-                localStorage.setItem("access_token", res.data.access_token)
-              }
+  const handleOtpSubmit = otpForm.handleSubmit((values) => {
+    otpMutation.mutate(
+      { email: values.email, code: values.code },
+      {
+        onSuccess: (res) => {
+          if (res.data) {
+            setAuth(res.data)
+            if (res.data.access_token) {
+              localStorage.setItem("access_token", res.data.access_token)
             }
-            router.push("/dashboard/home")
-          },
-        }
-      )
-    }
-  }
+          }
+          router.push("/dashboard/home")
+        },
+      }
+    )
+  })
 
-  // Is OTP fully filled
-  const isOtpComplete = otp.length === 6
+  const enteredEmail = otpForm.getValues("email")
 
   return (
     <div className="relative min-h-screen w-full flex flex-col justify-center items-center bg-[#F1F4F9] overflow-hidden select-none">
 
-      {/* Background Stylized Waves (Matching Image Mockup Curves) */}
+      {/* Background Stylized Waves */}
       <div className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center">
         <img
           src="/auth-bg.png"
@@ -103,38 +107,42 @@ export default function LoginPage() {
 
               <CardContent className="p-0 space-y-6">
                 {/* Email Input Field */}
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-zinc-500 font-dm-san-regular block">
+                <Field>
+                  <FieldLabel className="text-xs font-semibold text-zinc-500 font-dm-san-regular block">
                     Email
-                  </label>
+                  </FieldLabel>
                   <Input
                     type="email"
                     placeholder="janedoe@gmail.com"
-                    value={email}
                     disabled={loginMutation.isPending}
-                    onChange={(e) => setEmail(e.target.value)}
+                    {...emailForm.register("email")}
                     onFocus={() => setEmailFocused(true)}
                     onBlur={() => setEmailFocused(false)}
-                    className={`w-full h-11 px-3 rounded-[8px] border border-[#D6D6D6] font-dm-san-regular text-sm focus-visible:ring-0 outline-hidden transition-all placeholder:text-zinc-400 bg-secondary-light ${emailFocused
-                        ? "border-[#D6D6D6] text-body-text"
+                    className={`w-full !h-12 px-3 rounded-[8px] border font-dm-san-regular text-sm focus-visible:ring-0 outline-hidden transition-all placeholder:text-zinc-400 bg-secondary-light ${
+                      emailForm.formState.errors.email
+                        ? "border-error text-body-text"
+                        : emailFocused
+                        ? "border-primary-color text-body-text"
                         : "border-zinc-200 text-body-text"
-                      }`}
+                    }`}
                   />
-                  {loginMutation.error && (
+                  <FieldError errors={[emailForm.formState.errors.email]} />
+                  {loginMutation.error && !emailForm.formState.errors.email && (
                     <p className="text-xs text-red-500 font-dm-san-regular mt-1.5">
                       {loginMutation.error.response?.data?.message || loginMutation.error.message || "Failed to send verification code."}
                     </p>
                   )}
-                </div>
+                </Field>
 
                 {/* Submit Button */}
                 <Button
                   type="submit"
-                  disabled={!isEmailValid(email) || loginMutation.isPending}
-                  className={`w-full h-11 rounded-full font-dm-san-regular font-semibold tracking-wide text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center gap-2 ${isEmailValid(email) && !loginMutation.isPending
+                  disabled={!emailForm.formState.isValid || loginMutation.isPending}
+                  className={`w-full !h-12 rounded-full font-dm-san-regular font-semibold tracking-wide text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center gap-2 ${
+                    emailForm.formState.isValid && !loginMutation.isPending
                       ? "bg-[#0B1E3F] hover:bg-[#1B335B] text-white"
                       : "bg-primary-light text-body-text pointer-events-none"
-                    }`}
+                  }`}
                 >
                   {loginMutation.isPending ? (
                     <div className="size-4.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -155,31 +163,38 @@ export default function LoginPage() {
                 <CardDescription className="max-w-[320px] font-dm-san-regular text-xs font-normal leading-5 text-zinc-500">
                   We've sent a 6-digit verification code to{" "}
                   <span className="font-semibold text-zinc-700">
-                    {email}
+                    {enteredEmail}
                   </span>
                   . Enter the code below to log in.
                 </CardDescription>
               </CardHeader>
 
               <CardContent className="p-0 w-full flex flex-col items-center space-y-6">
-                {/* 6 OTP Input Boxes using shadcn InputOTP */}
-                <div className="flex justify-center py-2">
-                  <InputOTP
-                    maxLength={6}
-                    value={otp}
-                    onChange={(val) => setOtp(val)}
-                    disabled={otpMutation.isPending}
-                  >
-                    <InputOTPGroup className="gap-2">
-                      <InputOTPSlot index={0} className="w-11 h-11 border border-zinc-200 rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-[#0B1E3F] data-[active=true]:ring-0" />
-                      <InputOTPSlot index={1} className="w-11 h-11 border border-zinc-200 rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-[#0B1E3F] data-[active=true]:ring-0" />
-                      <InputOTPSlot index={2} className="w-11 h-11 border border-zinc-200 rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-[#0B1E3F] data-[active=true]:ring-0" />
-                      <InputOTPSlot index={3} className="w-11 h-11 border border-zinc-200 rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-[#0B1E3F] data-[active=true]:ring-0" />
-                      <InputOTPSlot index={4} className="w-11 h-11 border border-zinc-200 rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-[#0B1E3F] data-[active=true]:ring-0" />
-                      <InputOTPSlot index={5} className="w-11 h-11 border border-zinc-200 rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-[#0B1E3F] data-[active=true]:ring-0" />
-                    </InputOTPGroup>
-                  </InputOTP>
-                </div>
+                {/* 6 OTP Input Boxes */}
+                <Field className="flex flex-col items-center justify-center py-2 gap-2">
+                  <Controller
+                    name="code"
+                    control={otpForm.control}
+                    render={({ field }) => (
+                      <InputOTP
+                        maxLength={6}
+                        value={field.value}
+                        onChange={field.onChange}
+                        disabled={otpMutation.isPending}
+                      >
+                        <InputOTPGroup className="gap-2">
+                          <InputOTPSlot index={0} className="w-12 !h-12 border border-primary-color rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-primary-color data-[active=true]:ring-0" />
+                          <InputOTPSlot index={1} className="w-12 !h-12 border border-primary-color rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-primary-color data-[active=true]:ring-0" />
+                          <InputOTPSlot index={2} className="w-12 !h-12 border border-primary-color rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-primary-color data-[active=true]:ring-0" />
+                          <InputOTPSlot index={3} className="w-12 !h-12 border border-primary-color rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-primary-color data-[active=true]:ring-0" />
+                          <InputOTPSlot index={4} className="w-12 !h-12 border border-primary-color rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-primary-color data-[active=true]:ring-0" />
+                          <InputOTPSlot index={5} className="w-12 !h-12 border border-primary-color rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-primary-color data-[active=true]:ring-0" />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    )}
+                  />
+                  <FieldError errors={[otpForm.formState.errors.code]} />
+                </Field>
 
                 {otpMutation.error && (
                   <p className="text-xs text-red-500 font-dm-san-regular text-center">
@@ -193,7 +208,7 @@ export default function LoginPage() {
                     type="button"
                     disabled={otpMutation.isPending}
                     onClick={() => {
-                      setOtp("")
+                      otpForm.reset()
                       setStep("email")
                     }}
                     className="text-sm font-semibold text-primary-color hover:underline cursor-pointer font-dm-san-regular disabled:opacity-50"
@@ -205,11 +220,12 @@ export default function LoginPage() {
                 {/* Log In Button */}
                 <Button
                   type="submit"
-                  disabled={!isOtpComplete || otpMutation.isPending}
-                  className={`w-full h-11 rounded-full font-dm-san-regular font-semibold text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center gap-2 ${isOtpComplete && !otpMutation.isPending
+                  disabled={!otpForm.formState.isValid || otpMutation.isPending}
+                  className={`w-full !h-12 rounded-full font-dm-san-regular font-semibold text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center gap-2 ${
+                    otpForm.formState.isValid && !otpMutation.isPending
                       ? "bg-[#0B1E3F] hover:bg-[#1B335B] text-white"
                       : "bg-[#D1E0F3] text-[#7A98C2] opacity-70 pointer-events-none"
-                    }`}
+                  }`}
                 >
                   {otpMutation.isPending ? (
                     <div className="size-4.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -222,6 +238,7 @@ export default function LoginPage() {
           )}
 
         </Card>
+
       </div>
     </div>
   )

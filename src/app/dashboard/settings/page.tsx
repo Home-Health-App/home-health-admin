@@ -2,7 +2,7 @@
 
 import React from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import AccountProfileTab from "@/components/settings/account-profile-tab"
+import AccountProfileForm from "@/components/forms/account-profile-form"
 import NotificationsTab from "@/components/settings/notifications-tab"
 import AdminUsersTab from "@/components/settings/admin-users-tab"
 import AdminRolesTab from "@/components/settings/admin-roles-tab"
@@ -55,7 +55,7 @@ export default function SettingsPage() {
         <div className="flex-1 w-full bg-white border border-zinc-200/60 rounded-[8px] p-8 shadow-2xs min-h-100">
           {/* Account Profile Content */}
           <TabsContent value="profile" className="mt-0 outline-hidden">
-            <AccountProfileTab />
+            <AccountProfileForm />
           </TabsContent>
 
           {/* Notifications Preferences Content */}

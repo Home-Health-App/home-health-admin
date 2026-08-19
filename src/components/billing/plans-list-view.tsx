@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react"
 import { IconPlus, IconTrash, IconMessageOff } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { PlanType, PlanCategory } from "@/types/billing.type"
+import { cn } from "@/libs/utils"
 
 interface PlansListViewProps {
   plans: PlanType[]
@@ -25,6 +26,13 @@ const TIER_COLORS = {
   Silver: "text-zinc-500",
   Gold: "text-yellow-600",
   Diamond: "text-cyan-600",
+}
+
+const TIER_BORDER_COLORS = {
+  Bronze: "border-[#A16207]",
+  Silver: "border-zinc-500",
+  Gold: "border-yellow-600",
+  Diamond: "border-cyan-600",
 }
 
 export default function PlansListView({
@@ -63,7 +71,7 @@ export default function PlansListView({
 
       {/* Navigation Category Tabs */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-2">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 bg-white">
           {CATEGORIES_UI.map((cat) => {
             const isActive = activeCategory === cat.key
             return (
@@ -86,13 +94,14 @@ export default function PlansListView({
 
       {/* Main Content Area */}
       {filteredPlans.length > 0 ? (
-        <div className="border border-zinc-200/60 rounded-[8px] overflow-hidden bg-white shadow-2xs">
-          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-zinc-200">
+        <div className="overflow-hidden shadow-2xs">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {filteredPlans.map((plan) => {
               const tierColor = TIER_COLORS[plan.tier] || "text-body-text"
+              const tierBorderColor = TIER_BORDER_COLORS[plan.tier] || "border-zinc-200"
 
               return (
-                <div key={plan.id} className="p-6 flex flex-col justify-between min-h-[500px]">
+                <div key={plan.id} className={cn("p-6 flex flex-col justify-between min-h-125 bg-white rounded-[8px] border-l-2", tierBorderColor)}>
                   <div className="space-y-4">
                     {/* Header Tier Title */}
                     <div>
@@ -139,7 +148,7 @@ export default function PlansListView({
                   </div>
 
                   {/* Card Footer Actions */}
-                  <div className="flex items-center justify-between border-t border-zinc-100 pt-5 mt-6">
+                  <div className="flex items-center justify-between pt-5 mt-6">
                     <button
                       onClick={() => onDeletePlan(plan.id)}
                       className="p-1.5 hover:bg-red-50 rounded-[6px] outline-hidden cursor-pointer text-red-500 hover:text-red-600 transition-colors"
