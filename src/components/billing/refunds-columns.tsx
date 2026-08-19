@@ -1,17 +1,19 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { IconDots } from "@tabler/icons-react"
+import React from "react"
 import { RefundItem } from "./refunds-list-view"
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover"
 
 interface ColumnsProps {
   onSelectRefund: (patientName: string) => void
-  activeDropdown: string | null
-  setActiveDropdown: (id: string | null) => void
 }
 
 export const getRefundsColumns = ({
   onSelectRefund,
-  activeDropdown,
-  setActiveDropdown,
 }: ColumnsProps): ColumnDef<RefundItem>[] => [
   {
     accessorKey: "patient",
@@ -74,43 +76,24 @@ export const getRefundsColumns = ({
     meta: { align: "left" },
     cell: ({ row }) => {
       const refund = row.original
-      const isDropdownOpen = activeDropdown === refund.id
       return (
-        <div className="relative">
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              setActiveDropdown(isDropdownOpen ? null : refund.id)
-            }}
-            className="p-1 hover:bg-zinc-100 rounded-[6px] outline-hidden cursor-pointer transition-colors"
-          >
+        <Popover>
+          <PopoverTrigger className="p-1 hover:bg-zinc-100 rounded-[6px] outline-hidden cursor-pointer transition-colors flex items-center justify-center">
             <IconDots className="size-5 text-zinc-400" />
-          </button>
-
-          {isDropdownOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-40"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setActiveDropdown(null)
-                }}
-              />
-              <div className="absolute right-6 top-10 w-[170px] bg-white border border-zinc-200 rounded-[8px] shadow-lg py-2.5 z-50 flex flex-col font-dm-san-regular text-sm font-normal select-none">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onSelectRefund(refund.patient)
-                    setActiveDropdown(null)
-                  }}
-                  className="px-4 py-2 text-left hover:bg-zinc-50 text-body-text w-full cursor-pointer outline-hidden"
-                >
-                  View Details
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+          </PopoverTrigger>
+          <PopoverContent
+            align="end"
+            sideOffset={4}
+            className="w-[170px] bg-white border border-zinc-200 rounded-[8px] shadow-lg py-2.5 z-50 flex flex-col font-dm-san-regular text-sm font-normal select-none gap-0"
+          >
+            <button
+              onClick={() => onSelectRefund(refund.patient)}
+              className="px-4 py-2 text-left hover:bg-zinc-50 text-body-text w-full cursor-pointer outline-hidden"
+            >
+              View Details
+            </button>
+          </PopoverContent>
+        </Popover>
       )
     },
   },

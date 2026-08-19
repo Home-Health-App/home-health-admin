@@ -61,7 +61,6 @@ export default function RefundsListView({
   const [timeframe, setTimeframe] = useState("30 Days")
   const [status, setStatus] = useState("All Statuses")
   const [refundType, setRefundType] = useState("All Refund Types")
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
 
   const filteredRefunds = useMemo(() => {
     return MOCK_REFUNDS.filter((item) => {
@@ -74,10 +73,8 @@ export default function RefundsListView({
   const columns = useMemo(() => {
     return getRefundsColumns({
       onSelectRefund,
-      activeDropdown,
-      setActiveDropdown,
     })
-  }, [onSelectRefund, activeDropdown])
+  }, [onSelectRefund])
 
   return (
     <div className="w-full space-y-6 pb-12 select-none">
@@ -96,7 +93,7 @@ export default function RefundsListView({
         <div className="flex items-center gap-3">
           {/* Timeframe */}
           <Select value={timeframe} onValueChange={(val) => setTimeframe(val!)}>
-            <SelectTrigger className="h-9.5 rounded-lg border border-zinc-200 bg-white font-dm-san-regular text-xs font-normal text-body-text focus:ring-0 w-[110px] shadow-none">
+            <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
               <SelectValue placeholder="Period" />
             </SelectTrigger>
             <SelectContent>
@@ -107,7 +104,7 @@ export default function RefundsListView({
 
           {/* Status */}
           <Select value={status} onValueChange={(val) => setStatus(val!)}>
-            <SelectTrigger className="h-9.5 rounded-lg border border-zinc-200 bg-white font-dm-san-regular text-xs font-normal text-body-text focus:ring-0 w-[120px] shadow-none">
+            <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
               <SelectValue placeholder="Statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -120,7 +117,7 @@ export default function RefundsListView({
 
           {/* Refund Type */}
           <Select value={refundType} onValueChange={(val) => setRefundType(val!)}>
-            <SelectTrigger className="h-9.5 rounded-lg border border-zinc-200 bg-white font-dm-san-regular text-xs font-normal text-body-text focus:ring-0 w-[160px] shadow-none">
+            <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
               <SelectValue placeholder="Refund Types" />
             </SelectTrigger>
             <SelectContent>
