@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { DataTable } from "@/components/shared/data-table"
 import { getBillingColumns } from "./columns"
+import { useRouter } from "next/navigation"
+import InviteModal from "@/components/shared/invite-modal"
 
 export interface BillingItem {
   id: string
@@ -19,80 +21,84 @@ export interface BillingItem {
 interface BillingOverviewProps {
   onSelectPatient: (patientName: string) => void
   onManagePlans: () => void
+  billingItems?: BillingItem[]
 }
 
 const MOCK_BILLING: BillingItem[] = [
-  {
-    id: "12345678",
-    patient: "Dean Winchester",
-    category: "Elderly Care",
-    tier: "Bronze",
-    status: "Active",
-    renewalDate: "Aug. 5 2026",
-  },
-  {
-    id: "87654321",
-    patient: "John Winchester",
-    category: "Special Health",
-    tier: "Diamond",
-    status: "Active",
-    renewalDate: "Aug. 5 2026",
-  },
-  {
-    id: "11223344",
-    patient: "Mary Winchester",
-    category: "Pediatric",
-    tier: "Gold",
-    status: "Grace Period",
-    renewalDate: "Aug. 5 2026",
-  },
-  {
-    id: "55667788",
-    patient: "Jody Mills",
-    category: "Post-surgery",
-    tier: "Silver",
-    status: "Active",
-    renewalDate: "Aug. 5 2026",
-  },
-  {
-    id: "99001122",
-    patient: "Bubby Mane",
-    category: "Pre & Post Natal",
-    tier: "Diamond",
-    status: "Expired",
-    renewalDate: "Aug. 5 2026",
-  },
+  // {
+  //   id: "12345678",
+  //   patient: "Dean Winchester",
+  //   category: "Elderly Care",
+  //   tier: "Bronze",
+  //   status: "Active",
+  //   renewalDate: "Aug. 5 2026",
+  // },
+  // {
+  //   id: "87654321",
+  //   patient: "John Winchester",
+  //   category: "Special Health",
+  //   tier: "Diamond",
+  //   status: "Active",
+  //   renewalDate: "Aug. 5 2026",
+  // },
+  // {
+  //   id: "11223344",
+  //   patient: "Mary Winchester",
+  //   category: "Pediatric",
+  //   tier: "Gold",
+  //   status: "Grace Period",
+  //   renewalDate: "Aug. 5 2026",
+  // },
+  // {
+  //   id: "55667788",
+  //   patient: "Jody Mills",
+  //   category: "Post-surgery",
+  //   tier: "Silver",
+  //   status: "Active",
+  //   renewalDate: "Aug. 5 2026",
+  // },
+  // {
+  //   id: "99001122",
+  //   patient: "Bubby Mane",
+  //   category: "Pre & Post Natal",
+  //   tier: "Diamond",
+  //   status: "Expired",
+  //   renewalDate: "Aug. 5 2026",
+  // },
 ]
 
 export default function BillingOverview({
   onSelectPatient,
   onManagePlans,
+  billingItems = MOCK_BILLING,
 }: BillingOverviewProps) {
   const [timeframe, setTimeframe] = useState("30 Days")
   const [selectedTier, setSelectedTier] = useState("All Tiers")
   const [selectedCategory, setSelectedCategory] = useState("All Categories")
   const [selectedStatus, setSelectedStatus] = useState("All Statuses")
-  
-  // Custom switch to simulate empty dashboard
-  const [isEmptyState, setIsEmptyState] = useState(false)
+
+  const router = useRouter()
+  const [isInviteOpen, setIsInviteOpen] = useState(false)
+
+  const isEmpty = billingItems.length === 0
 
   // Filter list
   const filteredBilling = useMemo(() => {
-    if (isEmptyState) return []
-    return MOCK_BILLING.filter((item) => {
+    if (isEmpty) return []
+    return billingItems.filter((item) => {
       const matchesTier = selectedTier === "All Tiers" || item.tier === selectedTier
       const matchesCategory = selectedCategory === "All Categories" || item.category.toLowerCase().includes(selectedCategory.toLowerCase().replace(" care", "").split(" ")[0])
       const matchesStatus = selectedStatus === "All Statuses" || item.status === selectedStatus
       return matchesTier && matchesCategory && matchesStatus
     })
-  }, [isEmptyState, selectedTier, selectedCategory, selectedStatus])
+  }, [billingItems, isEmpty, selectedTier, selectedCategory, selectedStatus])
 
   const columns = useMemo(() => {
     return getBillingColumns({ onSelectPatient })
   }, [onSelectPatient])
 
   const handleInviteFamily = () => {
-    alert("Invite Family Member clicked")
+    setIsInviteOpen(true)
   }
 
   return (
@@ -110,17 +116,8 @@ export default function BillingOverview({
         </div>
 
         <div className="flex items-center gap-3 self-start sm:self-center">
-          {/* Debug simulation toggle */}
-          <button
-            type="button"
-            onClick={() => setIsEmptyState((p) => !p)}
-            className="text-2xs border border-zinc-200 bg-white hover:bg-zinc-50 font-dm-san-regular text-zinc-500 rounded-lg px-3 py-1 cursor-pointer"
-          >
-            {isEmptyState ? "Show Data" : "Simulate Empty"}
-          </button>
-
           <Button
-            onClick={onManagePlans}
+            onClick={() => router.push("/dashboard/billing/manage-plans")}
             className="flex h-9.5 items-center gap-1.5 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] px-5 text-xs font-semibold font-dm-san-regular text-white transition-colors cursor-pointer border-none shadow-none outline-hidden"
           >
             Manage Subscription plans
@@ -147,7 +144,7 @@ export default function BillingOverview({
             </Select>
           </div>
           <div className="text-2xl font-bold font-dm-san-regular text-body-text mt-3">
-            {isEmptyState ? "$0" : "$42,500"}
+            {isEmpty ? "$0" : "$42,500"}
           </div>
         </div>
 
@@ -169,7 +166,7 @@ export default function BillingOverview({
           </div>
           <div className="flex items-center justify-between mt-3">
             <span className="text-2xl font-bold font-dm-san-regular text-body-text">
-              {isEmptyState ? "$0" : "$350"}
+              {isEmpty ? "$0" : "$350"}
             </span>
             <IconChevronRight className="size-5 text-zinc-400" />
           </div>
@@ -185,7 +182,7 @@ export default function BillingOverview({
           <div className="grid grid-cols-3 divide-x divide-zinc-200/80 text-center mt-3 pt-1">
             <div>
               <div className="text-lg font-bold font-dm-san-regular text-body-text">
-                {isEmptyState ? "0" : "1000"}
+                {isEmpty ? "0" : "1000"}
               </div>
               <span className="text-3xs font-normal font-dm-san-regular text-zinc-400">
                 Active
@@ -193,7 +190,7 @@ export default function BillingOverview({
             </div>
             <div>
               <div className="text-lg font-bold font-dm-san-regular text-[#C93B3B]">
-                {isEmptyState ? "0" : "6"}
+                {isEmpty ? "0" : "6"}
               </div>
               <span className="text-3xs font-normal font-dm-san-regular text-zinc-400">
                 Expired
@@ -201,7 +198,7 @@ export default function BillingOverview({
             </div>
             <div>
               <div className="text-lg font-bold font-dm-san-regular text-body-text">
-                {isEmptyState ? "0" : "12"}
+                {isEmpty ? "0" : "12"}
               </div>
               <span className="text-3xs font-normal font-dm-san-regular text-zinc-400">
                 Grace Period
@@ -212,7 +209,7 @@ export default function BillingOverview({
       </div>
 
       {/* Main Billing Table Pane */}
-      {!isEmptyState ? (
+      {!isEmpty ? (
         <div className="space-y-4">
           {/* Filters Bar */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-3">
@@ -305,6 +302,12 @@ export default function BillingOverview({
           </Button>
         </div>
       )}
+
+      <InviteModal
+        open={isInviteOpen}
+        onOpenChange={setIsInviteOpen}
+        type="USER"
+      />
     </div>
   )
 }
