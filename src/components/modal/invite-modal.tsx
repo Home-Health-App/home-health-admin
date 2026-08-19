@@ -9,8 +9,12 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import { useSendInvitation } from "@/hooks/invitation.hook"
+import { useForm } from "@/hooks/use-form"
 import { IconCheck, IconX } from "@tabler/icons-react"
+import { z } from "zod/v4"
+import { cn } from "@/libs/utils"
 
 interface InviteModalProps {
   open: boolean
@@ -20,61 +24,51 @@ interface InviteModalProps {
 
 type ModalView = "form" | "success" | "failure"
 
+const inviteFormSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
+})
+
 export default function InviteModal({
   open,
   onOpenChange,
   type,
 }: InviteModalProps) {
   const [view, setView] = useState<ModalView>("form")
-  const [firstName, setFirstName] = useState("")
-  const [lastName, setLastName] = useState("")
-  const [email, setEmail] = useState("")
-  const [emailError, setEmailError] = useState("")
 
   const { mutate: sendInvite, isPending } = useSendInvitation()
+
+  // Form Hook
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors, isValid },
+  } = useForm({
+    schema: inviteFormSchema,
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+    },
+  })
+
+  // Watch names for dynamic success/failure cards
+  const watchedValues = watch()
 
   // Reset state when modal opens/closes
   useEffect(() => {
     if (open) {
       setView("form")
-      setFirstName("")
-      setLastName("")
-      setEmail("")
-      setEmailError("")
+      reset()
     }
-  }, [open])
+  }, [open, reset])
 
-  // Simple email validation helper
-  const validateEmail = (val: string) => {
-    if (!val) {
-      return "Email is required"
-    }
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!regex.test(val)) {
-      return "Please enter a valid email address"
-    }
-    return ""
-  }
-
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value
-    setEmail(val)
-    if (emailError) {
-      setEmailError(validateEmail(val))
-    }
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    const err = validateEmail(email)
-    if (err) {
-      setEmailError(err)
-      return
-    }
-
+  const onSubmit = handleSubmit((values) => {
     sendInvite(
-      { email: email.trim(), type },
+      { email: values.email.trim(), type },
       {
         onSuccess: () => {
           setView("success")
@@ -84,14 +78,14 @@ export default function InviteModal({
         },
       }
     )
-  }
+  })
 
   const appName = type === "USER" ? "family member app" : "caregiver app"
-  const fullName = `${firstName.trim()} ${lastName.trim()}` || email
+  const fullName = `${(watchedValues.firstName || "").trim()} ${(watchedValues.lastName || "").trim()}`.trim() || watchedValues.email
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[420px] p-6 rounded-2xl gap-0 outline-hidden border-none shadow-xl bg-white select-none">
+      <DialogContent className="max-w-[420px] p-6 rounded-[8px] gap-0 outline-hidden border-none shadow-xl bg-white select-none">
         
         {/* Form View */}
         {view === "form" && (
@@ -102,55 +96,50 @@ export default function InviteModal({
               </DialogTitle>
             </DialogHeader>
 
-            <form onSubmit={handleSubmit} className="space-y-5 font-dm-san-regular">
+            <form onSubmit={onSubmit} className="space-y-5 font-dm-san-regular">
               <div className="grid grid-cols-2 gap-4">
                 {/* First Name */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-body-text">
+                <Field>
+                  <FieldLabel className="text-xs font-semibold text-body-text">
                     First Name
-                  </label>
+                  </FieldLabel>
                   <Input
                     type="text"
                     placeholder="Jane"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="h-11 px-4 rounded-[8px] border border-zinc-200 font-dm-san-regular text-sm font-normal focus-visible:border-zinc-300 focus-visible:ring-0 shadow-none bg-zinc-50 w-full text-body-text placeholder:text-zinc-400"
+                    {...register("firstName")}
+                    className={cn("!h-12 px-4 rounded-[8px] border font-dm-san-regular text-sm font-normal focus-visible:border-primary-color focus-visible:ring-0 shadow-none bg-zinc-50 w-full text-body-text placeholder:text-zinc-400 focus:outline-hidden", errors.firstName ? "border-error" : "border-zinc-200")}
                   />
-                </div>
+                  <FieldError errors={[errors.firstName]} />
+                </Field>
 
                 {/* Last Name */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-body-text">
+                <Field>
+                  <FieldLabel className="text-xs font-semibold text-body-text">
                     Last Name
-                  </label>
+                  </FieldLabel>
                   <Input
                     type="text"
                     placeholder="Doe"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="h-11 px-4 rounded-[8px] border border-zinc-200 font-dm-san-regular text-sm font-normal focus-visible:border-zinc-300 focus-visible:ring-0 shadow-none bg-zinc-50 w-full text-body-text placeholder:text-zinc-400"
+                    {...register("lastName")}
+                    className={cn("!h-12 px-4 rounded-[8px] border font-dm-san-regular text-sm font-normal focus-visible:border-primary-color focus-visible:ring-0 shadow-none bg-zinc-50 w-full text-body-text placeholder:text-zinc-400 focus:outline-hidden", errors.lastName ? "border-error" : "border-zinc-200")}
                   />
-                </div>
+                  <FieldError errors={[errors.lastName]} />
+                </Field>
               </div>
 
               {/* Email */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-body-text">
+              <Field>
+                <FieldLabel className="text-xs font-semibold text-body-text">
                   Email
-                </label>
+                </FieldLabel>
                 <Input
                   type="email"
                   placeholder="somiigwe@gmail.com"
-                  value={email}
-                  onChange={handleEmailChange}
-                  onBlur={() => setEmailError(validateEmail(email))}
-                  className="h-11 px-4 rounded-[8px] border border-zinc-200 font-dm-san-regular text-sm font-normal focus-visible:border-zinc-300 focus-visible:ring-0 shadow-none bg-zinc-50 w-full text-body-text placeholder:text-zinc-400"
-                  aria-invalid={!!emailError}
+                  {...register("email")}
+                  className={cn("!h-12 px-4 rounded-[8px] border font-dm-san-regular text-sm font-normal focus-visible:border-primary-color focus-visible:ring-0 shadow-none bg-zinc-50 w-full text-body-text placeholder:text-zinc-400 focus:outline-hidden", errors.email ? "border-error" : "border-zinc-200")}
                 />
-                {emailError && (
-                  <p className="text-xs text-red-500 font-normal mt-1">{emailError}</p>
-                )}
-              </div>
+                <FieldError errors={[errors.email]} />
+              </Field>
 
               {/* Actions */}
               <div className="flex items-center gap-3 pt-3">
@@ -159,15 +148,15 @@ export default function InviteModal({
                   variant="outline"
                   onClick={() => onOpenChange(false)}
                   disabled={isPending}
-                  className="flex-1 rounded-full border border-[#648FCC] bg-white font-dm-san-regular font-semibold text-xs text-[#648FCC] hover:bg-[#648FCC]/10 h-11 cursor-pointer transition-colors shadow-none"
+                  className="flex-1 rounded-full border border-[#648FCC] bg-white font-dm-san-regular font-semibold text-xs text-[#648FCC] hover:bg-[#648FCC]/10 h-12 cursor-pointer transition-colors shadow-none"
                 >
                   Cancel
                 </Button>
 
                 <Button
                   type="submit"
-                  disabled={isPending || !email || !!emailError}
-                  className="flex-1 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs h-11 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:bg-[#D0DFE7] disabled:text-white disabled:opacity-100 disabled:cursor-not-allowed"
+                  disabled={isPending || !isValid}
+                  className="flex-1 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:bg-[#D0DFE7] disabled:text-white disabled:opacity-100 disabled:cursor-not-allowed"
                 >
                   {isPending ? "Sending..." : "Send Invitation Link"}
                 </Button>
@@ -193,10 +182,10 @@ export default function InviteModal({
               </p>
             </div>
 
-            <Button
+             <Button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="w-full rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs h-11 border-none shadow-none cursor-pointer outline-hidden transition-colors mt-2"
+              className="w-full rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors mt-2"
             >
               Close
             </Button>
@@ -223,7 +212,7 @@ export default function InviteModal({
             <Button
               type="button"
               onClick={() => setView("form")}
-              className="w-full rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs h-11 border-none shadow-none cursor-pointer outline-hidden transition-colors mt-2"
+              className="w-full rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors mt-2"
             >
               Try Again
             </Button>

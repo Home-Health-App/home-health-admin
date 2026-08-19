@@ -185,7 +185,7 @@ export default function AuditLogsView() {
         <div className="flex items-center gap-3 self-end md:self-auto">
           {/* Timeframe Select */}
           <Select value={timeframe} onValueChange={(val) => setTimeframe(val!)}>
-            <SelectTrigger className="h-10 rounded-lg border border-zinc-200 bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[120px] shadow-none">
+            <SelectTrigger className="h-10! rounded-[8px] border border-body-text bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[120px] shadow-none">
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
             <SelectContent>
@@ -199,7 +199,7 @@ export default function AuditLogsView() {
 
           {/* Event Type Select */}
           <Select value={eventType} onValueChange={(val) => setEventType(val!)}>
-            <SelectTrigger className="h-10 rounded-lg border border-zinc-200 bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[150px] shadow-none">
+            <SelectTrigger className="h-10! rounded-[8px] border border-body-text bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[150px] shadow-none">
               <SelectValue placeholder="Event Type" />
             </SelectTrigger>
             <SelectContent>
@@ -215,7 +215,7 @@ export default function AuditLogsView() {
 
           {/* User Role Select */}
           <Select value={userRole} onValueChange={(val) => setUserRole(val!)}>
-            <SelectTrigger className="h-10 rounded-lg border border-zinc-200 bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[150px] shadow-none">
+            <SelectTrigger className="h-10! rounded-[8px] border border-body-text bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[150px] shadow-none">
               <SelectValue placeholder="User Role" />
             </SelectTrigger>
             <SelectContent>
