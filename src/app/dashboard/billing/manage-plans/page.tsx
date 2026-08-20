@@ -2,7 +2,7 @@
 
 import React, { useState } from "react"
 import PlansListView from "@/components/billing/plans-list-view"
-import PlanFormView from "@/components/billing/plan-form-view"
+import PlanForm from "@/components/forms/plan-form"
 import {
   useGetAllPlans,
   useCreatePlan,
@@ -90,7 +90,7 @@ export default function ManagePlansPage() {
       )}
 
       {(view === "create" || view === "edit") && (
-        <PlanFormView
+        <PlanForm
           planToEdit={planToEdit}
           onSave={handleSavePlan}
           onCancel={handleCancelForm}

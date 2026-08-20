@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select"
 import { CONTENT_STATE_DATA } from "./mock-data"
 import { Button } from "../ui/button"
-import InviteModal from "@/components/shared/invite-modal"
+import InviteModal from "@/components/modal/invite-modal"
 
 export default function HomeView() {
   const [isInviteOpen, setIsInviteOpen] = useState(false)

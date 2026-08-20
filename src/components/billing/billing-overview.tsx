@@ -7,7 +7,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { DataTable } from "@/components/shared/data-table"
 import { getBillingColumns } from "./columns"
 import { useRouter } from "next/navigation"
-import InviteModal from "@/components/shared/invite-modal"
+import InviteModal from "@/components/modal/invite-modal"
+import Link from "next/link"
 
 export interface BillingItem {
   id: string
@@ -25,51 +26,50 @@ interface BillingOverviewProps {
 }
 
 const MOCK_BILLING: BillingItem[] = [
-  // {
-  //   id: "12345678",
-  //   patient: "Dean Winchester",
-  //   category: "Elderly Care",
-  //   tier: "Bronze",
-  //   status: "Active",
-  //   renewalDate: "Aug. 5 2026",
-  // },
-  // {
-  //   id: "87654321",
-  //   patient: "John Winchester",
-  //   category: "Special Health",
-  //   tier: "Diamond",
-  //   status: "Active",
-  //   renewalDate: "Aug. 5 2026",
-  // },
-  // {
-  //   id: "11223344",
-  //   patient: "Mary Winchester",
-  //   category: "Pediatric",
-  //   tier: "Gold",
-  //   status: "Grace Period",
-  //   renewalDate: "Aug. 5 2026",
-  // },
-  // {
-  //   id: "55667788",
-  //   patient: "Jody Mills",
-  //   category: "Post-surgery",
-  //   tier: "Silver",
-  //   status: "Active",
-  //   renewalDate: "Aug. 5 2026",
-  // },
-  // {
-  //   id: "99001122",
-  //   patient: "Bubby Mane",
-  //   category: "Pre & Post Natal",
-  //   tier: "Diamond",
-  //   status: "Expired",
-  //   renewalDate: "Aug. 5 2026",
-  // },
+  {
+    id: "12345678",
+    patient: "Dean Winchester",
+    category: "Elderly Care",
+    tier: "Bronze",
+    status: "Active",
+    renewalDate: "Aug. 5 2026",
+  },
+  {
+    id: "87654321",
+    patient: "John Winchester",
+    category: "Special Health",
+    tier: "Diamond",
+    status: "Active",
+    renewalDate: "Aug. 5 2026",
+  },
+  {
+    id: "11223344",
+    patient: "Mary Winchester",
+    category: "Pediatric",
+    tier: "Gold",
+    status: "Grace Period",
+    renewalDate: "Aug. 5 2026",
+  },
+  {
+    id: "55667788",
+    patient: "Jody Mills",
+    category: "Post-surgery",
+    tier: "Silver",
+    status: "Active",
+    renewalDate: "Aug. 5 2026",
+  },
+  {
+    id: "99001122",
+    patient: "Bubby Mane",
+    category: "Pre & Post Natal",
+    tier: "Diamond",
+    status: "Expired",
+    renewalDate: "Aug. 5 2026",
+  },
 ]
 
 export default function BillingOverview({
   onSelectPatient,
-  onManagePlans,
   billingItems = MOCK_BILLING,
 }: BillingOverviewProps) {
   const [timeframe, setTimeframe] = useState("30 Days")
@@ -103,7 +103,7 @@ export default function BillingOverview({
 
   return (
     <div className="w-full space-y-6 pb-12 select-none">
-      
+
       {/* Top Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -128,13 +128,13 @@ export default function BillingOverview({
       {/* Overview Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Card 1: Revenue */}
-        <div className="bg-[#648FCC]/10 border border-zinc-200/50 rounded-[8px] p-6 shadow-3xs flex flex-col justify-between min-h-[120px]">
+        <div className="bg-primary-light border border-zinc-200/50 rounded-[8px] p-4 shadow-3xs flex flex-col justify-between min-h-30">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold font-dm-san-regular text-body-text">
+            <span className="text-base font-semibold font-dm-san-regular text-body-text">
               Revenue
             </span>
             <Select value={timeframe} onValueChange={(val) => setTimeframe(val!)}>
-              <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text border border-zinc-300 rounded-[6px] bg-white w-20 shadow-none focus:ring-0">
+              <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
                 <SelectValue placeholder="Period" />
               </SelectTrigger>
               <SelectContent>
@@ -149,13 +149,13 @@ export default function BillingOverview({
         </div>
 
         {/* Card 2: Refunds */}
-        <div className="bg-[#648FCC]/10 border border-zinc-200/50 rounded-[8px] p-6 shadow-3xs flex flex-col justify-between min-h-[120px]">
+        <div className="bg-primary-light border border-border-light rounded-[8px] p-4 shadow-3xs flex flex-col justify-between min-h-30">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold font-dm-san-regular text-body-text">
+            <span className="text-base font-semibold font-dm-san-regular text-body-text">
               Refunds
             </span>
             <Select value={timeframe} onValueChange={(val) => setTimeframe(val!)}>
-              <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text border border-zinc-300 rounded-[6px] bg-white w-20 shadow-none focus:ring-0">
+              <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
                 <SelectValue placeholder="Period" />
               </SelectTrigger>
               <SelectContent>
@@ -168,39 +168,41 @@ export default function BillingOverview({
             <span className="text-2xl font-bold font-dm-san-regular text-body-text">
               {isEmpty ? "$0" : "$350"}
             </span>
-            <IconChevronRight className="size-5 text-zinc-400" />
+            <Link href={"/dashboard/billing/refund"}>
+              <IconChevronRight className="size-5 text-body-text" />
+            </Link>
           </div>
         </div>
 
         {/* Card 3: Billing Health */}
-        <div className="bg-[#648FCC]/10 border border-zinc-200/50 rounded-[8px] p-6 shadow-3xs flex flex-col justify-between min-h-[120px]">
+        <div className="bg-primary-light border border-border-light rounded-[8px] p-4 shadow-3xs flex flex-col justify-between min-h-30">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold font-dm-san-regular text-body-text">
+            <span className="text-base font-semibold font-dm-san-regular text-body-text">
               Billing Health
             </span>
           </div>
-          <div className="grid grid-cols-3 divide-x divide-zinc-200/80 text-center mt-3 pt-1">
-            <div>
-              <div className="text-lg font-bold font-dm-san-regular text-body-text">
+          <div className="grid grid-cols-3 text-start mt-3 pt-1">
+            <div className="space-y-1.5">
+              <div className="text-2xl font-semibold font-dm-san-regular text-body-text">
                 {isEmpty ? "0" : "1000"}
               </div>
-              <span className="text-3xs font-normal font-dm-san-regular text-zinc-400">
+              <span className="text-sm font-normal font-dm-san-regular text-body-text">
                 Active
               </span>
             </div>
-            <div>
-              <div className="text-lg font-bold font-dm-san-regular text-[#C93B3B]">
+            <div className="space-y-1.5">
+              <div className="text-2xl font-semibold font-dm-san-regular text-error">
                 {isEmpty ? "0" : "6"}
               </div>
-              <span className="text-3xs font-normal font-dm-san-regular text-zinc-400">
+              <span className="text-sm font-normal font-dm-san-regular text-error">
                 Expired
               </span>
             </div>
-            <div>
-              <div className="text-lg font-bold font-dm-san-regular text-body-text">
+            <div className="space-y-1.5">
+              <div className="text-2xl font-semibold font-dm-san-regular text-body-text">
                 {isEmpty ? "0" : "12"}
               </div>
-              <span className="text-3xs font-normal font-dm-san-regular text-zinc-400">
+              <span className="text-sm font-normal font-dm-san-regular text-body-text">
                 Grace Period
               </span>
             </div>
@@ -220,7 +222,7 @@ export default function BillingOverview({
             <div className="flex items-center gap-3 self-end md:self-auto">
               {/* Timeframe Select */}
               <Select value={timeframe} onValueChange={(val) => setTimeframe(val!)}>
-                <SelectTrigger className="h-9.5 rounded-lg border border-zinc-200 bg-white font-dm-san-regular text-xs font-normal text-body-text focus:ring-0 w-[110px] shadow-none">
+                <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
                   <SelectValue placeholder="Period" />
                 </SelectTrigger>
                 <SelectContent>
@@ -231,7 +233,7 @@ export default function BillingOverview({
 
               {/* Tiers Select */}
               <Select value={selectedTier} onValueChange={(val) => setSelectedTier(val!)}>
-                <SelectTrigger className="h-9.5 rounded-lg border border-zinc-200 bg-white font-dm-san-regular text-xs font-normal text-body-text focus:ring-0 w-[110px] shadow-none">
+                <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
                   <SelectValue placeholder="Tiers" />
                 </SelectTrigger>
                 <SelectContent>
@@ -245,7 +247,7 @@ export default function BillingOverview({
 
               {/* Categories Select */}
               <Select value={selectedCategory} onValueChange={(val) => setSelectedCategory(val!)}>
-                <SelectTrigger className="h-9.5 rounded-lg border border-zinc-200 bg-white font-dm-san-regular text-xs font-normal text-body-text focus:ring-0 w-[140px] shadow-none">
+                <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
                   <SelectValue placeholder="Categories" />
                 </SelectTrigger>
                 <SelectContent>
@@ -260,7 +262,7 @@ export default function BillingOverview({
 
               {/* Status Select */}
               <Select value={selectedStatus} onValueChange={(val) => setSelectedStatus(val!)}>
-                <SelectTrigger className="h-9.5 rounded-lg border border-zinc-200 bg-white font-dm-san-regular text-xs font-normal text-body-text focus:ring-0 w-[120px] shadow-none">
+                <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
                   <SelectValue placeholder="Statuses" />
                 </SelectTrigger>
                 <SelectContent>
