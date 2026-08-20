@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { columns, CaregiverItem } from "./columns"
 import { DataTable } from "@/components/shared/data-table"
-import InviteModal from "@/components/shared/invite-modal"
+import InviteModal from "@/components/modal/invite-modal"
 
 const MOCK_CAREGIVERS: CaregiverItem[] = [
   {
