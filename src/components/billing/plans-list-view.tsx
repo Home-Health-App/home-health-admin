@@ -3,6 +3,8 @@
 import React, { useState, useMemo } from "react"
 import { IconPlus, IconTrash, IconMessageOff } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { PlanType, PlanCategory } from "@/types/billing.type"
 import { cn } from "@/libs/utils"
 
@@ -29,10 +31,10 @@ const TIER_COLORS = {
 }
 
 const TIER_BORDER_COLORS = {
-  Bronze: "border-[#A16207]",
-  Silver: "border-zinc-500",
-  Gold: "border-yellow-600",
-  Diamond: "border-cyan-600",
+  Bronze: "border-[#F0C630]",
+  Silver: "border-[#6F6F6F]",
+  Gold: "border-[#648FCC]",
+  Diamond: "border-[#3AC485]",
 }
 
 export default function PlansListView({
@@ -42,6 +44,7 @@ export default function PlansListView({
   onDeletePlan,
 }: PlansListViewProps) {
   const [activeCategory, setActiveCategory] = useState<PlanCategory>("Elderly_Care")
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly")
 
   // Filter plans based on the active tab category
   const filteredPlans = useMemo(() => {
@@ -70,58 +73,68 @@ export default function PlansListView({
       </div>
 
       {/* Navigation Category Tabs */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-2">
-        <div className="flex flex-wrap gap-2 bg-white">
-          {CATEGORIES_UI.map((cat) => {
-            const isActive = activeCategory === cat.key
-            return (
-              <button
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-2 w-full">
+        <Tabs
+          defaultValue="Elderly_Care"
+          value={activeCategory}
+          onValueChange={(val) => setActiveCategory(val as PlanCategory)}
+          className="font-dm-san-regular text-sm font-normal"
+        >
+          <TabsList className="bg-white p-1 h-9 rounded-lg border-none flex flex-wrap gap-1">
+            {CATEGORIES_UI.map((cat) => (
+              <TabsTrigger
                 key={cat.key}
-                type="button"
-                onClick={() => setActiveCategory(cat.key)}
-                className={`px-4 py-1.5 rounded-[6px] text-xs font-dm-san-regular transition-all cursor-pointer select-none ${
-                  isActive
-                    ? "bg-[#648FCC] text-white font-normal shadow-xs"
-                    : "text-body-text hover:text-zinc-800 bg-transparent"
-                }`}
+                value={cat.key}
+                className="rounded-md px-4 py-1.5 text-xs font-normal font-dm-san-regular transition-all data-active:bg-secondary-color data-active:text-white text-body-text data-active:hover:text-white shadow-none bg-transparent cursor-pointer"
               >
                 {cat.label}
-              </button>
-            )
-          })}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+
+        <div>
+          <Select value={billingCycle} onValueChange={(val) => setBillingCycle(val as "monthly" | "yearly")}>
+            <SelectTrigger className="w-27.5 h-8! px-2.5 rounded-[6px] border border-primary-color bg-white capitalize font-dm-san-regular text-xs text-body-text focus:ring-0 focus:border-primary-color outline-hidden shadow-none cursor-pointer">
+              <SelectValue placeholder="Billing Cycle" />
+            </SelectTrigger>
+            <SelectContent className="bg-white border border-zinc-200 shadow-sm rounded-md p-1 min-w-27.5">
+              <SelectItem value="monthly" className="font-dm-san-regular text-xs rounded-sm cursor-pointer">Monthly</SelectItem>
+              <SelectItem value="yearly" className="font-dm-san-regular text-xs rounded-sm cursor-pointer">Yearly</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {/* Main Content Area */}
       {filteredPlans.length > 0 ? (
         <div className="overflow-hidden shadow-2xs">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {filteredPlans.map((plan) => {
               const tierColor = TIER_COLORS[plan.tier] || "text-body-text"
               const tierBorderColor = TIER_BORDER_COLORS[plan.tier] || "border-zinc-200"
+              const displayPrice = billingCycle === "yearly" ? plan.price_in_usd * 12 : plan.price_in_usd
+              const cycleLabel = billingCycle === "yearly" ? "/year" : "/month"
 
               return (
                 <div key={plan.id} className={cn("p-6 flex flex-col justify-between min-h-125 bg-white rounded-[8px] border-l-2", tierBorderColor)}>
                   <div className="space-y-4">
                     {/* Header Tier Title */}
-                    <div>
+                    <div className="space-y-4">
                       <h3 className={`text-base font-semibold font-dm-san-regular ${tierColor}`}>
                         {plan.tier} Tier
                       </h3>
-                      <div className="mt-2.5 flex flex-col gap-0.5">
+                      <div className="mt-2.5 flex flex-col gap-2">
                         <div className="flex items-baseline">
-                          <span className="text-3xl font-semibold font-dm-san-regular text-body-text">
-                            ${plan.price_in_usd}
+                          <span className="text-4xl font-semibold font-dm-san-regular text-body-text">
+                            ${displayPrice}
                           </span>
-                          <span className="text-xs font-normal font-dm-san-regular text-zinc-400 ml-1">
-                            /month
+                          <span className="text-base font-normal font-dm-san-regular text-body-text ml-1">
+                            {cycleLabel}
                           </span>
                         </div>
-                        <span className="text-xs font-normal font-dm-san-regular text-zinc-500">
-                          ₦{plan.price.toLocaleString()} NGN
-                        </span>
                       </div>
-                      <p className="text-xs font-normal font-dm-san-regular text-body-text font-semibold mt-2.5">
+                      <p className="text-sm font-normal font-dm-san-regular text-body-text  mt-2.5">
                         {plan.name}
                       </p>
                     </div>
@@ -151,7 +164,7 @@ export default function PlansListView({
                   <div className="flex items-center justify-between pt-5 mt-6">
                     <button
                       onClick={() => onDeletePlan(plan.id)}
-                      className="p-1.5 hover:bg-red-50 rounded-[6px] outline-hidden cursor-pointer text-red-500 hover:text-red-600 transition-colors"
+                      className="p-1.5 hover:bg-red-50 rounded-[6px] outline-hidden cursor-pointer text-[#C43A3A] transition-colors"
                     >
                       <IconTrash className="size-5" />
                     </button>
@@ -159,7 +172,7 @@ export default function PlansListView({
                     <Button
                       onClick={() => onEditPlan(plan.id)}
                       variant="outline"
-                      className="rounded-full border border-[#648FCC] bg-white font-dm-san-regular font-semibold text-xs text-[#648FCC] hover:bg-[#648FCC]/10 px-8 h-9 cursor-pointer shadow-none transition-colors"
+                      className="rounded-full w-2/3 border border-secondary-color bg-white font-dm-san-regular font-semibold text-xs text-secondary-color hover:text-secondary-color hover:bg-transparent px-8 h-9 cursor-pointer shadow-none transition-colors"
                     >
                       Edit
                     </Button>
