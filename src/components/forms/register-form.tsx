@@ -20,9 +20,11 @@ import {
   IconCalendar,
 } from "@tabler/icons-react"
 import { useRegisterUser } from "@/hooks/auth.hook"
+import { useUploadFile } from "@/hooks/upload.hook"
 import { useForm } from "@/hooks/use-form"
 import { getRegisterSchema, RegisterSchemaType } from "@/schemas/auth.schema"
 import { Controller } from "react-hook-form"
+import { Country, State } from "country-state-city"
 
 export default function RegisterForm() {
   const searchParams = useSearchParams()
@@ -64,6 +66,26 @@ export default function RegisterForm() {
   // Focus states for input styling
   const [focusedFields, setFocusedFields] = useState<Record<string, boolean>>({})
 
+  // Fetch countries and derive states dynamically
+  const countries = useMemo(() => Country.getAllCountries(), [])
+  const watchedCountry = watch("country")
+
+  const states = useMemo(() => {
+    if (!watchedCountry) return []
+    const countryObj = countries.find((c) => c.name === watchedCountry)
+    return countryObj ? State.getStatesOfCountry(countryObj.isoCode) : []
+  }, [watchedCountry, countries])
+
+  // Reset state selection when country changes (ignoring initial mount)
+  const isFirstMount = useRef(true)
+  React.useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false
+      return
+    }
+    setValue("state", "")
+  }, [watchedCountry, setValue])
+
   // Sync invitation code from search parameters (updates dynamically on load)
   React.useEffect(() => {
     if (code) {
@@ -71,10 +93,6 @@ export default function RegisterForm() {
     }
   }, [code, setValue])
 
-  // Log validation status in development to help debug any missing fields
-  React.useEffect(() => {
-    console.log("RegisterForm State:", { isValid, errors })
-  }, [isValid, errors])
 
   const handleFocus = (field: string) => {
     setFocusedFields((prev) => ({ ...prev, [field]: true }))
@@ -87,13 +105,12 @@ export default function RegisterForm() {
   const getInputClassName = (field: keyof RegisterSchemaType) => {
     const isFocused = !!focusedFields[field]
     const hasError = !!errors[field]
-    return `w-full !h-12 px-3 rounded-[8px] border font-dm-san-regular text-sm focus-visible:ring-0 outline-hidden transition-all placeholder:text-zinc-400 bg-secondary-light ${
-      hasError
-        ? "border-error text-body-text"
-        : isFocused
+    return `w-full !h-12 px-3 rounded-[8px] border font-dm-san-regular text-sm focus-visible:ring-0 outline-hidden transition-all placeholder:text-zinc-400 bg-secondary-light ${hasError
+      ? "border-error text-body-text"
+      : isFocused
         ? "border-primary-color text-body-text"
         : "border-zinc-200 text-body-text"
-    }`
+      }`
   }
 
   // Profile picture state
@@ -104,6 +121,10 @@ export default function RegisterForm() {
   // Certificate state (Caregiver only)
   const [certificate, setCertificate] = useState<File | null>(null)
   const certInputRef = useRef<HTMLInputElement>(null)
+
+  // Upload hooks
+  const { mutate: uploadProfilePic, isPending: isUploadingProfilePic } = useUploadFile()
+  const { mutate: uploadCert, isPending: isUploadingCert } = useUploadFile()
 
   // Submission views
   const [regStatus, setRegStatus] = useState<"idle" | "success" | "failure">("idle")
@@ -116,12 +137,17 @@ export default function RegisterForm() {
   const handleProfilePicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      setProfilePic(file)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setProfilePicPreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+      uploadProfilePic(file, {
+        onSuccess: (res) => {
+          if (res.success && res.data?.url) {
+            setProfilePic(file)
+            setProfilePicPreview(res.data.url)
+          }
+        },
+        onError: (err: any) => {
+          console.error("Profile picture upload failed:", err)
+        },
+      })
     }
   }
 
@@ -132,8 +158,17 @@ export default function RegisterForm() {
   const handleCertChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      setCertificate(file)
-      setValue("certification", file.name, { shouldValidate: true })
+      uploadCert(file, {
+        onSuccess: (res) => {
+          if (res.success && res.data?.url) {
+            setCertificate(file)
+            setValue("certification", res.data.url, { shouldValidate: true })
+          }
+        },
+        onError: (err: any) => {
+          console.error("Certificate upload failed:", err)
+        },
+      })
     }
   }
 
@@ -147,8 +182,16 @@ export default function RegisterForm() {
 
   const onFormSubmit = handleSubmit((values) => {
     register(values, {
-      onSuccess: () => {
+      onSuccess: (res) => {
+        if (!res?.success) {
+          setRegStatus("failure")
+          setErrorMessage(res.message || "Invalid or expired invitation code.")
+
+          return
+        }
+
         setRegStatus("success")
+        setErrorMessage("")
       },
       onError: (err: any) => {
         setRegStatus("failure")
@@ -168,18 +211,22 @@ export default function RegisterForm() {
         </div>
         <div className="space-y-2">
           <CardTitle className="text-2xl font-bold tracking-tight text-body-text">
-            Profile Completed!
+            Your account is ready!
           </CardTitle>
           <p className="text-xs text-zinc-500 font-normal max-w-xs leading-relaxed">
-            Your profile has been created successfully. You can now log in to the application and get started.
+            {type === "USER" ?
+              "Your family account has been successfully activated. You can now sign in to manage and keep track of your loved one’s care."
+              : "Your caregiver account has been successfully activated. You can now sign in to access your assigned patient and begin providing care."}
           </p>
         </div>
-         <Button
+        <Button
           type="button"
           onClick={() => router.push("/")}
           className="w-full h-12! rounded-full font-dm-san-regular font-semibold tracking-wide text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center bg-[#0B1E3F] hover:bg-[#1B335B] text-white"
         >
-          Go to Login
+          {type === "USER" ?
+            "Continue to Log in" : "Continue to the App"}
+
         </Button>
       </Card>
     )
@@ -213,7 +260,7 @@ export default function RegisterForm() {
 
   return (
     <Card className="w-full bg-white border border-zinc-200/60 rounded-[8px] p-6 shadow-2xs font-dm-san-regular">
-      
+
       <CardHeader className="text-center space-y-2 mb-6 p-0">
         <CardTitle className="text-2xl font-bold tracking-tight text-body-text font-dm-san-regular">
           Complete Your Profile
@@ -231,10 +278,13 @@ export default function RegisterForm() {
           </span>
           <button
             type="button"
+            disabled={isUploadingProfilePic}
             onClick={handleProfilePicClick}
             className="size-16 rounded-full border border-zinc-200 flex items-center justify-center bg-secondary-light hover:bg-zinc-100/50 cursor-pointer overflow-hidden group transition-all"
           >
-            {profilePicPreview ? (
+            {isUploadingProfilePic ? (
+              <IconLoader2 className="size-6 text-zinc-400 animate-spin" />
+            ) : profilePicPreview ? (
               <img src={profilePicPreview} alt="Preview" className="w-full h-full object-cover" />
             ) : (
               <IconCamera className="size-6 text-zinc-400 group-hover:text-zinc-500 transition-colors" />
@@ -250,10 +300,10 @@ export default function RegisterForm() {
         </div>
 
         <form onSubmit={onFormSubmit} className="space-y-6">
-          
+
           {/* Form Fields Responsive Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
-            
+
             {/* First Name */}
             <Field>
               <FieldLabel className="text-xs font-semibold text-zinc-500 font-dm-san-regular block">
@@ -344,13 +394,15 @@ export default function RegisterForm() {
                 control={control}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className={cn("w-full !h-12 px-3 py-2 rounded-[8px] border bg-secondary-light font-dm-san-regular text-sm text-body-text focus:ring-0 focus:border-primary-color focus-visible:border-primary-color focus:outline-hidden shadow-none", errors.country ? "border-error" : "border-zinc-200")}>
+                    <SelectTrigger className={cn("w-full h-12! px-3 py-2 rounded-[8px] border bg-secondary-light font-dm-san-regular text-sm text-body-text focus:ring-0 focus:border-primary-color focus-visible:border-primary-color focus:outline-hidden shadow-none", errors.country ? "border-error" : "border-zinc-200")}>
                       <SelectValue placeholder="Select Country" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem className="font-dm-san-regular font-normal text-sm" value="Nigeria">Nigeria</SelectItem>
-                      <SelectItem className="font-dm-san-regular font-normal text-sm" value="Ghana">Ghana</SelectItem>
-                      <SelectItem className="font-dm-san-regular font-normal text-sm" value="Kenya">Kenya</SelectItem>
+                      {countries.map((country) => (
+                        <SelectItem key={country.isoCode} className="font-dm-san-regular font-normal text-sm" value={country.name}>
+                          {country.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 )}
@@ -367,14 +419,16 @@ export default function RegisterForm() {
                 name="state"
                 control={control}
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className={cn("w-full px-3 !h-12 rounded-[8px] border bg-secondary-light font-dm-san-regular text-sm text-body-text focus:ring-0 focus:border-primary-color focus-visible:border-primary-color focus:outline-hidden shadow-none", errors.state ? "border-error" : "border-zinc-200")}>
-                      <SelectValue placeholder="Select State" />
+                  <Select value={field.value} onValueChange={field.onChange} disabled={states.length === 0}>
+                    <SelectTrigger className={cn("w-full px-3 h-12! rounded-[8px] border bg-secondary-light font-dm-san-regular text-sm text-body-text focus:ring-0 focus:border-primary-color focus-visible:border-primary-color focus:outline-hidden shadow-none", errors.state ? "border-error" : "border-zinc-200")}>
+                      <SelectValue placeholder={states.length === 0 ? "Select a country first" : "Select State"} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem className="font-dm-san-regular font-normal text-sm" value="Lagos">Lagos</SelectItem>
-                      <SelectItem className="font-dm-san-regular font-normal text-sm" value="Abuja">Abuja</SelectItem>
-                      <SelectItem className="font-dm-san-regular font-normal text-sm" value="Oyo">Oyo</SelectItem>
+                      {states.map((state) => (
+                        <SelectItem key={state.isoCode} className="font-dm-san-regular font-normal text-sm" value={state.name}>
+                          {state.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 )}
@@ -392,7 +446,7 @@ export default function RegisterForm() {
                 control={control}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger size="default" className={cn("w-full !h-12 px-3 py-3 rounded-[8px] border bg-secondary-light font-dm-san-regular text-sm text-body-text focus:ring-0 focus:border-primary-color focus-visible:border-primary-color focus:outline-hidden shadow-none", errors.gender ? "border-error" : "border-zinc-200")}>
+                    <SelectTrigger size="default" className={cn("w-full h-12! px-3 py-3 rounded-[8px] border bg-secondary-light font-dm-san-regular text-sm text-body-text focus:ring-0 focus:border-primary-color focus-visible:border-primary-color focus:outline-hidden shadow-none", errors.gender ? "border-error" : "border-zinc-200")}>
                       <SelectValue placeholder="Select Gender" />
                     </SelectTrigger>
                     <SelectContent>
@@ -419,17 +473,17 @@ export default function RegisterForm() {
                     <Popover>
                       <PopoverTrigger
                         className={cn(
-                          "w-full !h-12 px-3 rounded-[8px] border text-left font-normal bg-secondary-light flex items-center justify-between text-body-text shadow-none hover:bg-secondary-light font-dm-san-regular text-sm cursor-pointer focus:border-primary-color focus-visible:border-primary-color focus:outline-hidden",
+                          "w-full h-12! px-3 rounded-[8px] border text-left font-normal bg-secondary-light flex items-center justify-between text-body-text shadow-none hover:bg-secondary-light font-dm-san-regular text-sm cursor-pointer focus:border-primary-color focus-visible:border-primary-color focus:outline-hidden",
                           errors.date_of_birth ? "border-error" : "border-zinc-200"
                         )}
                       >
                         <span>
                           {field.value
                             ? new Date(field.value).toLocaleDateString("en-US", {
-                                month: "long",
-                                day: "numeric",
-                                year: "numeric",
-                              })
+                              month: "long",
+                              day: "numeric",
+                              year: "numeric",
+                            })
                             : "Pick a date"}
                         </span>
                         <IconCalendar className="size-4 text-zinc-500" />
@@ -469,7 +523,7 @@ export default function RegisterForm() {
                 <FieldLabel className="text-xs font-semibold text-zinc-500 font-dm-san-regular block">
                   Certificate
                 </FieldLabel>
-                
+
                 {certificate ? (
                   /* File detail card */
                   <div className="flex items-center justify-between border border-zinc-200 rounded-[8px] p-4 bg-secondary-light shadow-none">
@@ -493,16 +547,28 @@ export default function RegisterForm() {
                       <IconX className="size-3 text-zinc-500 hover:text-red-500" onClick={(e) => { e.stopPropagation(); handleRemoveCert(); }} />
                     </button>
                   </div>
+                ) : isUploadingCert ? (
+                  /* Loading upload box */
+                  <div
+                    className={cn(
+                      "flex flex-col items-center justify-center border-2 border-dashed rounded-[8px] p-6 bg-secondary-color/5 text-center font-dm-san-regular border-secondary-color pointer-events-none"
+                    )}
+                  >
+                    <IconLoader2 className="size-6 mb-2 text-secondary-color animate-spin" />
+                    <span className="font-bold text-sm block text-[#0B1E3F]">
+                      Uploading Certificate...
+                    </span>
+                  </div>
                 ) : (
                   /* Dashed upload box */
                   <div
                     onClick={handleCertClick}
                     className={cn(
-                      "flex flex-col items-center justify-center border-2 border-dashed rounded-[8px] p-6 bg-[#648FCC]/5 cursor-pointer hover:bg-[#648FCC]/10 transition-colors text-center font-dm-san-regular",
-                      errors.certification ? "border-red-500 bg-red-50/10" : "border-[#648FCC]"
+                      "flex flex-col items-center justify-center border-2 border-dashed rounded-[8px] p-6 bg-secondary-color/5 cursor-pointer hover:bg-secondary-color/10 transition-colors text-center font-dm-san-regular",
+                      errors.certification ? "border-red-500 bg-red-50/10" : "border-secondary-color"
                     )}
                   >
-                    <IconUpload className={cn("size-6 mb-2", errors.certification ? "text-red-500" : "text-[#648FCC]")} />
+                    <IconUpload className={cn("size-6 mb-2", errors.certification ? "text-red-500" : "text-secondary-color")} />
                     <span className={cn("font-bold text-sm block", errors.certification ? "text-red-500" : "text-[#0B1E3F]")}>
                       + Upload Your Certificate
                     </span>
@@ -527,12 +593,11 @@ export default function RegisterForm() {
           {/* Complete Profile Button */}
           <Button
             type="submit"
-            disabled={!isValid || isPending}
-            className={`w-full h-12! rounded-full font-dm-san-regular font-semibold tracking-wide text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center gap-2 ${
-              isValid && !isPending
-                ? "bg-[#0B1E3F] hover:bg-[#1B335B] text-white"
-                : "bg-primary-light text-body-text pointer-events-none"
-            }`}
+            disabled={!isValid || isPending || isUploadingProfilePic || isUploadingCert}
+            className={`w-full h-12! rounded-full font-dm-san-regular font-semibold tracking-wide text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center gap-2 ${isValid && !isPending && !isUploadingProfilePic && !isUploadingCert
+              ? "bg-[#0B1E3F] hover:bg-[#1B335B] text-white"
+              : "bg-primary-light text-body-text pointer-events-none"
+              }`}
           >
             {isPending ? (
               <>
