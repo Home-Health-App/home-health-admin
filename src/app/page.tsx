@@ -169,7 +169,7 @@ export default function LoginPage() {
                 </CardDescription>
               </CardHeader>
 
-              <CardContent className="p-0 w-full flex flex-col items-center space-y-6">
+              <CardContent className="p-0 w-full flex flex-col items-center justify-center space-y-6">
                 {/* 6 OTP Input Boxes */}
                 <Field className="flex flex-col items-center justify-center py-2 gap-2">
                   <Controller
@@ -182,7 +182,7 @@ export default function LoginPage() {
                         onChange={field.onChange}
                         disabled={otpMutation.isPending}
                       >
-                        <InputOTPGroup className="gap-2">
+                        <InputOTPGroup className="gap-2 flex items-center justify-center w-full">
                           <InputOTPSlot index={0} className="w-12 !h-12 border border-primary-color rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-primary-color data-[active=true]:ring-0" />
                           <InputOTPSlot index={1} className="w-12 !h-12 border border-primary-color rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-primary-color data-[active=true]:ring-0" />
                           <InputOTPSlot index={2} className="w-12 !h-12 border border-primary-color rounded-lg! border-l! border-r! border-t! border-b! bg-secondary-light font-dm-san-regular font-semibold text-base text-body-text data-[active=true]:border-primary-color data-[active=true]:ring-0" />
