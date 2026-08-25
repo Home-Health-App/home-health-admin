@@ -9,58 +9,20 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useSuspenseGetUserById } from "@/hooks/user.hook"
 
 interface CaregiverDetailsViewProps {
   caregiverId: string
 }
 
-// Mock map of caregivers for rendering details
-const CAREGIVERS_MAP: Record<string, {
-  name: string
-  avatar: string
-  patientName: string
-  patientId: string
-  email: string
-}> = {
-  "1": {
-    name: "Angel Castiel",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200&h=200",
-    patientName: "Dean Winchester",
-    patientId: "12345678",
-    email: "angelcastiel@gmail.com",
-  },
-  "2": {
-    name: "Rowena MacLeod",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200&h=200",
-    patientName: "Dean Winchester",
-    patientId: "12345678",
-    email: "rowenamacleod@gmail.com",
-  },
-  "3": {
-    name: "Jody Mills",
-    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=200&h=200",
-    patientName: "Dean Winchester",
-    patientId: "12345678",
-    email: "jodymills@gmail.com",
-  },
-  "4": {
-    name: "Charlie Bradbury",
-    avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=200&h=200",
-    patientName: "Dean Winchester",
-    patientId: "12345678",
-    email: "charliebadbury@gmail.com",
-  },
-  "5": {
-    name: "Bobby Singer",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200",
-    patientName: "Dean Winchester",
-    patientId: "12345678",
-    email: "bobbysinger@gmail.com",
-  },
-}
-
 export default function CaregiverDetailsView({ caregiverId }: CaregiverDetailsViewProps) {
-  const caregiver = CAREGIVERS_MAP[caregiverId] || CAREGIVERS_MAP["1"]
+  const { data: response } = useSuspenseGetUserById(caregiverId)
+  const caregiver = response?.data
+
+  if (!caregiver) return null
+
+  const caregiverName = `${caregiver.first_name} ${caregiver.last_name}`
+  const caregiverAvatar = caregiver.profile_picture || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200&h=200"
 
   return (
     <div className="w-full space-y-8 pb-12">
@@ -83,21 +45,30 @@ export default function CaregiverDetailsView({ caregiverId }: CaregiverDetailsVi
               <div className="flex items-center gap-4">
                 <Avatar className="size-30 border border-zinc-200">
                   <AvatarImage
-                    src={caregiver.avatar}
-                    alt={caregiver.name}
+                    src={caregiverAvatar}
+                    alt={caregiverName}
                   />
                   <AvatarFallback>CG</AvatarFallback>
                 </Avatar>
                 <div className="space-y-1.5">
                   <h2 className="text-[22px] font-medium font-dm-san-regular text-body-text">
-                    {caregiver.name}
+                    {caregiverName}
                   </h2>
-                  <Badge
-                    variant="outline"
-                    className="bg-active-btn text-[#0A432C] border-active-border font-dm-san-regular font-medium px-3.5 py-0.5 rounded-full shadow-none text-xs"
-                  >
-                    Active
-                  </Badge>
+                  {caregiver.isSuspended ? (
+                    <Badge
+                      variant="outline"
+                      className="bg-warning-btn text-error border-warning-border font-dm-san-regular font-medium px-3.5 py-0.5 rounded-full shadow-none text-xs"
+                    >
+                      Suspended
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="bg-active-btn text-[#0A432C] border-active-border font-dm-san-regular font-medium px-3.5 py-0.5 rounded-full shadow-none text-xs"
+                    >
+                      Active
+                    </Badge>
+                  )}
                 </div>
               </div>
 
@@ -116,21 +87,29 @@ export default function CaregiverDetailsView({ caregiverId }: CaregiverDetailsVi
             {/* Assigned Patient */}
             <div className="space-y-4">
               <h3 className="text-base font-bold font-dm-san-regular text-body-text block">
-                Assigned Patient
+                Assigned Patients
               </h3>
 
-              <div className="p-5 bg-secondary-light rounded-[8px] space-y-2">
-                <h4 className="font-normal text-body-text text-base font-dm-san-regular">
-                  {caregiver.patientName}
-                </h4>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-body-text font-normal font-dm-san-regular text-base">
-                  <span>ID: {caregiver.patientId}</span>
-                  <span className="text-zinc-300">•</span>
-                  <span>Registered: Aug. 5 2026</span>
-                  <span className="text-zinc-300">•</span>
-                  <span>Age: 66</span>
+              {caregiver.patients && caregiver.patients.length > 0 ? (
+                caregiver.patients.map((pat: any) => (
+                  <div key={pat.id} className="p-5 bg-secondary-light rounded-[8px] space-y-2">
+                    <h4 className="font-normal text-body-text text-base font-dm-san-regular">
+                      {pat.first_name} {pat.last_name}
+                    </h4>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-body-text font-normal font-dm-san-regular text-base">
+                      <span>ID: {pat.id.slice(-8)}</span>
+                      <span className="text-zinc-300">•</span>
+                      <span>Gender: {pat.gender}</span>
+                      <span className="text-zinc-300">•</span>
+                      <span>Age: {pat.date_of_birth ? new Date().getFullYear() - new Date(pat.date_of_birth).getFullYear() : "-"}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-5 bg-secondary-light rounded-[8px] text-zinc-400 italic text-sm font-dm-san-regular">
+                  No assigned patients.
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -159,7 +138,7 @@ export default function CaregiverDetailsView({ caregiverId }: CaregiverDetailsVi
                     </span>
                   </div>
                   <p className="text-xs text-zinc-600 font-dm-san-regular">
-                    Assigned to {caregiver.patientName}
+                    Assigned to {caregiver.patients?.[0] ? `${caregiver.patients[0].first_name} ${caregiver.patients[0].last_name}` : "patient"}.
                   </p>
                 </div>
               </div>
@@ -227,16 +206,21 @@ export default function CaregiverDetailsView({ caregiverId }: CaregiverDetailsVi
           <div className="space-y-4 font-dm-san-regular text-sm text-body-text">
             <div className="flex items-center gap-3.5">
               <IconPhone className="size-6 text-body-text shrink-0" />
-              <span className="font-medium">09065437832</span>
+              <span className="font-medium">{caregiver.phone || "-"}</span>
             </div>
             <div className="flex items-center gap-3.5">
               <IconMail className="size-6 text-body-text shrink-0" />
-              <span className="font-medium">{caregiver.email}</span>
+              <span className="font-medium">{caregiver.email || "-"}</span>
             </div>
             <div className="flex items-start gap-3.5">
               <IconMapPin className="size-6 text-body-text shrink-0 mt-0.5" />
               <span className="font-medium leading-relaxed">
-                1234 Lane 1 Ikeja Lagos 255233
+                {caregiver.address || "-"}
+                {(caregiver.state || caregiver.country) && (
+                  <span className="block text-xs text-zinc-500 mt-1">
+                    {caregiver.state && `${caregiver.state}, `}{caregiver.country}
+                  </span>
+                )}
               </span>
             </div>
           </div>

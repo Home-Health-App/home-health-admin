@@ -1,13 +1,13 @@
-import React, { Suspense } from "react"
+
+"use client"
+
+import React from "react"
+import { useParams } from "next/navigation"
 import CaregiverDetailsView from "@/components/caregivers/caregiver-details-view"
-import PatientLoader from "@/components/patients/patients-list/loader"
 
-interface PageProps {
-  params: Promise<{ caregiverId: string }>
-}
-
-export default async function CaregiverDetailsPage({ params }: PageProps) {
-  const { caregiverId } = await params
+export default function CaregiverDetailsPage() {
+  const params = useParams()
+  const caregiverId = params.caregiverId as string
 
   return <CaregiverDetailsView caregiverId={caregiverId} />
 }

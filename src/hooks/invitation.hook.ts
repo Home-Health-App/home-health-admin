@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
 import {
   sendInvitation,
   getInvitations,
@@ -29,6 +29,13 @@ export const useGetInvitations = (params?: GetInvitationsParams) => {
   })
 
   return { isPending, data, error, refetch }
+}
+
+export const useSuspenseGetInvitations = (params?: GetInvitationsParams) => {
+  return useSuspenseQuery<PaginatedResponse<InvitationType[]>, AxiosError<GeneralResponse>>({
+    queryKey: invitationKeys.list(params),
+    queryFn: () => getInvitations(params),
+  })
 }
 
 // ─── Mutations ───────────────────────────────────────────────────────────────
