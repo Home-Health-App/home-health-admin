@@ -1,69 +1,108 @@
 "use client"
 
 import React, { useState, useMemo } from "react"
-import { IconSearch, IconChevronDown, IconUsers } from "@tabler/icons-react"
+import { IconSearch, IconUsers } from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { columns, CaregiverItem } from "./columns"
 import { DataTable } from "@/components/shared/data-table"
+import { useSendInvitation } from "@/hooks/invitation.hook"
 import InviteModal from "@/components/modal/invite-modal"
+import { PaginatedResponse } from "@/types/response.type"
+import { UserType } from "@/types/user.type"
+import { InvitationType } from "@/types/invitation.type"
 
-const MOCK_CAREGIVERS: CaregiverItem[] = [
-  {
-    id: "1",
-    name: "Angel Castiel",
-    email: "angelcastiel@gmail.com",
-    status: "Active",
-    invitation: "Accepted",
-    assignment: "Unassigned",
-  },
-  {
-    id: "2",
-    name: "Rowena MacLeod",
-    email: "rowenamacleod@gmail.com",
-    status: "Active",
-    invitation: "Accepted",
-    assignment: "Assigned",
-  },
-  {
-    id: "3",
-    name: "Jody Mills",
-    email: "jodymills@gmail.com",
-    status: "Inactive",
-    invitation: "Pending",
-    assignment: "Pending onboard...",
-  },
-  {
-    id: "4",
-    name: "Charlie Bradbury",
-    email: "charliebadbury@gmail.com",
-    status: "Active",
-    invitation: "Accepted",
-    assignment: "Assigned",
-  },
-  {
-    id: "5",
-    name: "Bobby Singer",
-    email: "bobbysinger@gmail.com",
-    status: "Suspended",
-    invitation: "Accepted",
-    assignment: "Unassigned (Sus)",
-  },
-]
+interface CaregiversListViewProps {
+  usersData?: PaginatedResponse<UserType[]>
+  invitationsData?: PaginatedResponse<InvitationType[]>
+}
 
-export default function CaregiversListView() {
+export default function CaregiversListView({
+  usersData,
+  invitationsData,
+}: CaregiversListViewProps) {
   const [globalFilter, setGlobalFilter] = useState<string>("")
   const [isInviteOpen, setIsInviteOpen] = useState(false)
 
-  // Filter based on search input
+  // Filter States
+  const [statusFilter, setStatusFilter] = useState<string>("All Status")
+  const [assignmentFilter, setAssignmentFilter] = useState<string>("All Assignments")
+  const [invitationFilter, setInvitationFilter] = useState<string>("All Invitations")
+
+  const { mutate: sendInvite } = useSendInvitation()
+
+  const handleResendInvitation = (email: string) => {
+    sendInvite(
+      { email, type: "CARE_GIVER" },
+      {
+        onSuccess: () => {
+          alert("Invitation link resent successfully!")
+        },
+        onError: () => {
+          alert("Failed to resend invitation link.")
+        },
+      }
+    )
+  }
+
+  // Map and combine API responses
+  const registeredCaregivers = useMemo(() => {
+    if (!usersData?.data) return []
+    return usersData.data.map((user) => ({
+      id: user.id,
+      name: `${user.first_name} ${user.last_name}`,
+      email: user.email,
+      status: user.isSuspended ? ("Suspended" as const) : ("Active" as const),
+      invitation: "Accepted" as const,
+      assignment: user.isSuspended
+        ? ("Unassigned (Sus)" as const)
+        : (user._count?.assignments && user._count.assignments > 0 ? ("Assigned" as const) : ("Unassigned" as const)),
+      isSuspended: user.isSuspended,
+    }))
+  }, [usersData])
+
+  const pendingInvitations = useMemo(() => {
+    if (!invitationsData?.data) return []
+    return invitationsData.data.map((inv) => ({
+      id: inv.id,
+      name: "-",
+      email: inv.email,
+      status: "Inactive" as const,
+      invitation: "Pending" as const,
+      assignment: "Pending onboard..." as const,
+      isSuspended: false,
+    }))
+  }, [invitationsData])
+
+  // Combine and apply local search + select filters
   const filteredData = useMemo(() => {
-    return MOCK_CAREGIVERS.filter((item) => {
-      return (
+    return [...registeredCaregivers, ...pendingInvitations].filter((item) => {
+      // 1. Search text filter (local)
+      const matchesSearch =
+        !globalFilter ||
         item.name.toLowerCase().includes(globalFilter.toLowerCase()) ||
         item.email.toLowerCase().includes(globalFilter.toLowerCase())
-      )
+
+      // 2. Status filter
+      const matchesStatus =
+        statusFilter === "All Status" || item.status === statusFilter
+
+      // 3. Assignment filter
+      const matchesAssignment =
+        assignmentFilter === "All Assignments" || item.assignment === assignmentFilter
+
+      // 4. Invitation filter
+      const matchesInvitation =
+        invitationFilter === "All Invitations" || item.invitation === invitationFilter
+
+      return matchesSearch && matchesStatus && matchesAssignment && matchesInvitation
     })
-  }, [globalFilter])
+  }, [registeredCaregivers, pendingInvitations, globalFilter, statusFilter, assignmentFilter, invitationFilter])
+
+  const totalCaregiversCount = usersData?.pagination?.total ?? registeredCaregivers.length
+  const pendingInvitationsCount = invitationsData?.pagination?.total ?? pendingInvitations.length
+  const suspendedCount = registeredCaregivers.filter(c => c.isSuspended).length
 
   const isEmpty = filteredData.length === 0
 
@@ -97,7 +136,7 @@ export default function CaregiversListView() {
             Total Caregivers
           </span>
           <span className="text-2xl font-semibold font-dm-san-medium text-body-text block">
-            {isEmpty ? 0 : 100}
+            {totalCaregiversCount}
           </span>
         </div>
 
@@ -107,7 +146,7 @@ export default function CaregiversListView() {
             Pending Invitations
           </span>
           <span className="text-2xl font-semibold font-dm-san-medium text-body-text block">
-            {isEmpty ? 0 : 15}
+            {pendingInvitationsCount}
           </span>
         </div>
 
@@ -117,7 +156,7 @@ export default function CaregiversListView() {
             Suspended Accounts
           </span>
           <span className="text-2xl font-semibold font-dm-san-medium text-body-text block">
-            {isEmpty ? 0 : 4}
+            {suspendedCount}
           </span>
         </div>
       </div>
@@ -125,7 +164,7 @@ export default function CaregiversListView() {
       {/* Control Bar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
         {/* Search Field */}
-        <div className="relative w-full sm:w-80">
+        {/* <div className="relative w-full sm:w-80">
           <IconSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4.5 text-body-text opacity-40" />
           <Input
             type="text"
@@ -134,33 +173,58 @@ export default function CaregiversListView() {
             onChange={(e) => setGlobalFilter(e.target.value)}
             className="pl-10 pr-4 h-9.5 rounded-full border border-zinc-200 shadow-none font-sans text-sm focus-visible:border-zinc-300 focus-visible:ring-0 outline-hidden text-body-text bg-white w-full placeholder:text-zinc-400"
           />
+        </div> */}
+
+        <div className="relative h-14 w-full sm:w-110">
+          <IconSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 size-6 text-body-text opacity-40" />
+          <Input
+            type="text"
+            placeholder="Search Patients"
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            className="pl-12 pr-4 h-full rounded-full border border-[#A1A1A1] shadow-none font-sans text-sm focus-visible:border-[#999999] focus-visible:ring-0 outline-hidden text-body-text bg-white w-full placeholder:text-zinc-400"
+          />
         </div>
 
         {/* Filters */}
         <div className="flex flex-wrap gap-3 items-center">
-          <Button
-            variant="outline"
-            className="rounded-lg border border-zinc-200 bg-white font-sans font-semibold text-xs text-body-text flex items-center gap-1.5 px-4 h-9.5 shadow-none"
-          >
-            <span>All Status</span>
-            <IconChevronDown className="size-4 opacity-75 text-body-text" />
-          </Button>
+          {/* Status Filter */}
+          <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val || "All Status")}>
+            <SelectTrigger className="w-[125px] h-9.5 px-3 rounded-lg border border-zinc-200 bg-white font-sans font-semibold text-xs text-body-text flex items-center justify-between shadow-none cursor-pointer focus:ring-0 focus:border-zinc-300">
+              <SelectValue placeholder="All Status" />
+            </SelectTrigger>
+            <SelectContent className="bg-white border border-zinc-200 shadow-sm rounded-md p-1 min-w-[125px]">
+              <SelectItem value="All Status" className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">All Status</SelectItem>
+              <SelectItem value="Active" className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">Active</SelectItem>
+              <SelectItem value="Inactive" className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">Inactive</SelectItem>
+              <SelectItem value="Suspended" className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">Suspended</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <Button
-            variant="outline"
-            className="rounded-lg border border-zinc-200 bg-white font-sans font-semibold text-xs text-body-text flex items-center gap-1.5 px-4 h-9.5 shadow-none"
-          >
-            <span>Assignment</span>
-            <IconChevronDown className="size-4 opacity-75 text-body-text" />
-          </Button>
+          {/* Assignment Filter */}
+          <Select value={assignmentFilter} onValueChange={(val) => setAssignmentFilter(val || "All Assignments")}>
+            <SelectTrigger className="w-[145px] h-9.5 px-3 rounded-lg border border-zinc-200 bg-white font-sans font-semibold text-xs text-body-text flex items-center justify-between shadow-none cursor-pointer focus:ring-0 focus:border-zinc-300">
+              <SelectValue placeholder="All Assignments" />
+            </SelectTrigger>
+            <SelectContent className="bg-white border border-zinc-200 shadow-sm rounded-md p-1 min-w-[145px]">
+              <SelectItem value="All Assignments" className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">All Assignments</SelectItem>
+              <SelectItem value="Assigned" className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">Assigned</SelectItem>
+              <SelectItem value="Unassigned" className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">Unassigned</SelectItem>
+              <SelectItem value="Pending onboard..." className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">Pending onboard</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <Button
-            variant="outline"
-            className="rounded-lg border border-zinc-200 bg-white font-sans font-semibold text-xs text-body-text flex items-center gap-1.5 px-4 h-9.5 shadow-none"
-          >
-            <span>Invitation</span>
-            <IconChevronDown className="size-4 opacity-75 text-body-text" />
-          </Button>
+          {/* Invitation Filter */}
+          <Select value={invitationFilter} onValueChange={(val) => setInvitationFilter(val || "All Invitations")}>
+            <SelectTrigger className="w-[135px] h-9.5 px-3 rounded-lg border border-zinc-200 bg-white font-sans font-semibold text-xs text-body-text flex items-center justify-between shadow-none cursor-pointer focus:ring-0 focus:border-zinc-300">
+              <SelectValue placeholder="All Invitations" />
+            </SelectTrigger>
+            <SelectContent className="bg-white border border-zinc-200 shadow-sm rounded-md p-1 min-w-[135px]">
+              <SelectItem value="All Invitations" className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">All Invitations</SelectItem>
+              <SelectItem value="Accepted" className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">Accepted</SelectItem>
+              <SelectItem value="Pending" className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">Pending</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -190,6 +254,9 @@ export default function CaregiversListView() {
           columns={columns}
           data={filteredData}
           pageSize={6}
+          meta={{
+            onResendInvitation: handleResendInvitation,
+          }}
         />
       )}
 

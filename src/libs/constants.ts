@@ -28,6 +28,11 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
     icon: IconUsers,
   },
   {
+    title: "Users",
+    href: "/dashboard/users",
+    icon: IconUsers,
+  },
+  {
     title: "Caregivers",
     href: "/dashboard/caregivers",
     icon: IconHeart,

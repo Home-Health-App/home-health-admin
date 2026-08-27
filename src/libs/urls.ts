@@ -17,4 +17,14 @@ export const URLs = {
         'send-invitation': "invitation/send",
         'get-invitations': "invitation",
     },
+    users: {
+        'get-users': "users",
+        'get-user-by-id': (id: string) => `users/${id}`,
+    },
+
+    analytics: {
+        'admin-analytic': 'analytics/admin',
+        'user-analytic': (userId: string) => `analytics/user/${userId}`,
+        'caregiver-analytic': 'analytics/caregivers',
+    }
 }
