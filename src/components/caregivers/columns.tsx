@@ -51,6 +51,8 @@ export const columns: ColumnDef<CaregiverItem>[] = [
       let badgeClass = ""
       if (val === "Active") {
         badgeClass = "bg-active-btn text-active-border border-active-border"
+      } else if (val === "Suspended") {
+        badgeClass = "bg-red-50 text-red-500 border-red-200"
       } else {
         badgeClass = "bg-warning-btn text-warning-border border-warning-border"
       }
@@ -95,8 +97,10 @@ export const columns: ColumnDef<CaregiverItem>[] = [
     id: "actions",
     header: "Action",
     meta: { align: "center" },
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const caregiver = row.original
+      const meta = table.options.meta as { onResendInvitation?: (email: string) => void } | undefined
+
       return (
         <div className="flex justify-center">
           <Popover>
@@ -114,9 +118,15 @@ export const columns: ColumnDef<CaregiverItem>[] = [
               >
                 View Profile
               </Link>
-              <Button variant="ghost" className="w-full text-left text-base font-normal rounded-md px-2 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block">
-                Resend Invitation
-              </Button>
+              {caregiver.invitation === "Pending" && (
+                <Button
+                  variant="ghost"
+                  onClick={() => meta?.onResendInvitation?.(caregiver.email)}
+                  className="w-full text-left text-base font-normal rounded-md px-2 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none"
+                >
+                  Resend Invitation
+                </Button>
+              )}
               <div className="h-px bg-secondary-light my-1" />
               <Button variant="ghost" className="w-full text-left text-sm font-normal px-2 py-1 hover:bg-warning-btn hover:text-[#C43A3A] rounded-md text-error cursor-pointer outline-hidden font-dm-san-regular block">
                 Suspend Account

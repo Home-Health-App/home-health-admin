@@ -30,6 +30,7 @@ interface DataTableProps<TData, TValue> {
   setGlobalFilter?: (value: string) => void
   pageSize?: number
   onRowClick?: (row: TData) => void
+  meta?: any
 }
 
 export function DataTable<TData, TValue>({
@@ -40,6 +41,7 @@ export function DataTable<TData, TValue>({
   setGlobalFilter,
   pageSize = 6,
   onRowClick,
+  meta,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -56,6 +58,7 @@ export function DataTable<TData, TValue>({
         pageSize,
       },
     },
+    meta,
   })
 
   // Calculate items ranges for pagination text label

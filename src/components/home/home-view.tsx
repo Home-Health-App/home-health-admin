@@ -22,21 +22,30 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
-import { CONTENT_STATE_DATA } from "./mock-data"
+import { CONTENT_STATE_DATA, DashboardData } from "./mock-data"
 import { Button } from "../ui/button"
 import InviteModal from "@/components/modal/invite-modal"
+import { AdminAnalyticType } from "@/types/analytic.type"
 
-export default function HomeView() {
+type AdminAnalyticProp = {
+  data: DashboardData
+}
+
+export default function HomeView({ data }: AdminAnalyticProp) {
   const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [inviteType, setInviteType] = useState<"USER" | "CARE_GIVER">("USER")
 
   // To test empty states, you can swap CONTENT_STATE_DATA with EMPTY_STATE_DATA
-  const data = CONTENT_STATE_DATA
+  
+
+  const smapleData = CONTENT_STATE_DATA
 
   // Determine availability of data lists
-  const hasPatientGrowth = data.patientGrowth && data.patientGrowth.length > 0
-  const hasRevenueOverview = data.revenueOverview && data.revenueOverview.length > 0
-  const hasNotifications = data.notifications && data.notifications.length > 0
+  const hasPatientGrowth = smapleData.patientGrowth && smapleData.patientGrowth.length > 0
+  const hasRevenueOverview = smapleData.revenueOverview && smapleData.revenueOverview.length > 0
+  const hasNotifications = smapleData.notifications && smapleData.notifications.length > 0
+
+
 
   return (
     <div className="w-full space-y-6 pb-8">
@@ -127,7 +136,7 @@ export default function HomeView() {
             <div className="w-full flex-1 min-h-75">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={data.patientGrowth}
+                  data={smapleData.patientGrowth}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
                   <defs>
@@ -239,7 +248,7 @@ export default function HomeView() {
             <div className="w-full flex-1 min-h-75">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={data.revenueOverview}
+                  data={smapleData.revenueOverview}
                   margin={{ top: 20, right: 10, left: -20, bottom: 0 }}
                   barGap={8}
                 >
@@ -333,7 +342,7 @@ export default function HomeView() {
 
           {hasNotifications ? (
             <div className="flex-1 flex flex-col gap-4">
-              {data.notifications.map((item) => (
+              {smapleData.notifications.map((item) => (
                 <div
                   key={item.id}
                   className="bg-secondary-light hover:bg-secondary-light/90 transition-colors p-4 rounded-[8px] flex justify-between items-start gap-4 border-l-2 border-primary-color"
