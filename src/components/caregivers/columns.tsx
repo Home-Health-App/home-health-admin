@@ -99,7 +99,12 @@ export const columns: ColumnDef<CaregiverItem>[] = [
     meta: { align: "center" },
     cell: ({ row, table }) => {
       const caregiver = row.original
-      const meta = table.options.meta as { onResendInvitation?: (email: string) => void } | undefined
+      const isSuspended = caregiver.status === "Suspended"
+      const meta = table.options.meta as {
+        onResendInvitation?: (email: string) => void
+        onUnassignPatient?: (caregiverId: string) => void
+        onToggleSuspend?: (caregiverId: string, currentStatus: boolean) => void
+      } | undefined
 
       return (
         <div className="flex justify-center">
@@ -118,6 +123,23 @@ export const columns: ColumnDef<CaregiverItem>[] = [
               >
                 View Profile
               </Link>
+              {caregiver.invitation === "Accepted" && (
+                <Link
+                  href={`/dashboard/messages?userId=${caregiver.id}`}
+                  className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block"
+                >
+                  Message Caregiver
+                </Link>
+              )}
+              {caregiver.invitation === "Accepted" && caregiver.assignment === "Assigned" && (
+                <Button
+                  variant="ghost"
+                  onClick={() => meta?.onUnassignPatient?.(caregiver.id)}
+                  className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none text-zinc-800"
+                >
+                  Unassign Patient
+                </Button>
+              )}
               {caregiver.invitation === "Pending" && (
                 <Button
                   variant="ghost"
@@ -127,10 +149,20 @@ export const columns: ColumnDef<CaregiverItem>[] = [
                   Resend Invitation
                 </Button>
               )}
-              <div className="h-px bg-secondary-light my-1" />
-              <Button variant="ghost" className="w-full text-left text-sm font-normal px-2 py-1 hover:bg-warning-btn hover:text-[#C43A3A] rounded-md text-error cursor-pointer outline-hidden font-dm-san-regular block">
-                Suspend Account
-              </Button>
+              {caregiver.invitation === "Accepted" && (
+                <>
+                  <div className="h-px bg-secondary-light my-1" />
+                  <Button
+                    variant="ghost"
+                    onClick={() => meta?.onToggleSuspend?.(caregiver.id, isSuspended)}
+                    className={isSuspended 
+                      ? "w-full text-left text-sm font-normal px-2 py-1 hover:bg-active-btn hover:text-[#0A432C] rounded-md text-emerald-600 cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none" 
+                      : "w-full text-left text-sm font-normal px-2 py-1 hover:bg-warning-btn hover:text-[#C43A3A] rounded-md text-error cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none"}
+                  >
+                    {isSuspended ? "Unsuspend Account" : "Suspend Account"}
+                  </Button>
+                </>
+              )}
             </PopoverContent>
           </Popover>
         </div>

@@ -1,13 +1,17 @@
+"use client"
+
 import React, { Suspense } from "react"
+import { useParams } from "next/navigation"
 import PatientDetailsView from "@/components/patients/patient-details/patient-details-view"
 import PatientLoader from "@/components/patients/patients-list/loader"
 
-interface PageProps {
-  params: Promise<{ patientId: string }>
-}
+export default function PatientDetailsPage() {
+  const params = useParams()
+  const patientId = params.patientId as string
 
-export default async function PatientDetailsPage({ params }: PageProps) {
-  const { patientId } = await params
-
-   return <PatientDetailsView patientId={patientId} />
+  return (
+    <Suspense fallback={<PatientLoader />}>
+      <PatientDetailsView patientId={patientId} />
+    </Suspense>
+  )
 }

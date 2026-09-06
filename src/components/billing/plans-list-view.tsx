@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useMemo } from "react"
-import { IconPlus, IconTrash, IconMessageOff } from "@tabler/icons-react"
+import { IconPlus, IconTrash, IconMessageOff, IconLoader } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
@@ -13,6 +13,7 @@ interface PlansListViewProps {
   onCreatePlan: () => void
   onEditPlan: (id: string) => void
   onDeletePlan: (id: string) => void
+  isDeleting: boolean
 }
 
 const CATEGORIES_UI = [
@@ -42,6 +43,7 @@ export default function PlansListView({
   onCreatePlan,
   onEditPlan,
   onDeletePlan,
+  isDeleting
 }: PlansListViewProps) {
   const [activeCategory, setActiveCategory] = useState<PlanCategory>("Elderly_Care")
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly")
@@ -164,8 +166,9 @@ export default function PlansListView({
                   <div className="flex items-center justify-between pt-5 mt-6">
                     <button
                       onClick={() => onDeletePlan(plan.id)}
-                      className="p-1.5 hover:bg-red-50 rounded-[6px] outline-hidden cursor-pointer text-[#C43A3A] transition-colors"
+                      className="p-1.5 flex items-center gap-1 hover:bg-red-50 rounded-[6px] outline-hidden cursor-pointer text-[#C43A3A] transition-colors"
                     >
+                      {isDeleting && <IconLoader className="animate-spin" />}
                       <IconTrash className="size-5" />
                     </button>
 
@@ -185,18 +188,15 @@ export default function PlansListView({
       ) : (
         /* Empty State */
         <div className="flex flex-col items-center justify-center py-32 text-center bg-white border border-zinc-200/60 rounded-[8px] shadow-3xs font-dm-san-regular">
-          <div className="p-4 bg-zinc-50 rounded-full mb-5">
-            <IconMessageOff className="size-11 text-zinc-400 stroke-[1.5]" />
+          <div className="p-4 bg-secondary-light rounded-full mb-4">
+            <IconMessageOff className="size-11 text-primary-color/60 stroke-[1.5]" />
           </div>
-          <h2 className="text-xl font-bold text-body-text mb-1.5 font-dm-san-regular">
+          <h2 className="text-xl font-bold text-body-text mb-3 font-dm-san-regular">
             You don't have any plan added
           </h2>
-          <p className="text-sm font-normal text-zinc-500 max-w-sm mb-6 leading-relaxed font-dm-san-regular">
-            Data will appear once you add a new plan
-          </p>
           <Button
             onClick={onCreatePlan}
-            className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs px-6.5 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors"
+            className="rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-dm-san-regular font-semibold text-sm px-6.5 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors"
           >
             Create New Plan
           </Button>

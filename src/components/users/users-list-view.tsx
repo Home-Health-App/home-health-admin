@@ -13,6 +13,7 @@ import UserDetailsModal from "@/components/modal/user-details-modal"
 import { PaginatedResponse } from "@/types/response.type"
 import { UserType } from "@/types/user.type"
 import { InvitationType } from "@/types/invitation.type"
+import { toast } from "sonner"
 
 interface UsersListViewProps {
   usersData?: PaginatedResponse<UserType[]>
@@ -45,10 +46,10 @@ export default function UsersListView({
       { email, type: "USER" },
       {
         onSuccess: () => {
-          alert("Invitation link resent successfully!")
+          toast.success("Invitation link resent successfully!")
         },
         onError: () => {
-          alert("Failed to resend invitation link.")
+          toast.error("Failed to resend invitation link.")
         },
       }
     )
@@ -203,22 +204,9 @@ export default function UsersListView({
             </SelectContent>
           </Select>
 
-          {/* Assignment Filter */}
-          <Select value={assignmentFilter} onValueChange={(val) => setAssignmentFilter(val || "All Assignments")}>
-            <SelectTrigger className="w-[145px] h-9.5 px-3 rounded-lg border border-zinc-200 bg-white font-sans font-semibold text-xs text-body-text flex items-center justify-between shadow-none cursor-pointer focus:ring-0 focus:border-zinc-300">
-              <SelectValue placeholder="All Assignments" />
-            </SelectTrigger>
-            <SelectContent className="bg-white border border-zinc-200 shadow-sm rounded-md p-1 min-w-[145px]">
-              <SelectItem value="All Assignments" className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">All Assignments</SelectItem>
-              <SelectItem value="Assigned" className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">Assigned</SelectItem>
-              <SelectItem value="Unassigned" className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">Unassigned</SelectItem>
-              <SelectItem value="Pending onboard..." className="font-sans text-xs rounded-sm hover:bg-zinc-100 cursor-pointer">Pending onboard</SelectItem>
-            </SelectContent>
-          </Select>
-
           {/* Invitation Filter */}
           <Select value={invitationFilter} onValueChange={(val) => setInvitationFilter(val || "All Invitations")}>
-            <SelectTrigger className="w-[135px] h-9.5 px-3 rounded-lg border border-zinc-200 bg-white font-sans font-semibold text-xs text-body-text flex items-center justify-between shadow-none cursor-pointer focus:ring-0 focus:border-zinc-300">
+            <SelectTrigger className="w-33.75 h-9.5 px-3 rounded-lg border border-zinc-200 bg-white font-sans font-semibold text-xs text-body-text flex items-center justify-between shadow-none cursor-pointer focus:ring-0 focus:border-zinc-300">
               <SelectValue placeholder="All Invitations" />
             </SelectTrigger>
             <SelectContent className="bg-white border border-zinc-200 shadow-sm rounded-md p-1 min-w-[135px]">

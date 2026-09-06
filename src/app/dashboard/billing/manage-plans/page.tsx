@@ -13,12 +13,14 @@ import { CreatePlanType } from "@/types/billing.type"
 
 export default function ManagePlansPage() {
   const { data: plansData, isPending: isLoadingPlans } = useGetAllPlans()
-  const { mutate: createPlan } = useCreatePlan()
-  const { mutate: updatePlan } = useUpdatePlan()
-  const { mutate: deletePlan } = useDeletePlan()
+  const { mutate: createPlan, isPending: isCreating } = useCreatePlan()
+  const { mutate: updatePlan, isPending: isUpdating } = useUpdatePlan()
+  const { mutate: deletePlan, isPending: isDeleting } = useDeletePlan()
 
   const [view, setView] = useState<"list" | "create" | "edit">("list")
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null)
+
+  const isLoading = isCreating || isUpdating;
 
   const handleCreatePlan = () => {
     setEditingPlanId(null)
@@ -31,9 +33,7 @@ export default function ManagePlansPage() {
   }
 
   const handleDeletePlan = (id: string) => {
-    if (confirm("Are you sure you want to delete this subscription plan?")) {
-      deletePlan(id)
-    }
+    deletePlan(id)
   }
 
   const handleCancelForm = () => {
@@ -86,6 +86,7 @@ export default function ManagePlansPage() {
           onCreatePlan={handleCreatePlan}
           onEditPlan={handleEditPlan}
           onDeletePlan={handleDeletePlan}
+          isDeleting={isDeleting}
         />
       )}
 
@@ -94,6 +95,7 @@ export default function ManagePlansPage() {
           planToEdit={planToEdit}
           onSave={handleSavePlan}
           onCancel={handleCancelForm}
+          isLoading={isLoading}
         />
       )}
     </div>

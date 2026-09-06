@@ -76,23 +76,23 @@ export const columns: ColumnDef<UserItem>[] = [
       </span>
     ),
   },
-  {
-    accessorKey: "assignment",
-    header: "Assignment",
-    meta: { align: "left" },
-    cell: ({ getValue }) => {
-      const val = getValue() as string
-      let textClass = "text-body-text"
-      if (val.startsWith("Unassigned")) {
-        textClass = "text-zinc-400 italic"
-      }
-      return (
-        <span className={`${textClass} text-sm font-sans`}>
-          {val}
-        </span>
-      )
-    },
-  },
+  // {
+  //   accessorKey: "assignment",
+  //   header: "Assignment",
+  //   meta: { align: "left" },
+  //   cell: ({ getValue }) => {
+  //     const val = getValue() as string
+  //     let textClass = "text-body-text"
+  //     if (val.startsWith("Unassigned")) {
+  //       textClass = "text-zinc-400 italic"
+  //     }
+  //     return (
+  //       <span className={`${textClass} text-sm font-sans`}>
+  //         {val}
+  //       </span>
+  //     )
+  //   },
+  // },
   {
     id: "actions",
     header: "Action",
