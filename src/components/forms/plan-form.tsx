@@ -7,14 +7,18 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import { PlanType, CreatePlanType, PlanCategory, PlanTier } from "@/types/billing.type"
 import { useForm } from "@/hooks/use-form"
+import { useGetPlanCategories, useGetPlanTiers } from "@/hooks/billing.hook"
 import { z } from "zod/v4"
 import { Controller } from "react-hook-form"
 import { cn } from "@/libs/utils"
+import { IconLoader2 } from "@tabler/icons-react"
+
 
 interface PlanFormProps {
   planToEdit?: PlanType | null
   onSave: (plan: CreatePlanType & { id?: string }) => void
-  onCancel: () => void
+  onCancel: () => void,
+  isLoading: boolean
 }
 
 const CATEGORY_MAP: Record<PlanCategory, string> = {
@@ -41,7 +45,19 @@ export default function PlanForm({
   planToEdit,
   onSave,
   onCancel,
+  isLoading
 }: PlanFormProps) {
+  // Query live categories and tiers
+  const { data: categoriesResponse } = useGetPlanCategories()
+  const { data: tiersResponse } = useGetPlanTiers()
+
+  const categories = categoriesResponse?.data || CATEGORY_KEYS
+  const tiers = tiersResponse?.data || TIERS
+
+  const formatCategoryLabel = (category: string) => {
+    return CATEGORY_MAP[category as PlanCategory] || category.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  }
+
   // Coverage checklist state
   const [coverage, setCoverage] = useState<string[]>([])
   const [newCoverageItem, setNewCoverageItem] = useState("")
@@ -61,9 +77,9 @@ export default function PlanForm({
     defaultValues: {
       name: "",
       category: "Elderly_Care",
-      tier: "Bronze",
-      price: "50000",
-      price_in_usd: "50",
+      tier: "Silver",
+      price: "",
+      price_in_usd: "",
     },
   })
 
@@ -82,18 +98,8 @@ export default function PlanForm({
       })
       setCoverage(planToEdit.coverage)
     } else {
-      reset({
-        name: "",
-        category: "Elderly_Care",
-        tier: "Bronze",
-        price: "50000",
-        price_in_usd: "50",
-      })
-      setCoverage([
-        "Weekly doctor visit",
-        "24/7 Nurse support",
-        "Vital signs monitoring",
-      ])
+      reset()
+      setCoverage([])
     }
     setCoverageError("")
   }, [planToEdit, reset])
@@ -184,15 +190,13 @@ export default function PlanForm({
                     name="category"
                     control={control}
                     render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select value={formatCategoryLabel(field.value)} onValueChange={field.onChange}>
                         <SelectTrigger className={cn("!h-12 rounded-[8px] border bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 focus:border-primary-color focus-visible:border-primary-color focus:outline-hidden w-full shadow-none", errors.category ? "border-error" : "border-zinc-300")}>
                           <SelectValue placeholder="Select Category" />
                         </SelectTrigger>
                         <SelectContent className="max-h-60 overflow-y-auto">
-                          {CATEGORY_KEYS.map((catKey) => (
-                            <SelectItem key={catKey} className="font-dm-san-regular font-normal text-sm" value={catKey}>
-                              {CATEGORY_MAP[catKey]}
-                            </SelectItem>
+                          {categories.map((catKey) => (
+                            <SelectItem key={catKey} className="font-dm-san-regular font-normal text-sm" value={catKey}>{formatCategoryLabel(catKey)}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -215,7 +219,7 @@ export default function PlanForm({
                   Choose Tier
                 </FieldLabel>
                 <div className="flex flex-wrap items-center gap-6">
-                  {TIERS.map((t) => {
+                  {tiers.map((t) => {
                     const isSelected = watchedTier === t
                     return (
                       <button
@@ -365,6 +369,7 @@ export default function PlanForm({
               disabled={!isValid || coverage.length === 0}
               className="ml-auto  rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs px-8 h-12! border-none shadow-none cursor-pointer outline-hidden transition-colors"
             >
+              {isLoading && <IconLoader2 className="animate-spin" />}
               {planToEdit ? "Save Changes" : "Create Plan"}
             </Button>
           </div>

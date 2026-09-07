@@ -9,7 +9,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { useSuspenseGetUserById } from "@/hooks/user.hook"
+import { useSuspenseGetUserById, useSuspendCaregiver } from "@/hooks/user.hook"
+import { toast } from "sonner"
+import ConfirmationModal, { useConfirmation } from "@/components/modal/confirmation-modal"
 
 interface CaregiverDetailsViewProps {
   caregiverId: string
@@ -18,6 +20,35 @@ interface CaregiverDetailsViewProps {
 export default function CaregiverDetailsView({ caregiverId }: CaregiverDetailsViewProps) {
   const { data: response } = useSuspenseGetUserById(caregiverId)
   const caregiver = response?.data
+
+  const { mutate: suspendMutate, isPending } = useSuspendCaregiver()
+
+  // Confirmation Modal state
+  const { state: confirmState, confirm, close: closeConfirm } = useConfirmation()
+
+  const handleToggleSuspend = (suspendStatus: boolean) => {
+    const actionText = suspendStatus ? "suspend" : "unsuspend"
+    confirm({
+      title: `${suspendStatus ? "Suspend" : "Unsuspend"} Caregiver`,
+      description: `Are you sure you want to ${actionText} this caregiver's account?`,
+      confirmText: suspendStatus ? "Suspend" : "Unsuspend",
+      variant: suspendStatus ? "danger" : "primary",
+      onConfirm: () => {
+        suspendMutate(
+          { id: caregiverId, payload: { isSuspended: suspendStatus } },
+          {
+            onSuccess: () => {
+              toast.success(`Account ${suspendStatus ? "suspended" : "unsuspended"} successfully!`)
+              closeConfirm()
+            },
+            onError: () => {
+              toast.error(`Failed to ${actionText} caregiver account.`)
+            },
+          }
+        )
+      },
+    })
+  }
 
   if (!caregiver) return null
 
@@ -73,14 +104,31 @@ export default function CaregiverDetailsView({ caregiverId }: CaregiverDetailsVi
               </div>
 
               {/* Profile Action Buttons */}
-              <div className="flex items-center gap-2.5">
-                <Button className="rounded-full bg-warning-border hover:bg-warning-border text-white font-dm-san-regular font-normal text-xs px-5 py-2 cursor-pointer outline-hidden border-none shadow-none">
-                  Suspend Account
-                </Button>
-                <Button className="rounded-full bg-primary-color hover:bg-primary-color text-white font-dm-san-regular font-normal text-xs px-5 py-2 cursor-pointer outline-hidden border-none shadow-none">
-                  Send Message
-                </Button>
-              </div>
+              {caregiver.isSuspended ?
+                (
+                  <Button
+                    onClick={() => handleToggleSuspend(false)}
+                    disabled={isPending}
+                    className="rounded-full bg-primary-color hover:bg-primary-color text-white font-dm-san-regular font-normal text-xs px-5 py-2 cursor-pointer outline-hidden border-none shadow-none disabled:opacity-50"
+                  >
+                    {isPending ? "Restoring..." : "Restore Account"}
+                  </Button>
+                ) :
+                (
+                  <div className="flex items-center gap-2.5">
+                    <Button
+                      onClick={() => handleToggleSuspend(true)}
+                      disabled={isPending}
+                      className="rounded-full bg-warning-border hover:bg-warning-border text-white font-dm-san-regular font-normal text-xs px-5 py-2 cursor-pointer outline-hidden border-none shadow-none disabled:opacity-50"
+                    >
+                      {isPending ? "Suspending..." : "Suspend Account"}
+                    </Button>
+                    <Button className="rounded-full bg-primary-color hover:bg-primary-color text-white font-dm-san-regular font-normal text-xs px-5 py-2 cursor-pointer outline-hidden border-none shadow-none">
+                      Send Message
+                    </Button>
+                  </div>
+                )}
+
             </div>
 
 
@@ -227,6 +275,20 @@ export default function CaregiverDetailsView({ caregiverId }: CaregiverDetailsVi
         </div>
 
       </div>
+
+      <ConfirmationModal
+        open={confirmState.open}
+        onOpenChange={(open) => {
+          if (!open) closeConfirm()
+        }}
+        title={confirmState.title}
+        description={confirmState.description}
+        confirmText={confirmState.confirmText}
+        cancelText={confirmState.cancelText}
+        onConfirm={confirmState.onConfirm}
+        variant={confirmState.variant}
+        isPending={isPending}
+      />
     </div>
   )
 }

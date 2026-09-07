@@ -8,10 +8,13 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { columns, CaregiverItem } from "./columns"
 import { DataTable } from "@/components/shared/data-table"
 import { useSendInvitation } from "@/hooks/invitation.hook"
+import { useSuspendCaregiver } from "@/hooks/user.hook"
 import InviteModal from "@/components/modal/invite-modal"
+import ConfirmationModal, { useConfirmation } from "@/components/modal/confirmation-modal"
 import { PaginatedResponse } from "@/types/response.type"
 import { UserType } from "@/types/user.type"
 import { InvitationType } from "@/types/invitation.type"
+import { toast } from "sonner"
 
 interface CaregiversListViewProps {
   usersData?: PaginatedResponse<UserType[]>
@@ -25,6 +28,9 @@ export default function CaregiversListView({
   const [globalFilter, setGlobalFilter] = useState<string>("")
   const [isInviteOpen, setIsInviteOpen] = useState(false)
 
+  // Confirmation Modal state
+  const { state: confirmState, confirm, close: closeConfirm } = useConfirmation()
+
   // Filter States
   const [statusFilter, setStatusFilter] = useState<string>("All Status")
   const [assignmentFilter, setAssignmentFilter] = useState<string>("All Assignments")
@@ -37,13 +43,52 @@ export default function CaregiversListView({
       { email, type: "CARE_GIVER" },
       {
         onSuccess: () => {
-          alert("Invitation link resent successfully!")
+          toast.success("Invitation link resent successfully!")
         },
         onError: () => {
-          alert("Failed to resend invitation link.")
+          toast.error("Failed to resend invitation link.")
         },
       }
     )
+  }
+
+  const handleUnassignPatient = (caregiverId: string) => {
+    confirm({
+      title: "Unassign Patient",
+      description: "Are you sure you want to unassign this caregiver from their patient?",
+      confirmText: "Unassign",
+      variant: "danger",
+      onConfirm: () => {
+        toast.success("Unassigned patient successfully!")
+        closeConfirm()
+      },
+    })
+  }
+
+  const { mutate: suspendMutate, isPending: suspendPending } = useSuspendCaregiver()
+
+  const handleToggleSuspend = (caregiverId: string, currentStatus: boolean) => {
+    const actionText = currentStatus ? "unsuspend" : "suspend"
+    confirm({
+      title: `${currentStatus ? "Unsuspend" : "Suspend"} Caregiver`,
+      description: `Are you sure you want to ${actionText} this caregiver's account?`,
+      confirmText: currentStatus ? "Unsuspend" : "Suspend",
+      variant: currentStatus ? "primary" : "danger",
+      onConfirm: () => {
+        suspendMutate(
+          { id: caregiverId, payload: { isSuspended: !currentStatus } },
+          {
+            onSuccess: () => {
+              toast.success(`Account ${currentStatus ? "unsuspended" : "suspended"} successfully!`)
+              closeConfirm()
+            },
+            onError: () => {
+              toast.error(`Failed to ${actionText} caregiver account.`)
+            },
+          }
+        )
+      },
+    })
   }
 
   // Map and combine API responses
@@ -256,6 +301,8 @@ export default function CaregiversListView({
           pageSize={6}
           meta={{
             onResendInvitation: handleResendInvitation,
+            onUnassignPatient: handleUnassignPatient,
+            onToggleSuspend: handleToggleSuspend,
           }}
         />
       )}
@@ -264,6 +311,20 @@ export default function CaregiversListView({
         open={isInviteOpen}
         onOpenChange={setIsInviteOpen}
         type="CARE_GIVER"
+      />
+
+      <ConfirmationModal
+        open={confirmState.open}
+        onOpenChange={(open) => {
+          if (!open) closeConfirm()
+        }}
+        title={confirmState.title}
+        description={confirmState.description}
+        confirmText={confirmState.confirmText}
+        cancelText={confirmState.cancelText}
+        onConfirm={confirmState.onConfirm}
+        variant={confirmState.variant}
+        isPending={suspendPending}
       />
     </div>
   )
