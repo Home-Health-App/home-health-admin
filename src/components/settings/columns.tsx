@@ -1,7 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { IconDots } from "@tabler/icons-react"
 import { AdminUser } from "./admin-users-tab"
-import { PermissionItem } from "./admin-roles-tab"
 
 interface ColumnsProps {
   activeDropdown: string | null
@@ -98,30 +97,5 @@ export const getAdminUsersColumns = ({
         </div>
       )
     },
-  },
-]
-
-export const getAdminRolesColumns = (): ColumnDef<PermissionItem>[] => [
-  {
-    accessorKey: "section",
-    header: "Sections",
-    meta: { align: "left" },
-    cell: ({ getValue }) => (
-      <span className="text-sm font-dm-san-regular font-normal text-body-text">
-        {getValue() as string}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "hasAccess",
-    header: "Access",
-    meta: { align: "center" },
-    cell: () => (
-      <input
-        type="checkbox"
-        defaultChecked
-        className="size-5 rounded-[4px] border border-zinc-300 accent-[#0B1E3F] cursor-pointer"
-      />
-    ),
   },
 ]
