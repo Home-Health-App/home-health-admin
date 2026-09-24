@@ -9,6 +9,10 @@ import {
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import LinkedPatientsTable from "./table/linked-patients-table"
+import { useGetPatientById } from "@/hooks/patient.hook"
+import { useCreateAdminChat } from "@/hooks/chat.hook"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 interface FamilyMemberViewProps {
   patientId: string
@@ -48,18 +52,78 @@ const timelineItems = [
 ];
 
 export default function FamilyMemberView({ patientId }: FamilyMemberViewProps) {
+  const { data: response } = useGetPatientById(patientId)
+  const patient = response?.data
+  const familyMember = patient?.user
+  const familyMemberId = familyMember?.id || patient?.user_id || ""
+  const memberName = familyMember
+    ? `${familyMember.first_name || ""} ${familyMember.last_name || ""}`.trim()
+    : "Family Member"
+
+  const joinedDate = patient?.created_at
+    ? new Date(patient.created_at).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "Aug. 5 2026"
+
+  const router = useRouter()
+  const { mutate: createChat, isPending: isCreatingChat } = useCreateAdminChat()
+
+  const handleSendMessage = () => {
+    if (!familyMemberId) return
+    createChat(
+      {
+        type: "USER",
+        reciever_id: familyMemberId,
+        is_for_admin: true,
+      },
+      {
+        onSuccess: (res) => {
+          const chatId = res?.data?.id || familyMemberId
+          router.push(`/dashboard/messages?chatId=${chatId}`)
+        },
+        onError: () => {
+          toast.error("Failed to initiate chat.")
+        },
+      }
+    )
+  }
+
+  const caregiverObj =
+    patient?.caregiver ||
+    (typeof patient?.caregiver === "object" ? patient?.caregiver : null)
+  const caregiverName = caregiverObj
+    ? `${caregiverObj.first_name || ""} ${caregiverObj.last_name || ""}`.trim()
+    : patient?.assignments?.find((a) => a.user_role === "CARE_GIVER")?.user?.first_name
+    ? `${patient.assignments.find((a) => a.user_role === "CARE_GIVER")?.user?.first_name} ${patient.assignments.find((a) => a.user_role === "CARE_GIVER")?.user?.last_name || ""}`.trim()
+    : "Unassigned"
+
+  const linkedPatientsData = patient
+    ? [
+        {
+          id: patient.id,
+          name: `${patient.first_name || ""} ${patient.last_name || ""}`.trim() || "Patient",
+          relationship: patient.relationship || "Primary Contact",
+          caregiver: caregiverName || "Unassigned",
+          subscription: (patient.plan?.tier || (patient.status === "ACTIVE" ? "Active" : "Grace Period")) as any,
+        },
+      ]
+    : undefined
+
   return (
     <div className="w-full space-y-8 pb-12">
       {/* Header Profile Section with action buttons */}
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
         <div>
           <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-[#2B2B2B]">
-            Sam Winchester
+            {memberName}
           </h1>
           <div className="flex items-center gap-2 text-[#2B2B2B] font-dm-san-regular text-sm mt-1">
-            <span>Primary Family Member</span>
+            <span>{patient?.relationship || "Primary Family Member"}</span>
             <span className="text-zinc-300">•</span>
-            <span>Joined: Aug. 5 2026</span>
+            <span>Joined: {joinedDate}</span>
           </div>
         </div>
 
@@ -68,8 +132,12 @@ export default function FamilyMemberView({ patientId }: FamilyMemberViewProps) {
           <Button className="rounded-full bg-[#C43A3A] text-white font-dm-san-regular font-normal text-xs p-3 hover:bg-[#C43A3A] cursor-pointer outline-hidden border-none shadow-none">
             Suspend Account
           </Button>
-          <Button className="rounded-full bg-[#0B1E3F] text-white font-dm-san-regular font-normal text-xs p-3 hover:bg-[#0B1E3F] cursor-pointer outline-hidden border-none shadow-none">
-            Send Message
+          <Button
+            onClick={handleSendMessage}
+            disabled={isCreatingChat || !familyMemberId}
+            className="rounded-full bg-[#0B1E3F] text-white font-dm-san-regular font-normal text-xs p-3 hover:bg-[#0B1E3F] cursor-pointer outline-hidden border-none shadow-none disabled:opacity-50"
+          >
+            {isCreatingChat ? "Opening..." : "Send Message"}
           </Button>
         </div>
       </div>
@@ -82,7 +150,7 @@ export default function FamilyMemberView({ patientId }: FamilyMemberViewProps) {
             Linked Patients
           </span>
           <span className="text-2xl font-bold font-sans text-zinc-900 block">
-            3
+            {patient ? 1 : 3}
           </span>
         </div>
 
@@ -92,7 +160,7 @@ export default function FamilyMemberView({ patientId }: FamilyMemberViewProps) {
             Active Subscriptions
           </span>
           <span className="text-2xl font-bold font-sans text-zinc-900 block">
-            2
+            {patient?.plan ? 1 : 1}
           </span>
         </div>
 
@@ -102,7 +170,7 @@ export default function FamilyMemberView({ patientId }: FamilyMemberViewProps) {
             Last Payment
           </span>
           <span className="text-2xl font-bold font-sans text-zinc-900 block">
-            July 10, 2026
+            {joinedDate}
           </span>
         </div>
       </div>
@@ -119,7 +187,7 @@ export default function FamilyMemberView({ patientId }: FamilyMemberViewProps) {
               Linked Patients
             </h2>
 
-            <LinkedPatientsTable />
+            <LinkedPatientsTable data={linkedPatientsData} />
           </div>
 
           {/* Activity Timeline */}
@@ -182,16 +250,26 @@ export default function FamilyMemberView({ patientId }: FamilyMemberViewProps) {
           <div className="space-y-3 font-sans text-sm text-body-text">
             <div className="flex items-center gap-3.5">
               <IconPhone className="size-6 font-bold text-primary-color shrink-0" />
-              <span className="font-normal text-sm">09065437832</span>
+              <span className="font-normal text-sm">
+                {familyMember?.phone || patient?.phone || "-"}
+              </span>
             </div>
             <div className="flex items-center gap-3.5">
               <IconMail className="size-6 font-bold text-primary-color shrink-0" />
-              <span className="font-normal text-sm">jamesdoe@gmail.com</span>
+              <span className="font-normal text-sm">
+                {familyMember?.email || patient?.email || "-"}
+              </span>
             </div>
             <div className="flex items-start gap-3.5">
               <IconMapPin className="size-6 font-bold text-primary-color shrink-0 mt-0.5" />
               <span className="font-normal text-sm leading-relaxed">
-                1234 Lane 1 Ikeja Lagos 255233
+                {patient?.address || "-"}
+                {(patient?.state || patient?.country) && (
+                  <span className="block text-xs text-zinc-500 mt-0.5">
+                    {patient?.state ? `${patient.state}, ` : ""}
+                    {patient?.country || ""}
+                  </span>
+                )}
               </span>
             </div>
           </div>

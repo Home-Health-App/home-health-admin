@@ -18,15 +18,57 @@ export interface PatientUser {
   last_name: string
   email: string
   phone?: string
+  profile_picture?: string | null
+}
+
+export interface PatientAssignmentUser {
+  id: string
+  first_name: string
+  last_name: string
+  email: string
+  profile_picture?: string | null
+  phone?: string
+}
+
+export interface PatientCaregiver {
+  id: string
+  first_name: string
+  last_name: string
+  email: string
+  phone?: string
+  address?: string
+  profile_picture?: string | null
+  country?: string
+  state?: string
+  gender?: string
+  date_of_birth?: string
+  push_notification_token?: string | null
+  certification?: string[]
+  created_at?: string
+  updated_at?: string
+  deleted_at?: string | null
+  type?: string
+  isDeleted?: boolean
+  isSuspended?: boolean
 }
 
 export interface PatientAssignment {
   id?: string
+  patient_id?: string
   user_id?: string
-  caregiver?: any
-  user?: any
+  start_date?: string
+  end_date?: string | null
   status?: string
+  assigned_by?: string
+  relationship?: string | null
+  family_access_permissions?: string[]
+  user_role?: "CARE_GIVER" | "FAMILY" | string
   created_at?: string
+  updated_at?: string
+  deleted_at?: string | null
+  isDeleted?: boolean
+  user?: PatientAssignmentUser
+  caregiver?: PatientAssignmentUser
 }
 
 export interface PatientType {
@@ -42,8 +84,8 @@ export interface PatientType {
   state: string
   gender: "MALE" | "FEMALE" | string
   date_of_birth: string
-  relationship: string
-  notes: string
+  relationship: string | null
+  notes: string | null
   chronic_conditions: string[]
   allergies: string[]
   age: number
@@ -51,14 +93,18 @@ export interface PatientType {
   genotype: string
   height: number
   weight: number
+  status?: "ACTIVE" | "NOT_ACTIVE" | string
   plan_id: string
+  caregiver_id?: string | null
   isSuspended: boolean
+  isCreatedByAdmin?: boolean
   created_at: string
   updated_at: string
   deleted_at: string | null
   isDeleted: boolean
   plan?: PatientPlan
   user?: PatientUser
+  caregiver?: PatientCaregiver | PatientAssignmentUser | null
   assignments?: PatientAssignment[]
 }
 
@@ -112,4 +158,47 @@ export interface UnassignPatientPayload {
   patient_id: string
   user_id: string
 }
+
+export interface MedicationSchedule {
+  name: string
+  dosage?: string
+  frequency?: string
+  schedule_type?: "Specific Times" | "Interval"
+  times?: string[]
+  interval?: string
+  starting_from?: string
+  days_of_week?: string[]
+}
+
+export interface PatientMedicationItem {
+  name: string
+  doseage: string
+  frequency: string
+}
+
+export interface CreatePatientPayload {
+  plan_id: string
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  address: string
+  profile_picture?: string
+  country: string
+  state: string
+  gender: "MALE" | "FEMALE" | string
+  date_of_birth: string
+  relationship?: string
+  notes?: string
+  height?: number
+  weight?: number
+  allergies: string[]
+  chronic_conditions: string[]
+  age: number
+  blood_group: string
+  genotype: string
+  medications: PatientMedicationItem[]
+  user_id: string
+}
+
 

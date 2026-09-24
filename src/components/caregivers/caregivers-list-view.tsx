@@ -9,6 +9,8 @@ import { columns, CaregiverItem } from "./columns"
 import { DataTable } from "@/components/shared/data-table"
 import { useSendInvitation } from "@/hooks/invitation.hook"
 import { useSuspendCaregiver } from "@/hooks/user.hook"
+import { useCreateAdminChat } from "@/hooks/chat.hook"
+import { useRouter } from "next/navigation"
 import InviteModal from "@/components/modal/invite-modal"
 import ConfirmationModal, { useConfirmation } from "@/components/modal/confirmation-modal"
 import { PaginatedResponse } from "@/types/response.type"
@@ -52,19 +54,6 @@ export default function CaregiversListView({
     )
   }
 
-  const handleUnassignPatient = (caregiverId: string) => {
-    confirm({
-      title: "Unassign Patient",
-      description: "Are you sure you want to unassign this caregiver from their patient?",
-      confirmText: "Unassign",
-      variant: "danger",
-      onConfirm: () => {
-        toast.success("Unassigned patient successfully!")
-        closeConfirm()
-      },
-    })
-  }
-
   const { mutate: suspendMutate, isPending: suspendPending } = useSuspendCaregiver()
 
   const handleToggleSuspend = (caregiverId: string, currentStatus: boolean) => {
@@ -91,6 +80,28 @@ export default function CaregiversListView({
     })
   }
 
+  const router = useRouter()
+  const { mutate: createChat } = useCreateAdminChat()
+
+  const handleMessageCaregiver = (caregiverId: string) => {
+    createChat(
+      {
+        type: "USER",
+        reciever_id: caregiverId,
+        is_for_admin: true,
+      },
+      {
+        onSuccess: (res) => {
+          const chatId = res?.data?.id || caregiverId
+          router.push(`/dashboard/messages?chatId=${chatId}`)
+        },
+        onError: () => {
+          toast.error("Failed to initiate chat.")
+        },
+      }
+    )
+  }
+
   // Map and combine API responses
   const registeredCaregivers = useMemo(() => {
     if (!usersData?.data) return []
@@ -102,7 +113,11 @@ export default function CaregiversListView({
       invitation: "Accepted" as const,
       assignment: user.isSuspended
         ? ("Unassigned (Sus)" as const)
-        : (user._count?.assignments && user._count.assignments > 0 ? ("Assigned" as const) : ("Unassigned" as const)),
+        : ((user._count?.patients && user._count.patients > 0) ||
+          (user.patients && user.patients.length > 0) ||
+          (user._count?.assignments && user._count.assignments > 0)
+            ? ("Assigned" as const)
+            : ("Unassigned" as const)),
       isSuspended: user.isSuspended,
     }))
   }, [usersData])
@@ -301,8 +316,8 @@ export default function CaregiversListView({
           pageSize={6}
           meta={{
             onResendInvitation: handleResendInvitation,
-            onUnassignPatient: handleUnassignPatient,
             onToggleSuspend: handleToggleSuspend,
+            onMessageCaregiver: handleMessageCaregiver,
           }}
         />
       )}

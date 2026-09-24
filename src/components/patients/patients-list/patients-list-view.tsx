@@ -9,6 +9,8 @@ import { DataTable } from "@/components/shared/data-table"
 import { PaginatedResponse } from "@/types/response.type"
 import { PatientType } from "@/types/patient.type"
 import { useSuspendPatient, useUnassignPatient } from "@/hooks/patient.hook"
+import { useCreateAdminChat } from "@/hooks/chat.hook"
+import { useRouter } from "next/navigation"
 import ConfirmationModal, { useConfirmation } from "@/components/modal/confirmation-modal"
 import AssignPatientModal from "@/components/modal/assign-patient-modal"
 import { toast } from "sonner"
@@ -36,16 +38,27 @@ export default function PatientsView({ patientsData }: PatientsListViewProps) {
     if (!patientsData?.data) return []
 
     return patientsData.data.map((patient) => {
-      const caregiverAssignment = patient.assignments?.[0]
-      const caregiverName = caregiverAssignment?.caregiver
-        ? `${caregiverAssignment.caregiver.first_name || ""} ${caregiverAssignment.caregiver.last_name || ""}`.trim()
-        : caregiverAssignment?.user
-        ? `${caregiverAssignment.user.first_name || ""} ${caregiverAssignment.user.last_name || ""}`.trim()
+      const caregiverObj =
+        patient.caregiver ||
+        (typeof patient.caregiver === "object" ? patient.caregiver : null)
+      const caregiverName = caregiverObj
+        ? `${caregiverObj.first_name || ""} ${caregiverObj.last_name || ""}`.trim()
+        : typeof patient.caregiver === "string"
+        ? patient.caregiver
         : "Unassigned"
 
       const familyName = patient.user
         ? `${patient.user.first_name || ""} ${patient.user.last_name || ""}`.trim()
         : patient.relationship || "-"
+
+      let status: "Active" | "Inactive" | "Suspended" = "Active"
+      if (patient.isSuspended) {
+        status = "Suspended"
+      } else if (patient.status === "NOT_ACTIVE" || patient.status === "Inactive") {
+        status = "Inactive"
+      } else {
+        status = "Active"
+      }
 
       return {
         id: patient.id,
@@ -53,8 +66,9 @@ export default function PatientsView({ patientsData }: PatientsListViewProps) {
         familyMember: familyName || "-",
         familyMemberId: patient.user?.id || patient.user_id,
         caregiver: caregiverName || "Unassigned",
+        caregiverId: caregiverObj?.id || patient.caregiver_id || undefined,
         subscription: patient.plan?.tier || patient.plan?.name || "No Plan",
-        status: patient.isSuspended ? "Suspended" : "Active",
+        status,
         rawPatient: patient,
       }
     })
@@ -99,32 +113,38 @@ export default function PatientsView({ patientsData }: PatientsListViewProps) {
     setIsAssignModalOpen(true)
   }
 
-  const handleUnassignCaregiver = (patient: PatientItem) => {
-    const assignment = patient.rawPatient.assignments?.[0]
-    const caregiverUserId =
-      assignment?.caregiver?.id ||
-      assignment?.user?.id ||
-      assignment?.user_id ||
-      ""
+  const handleUnassignCaregiver = (patientInfo: {
+    id: string
+    name: string
+    caregiverName?: string
+    caregiverId?: string
+  }) => {
+    if (!patientInfo.caregiverId) {
+      toast.error("Caregiver record not found for this patient.")
+      return
+    }
 
     confirm({
       title: "Unassign Caregiver",
-      description: `Are you sure you want to unassign ${patient.caregiver} from ${patient.name}?`,
+      description: `Are you sure you want to unassign ${patientInfo.caregiverName || "the caregiver"} from ${patientInfo.name}?`,
       confirmText: "Unassign",
       variant: "danger",
       onConfirm: () => {
         unassignMutate(
           {
-            patient_id: patient.id,
-            user_id: caregiverUserId,
+            patient_id: patientInfo.id,
+            user_id: patientInfo.caregiverId!,
           },
           {
             onSuccess: () => {
               toast.success("Caregiver unassigned successfully!")
               closeConfirm()
             },
-            onError: () => {
-              toast.error("Failed to unassign caregiver.")
+            onError: (error) => {
+              const msg =
+                error.response?.data?.message ||
+                "Failed to unassign caregiver."
+              toast.error(msg)
             },
           }
         )
@@ -132,16 +152,86 @@ export default function PatientsView({ patientsData }: PatientsListViewProps) {
     })
   }
 
+  const router = useRouter()
+  const { mutate: createChat } = useCreateAdminChat()
+
+  const handleMessageFamilyMember = (familyMemberId: string) => {
+    createChat(
+      {
+        type: "USER",
+        reciever_id: familyMemberId,
+        is_for_admin: true,
+      },
+      {
+        onSuccess: (res) => {
+          const chatId = res?.data?.id || familyMemberId
+          router.push(`/dashboard/messages?chatId=${chatId}`)
+        },
+        onError: () => {
+          toast.error("Failed to initiate chat.")
+        },
+      }
+    )
+  }
+
+  const handleExportCSV = () => {
+    if (!filteredData.length) {
+      toast.info("No patient records to export.")
+      return
+    }
+
+    const headers = [
+      "ID",
+      "Patient Name",
+      "Family Member",
+      "Caregiver",
+      "Subscription Plan",
+      "Status",
+      "Email",
+      "Phone",
+      "Gender",
+      "Registered Date",
+    ]
+
+    const rows = filteredData.map((item) => [
+      item.id,
+      `"${(item.name || "").replace(/"/g, '""')}"`,
+      `"${(item.familyMember || "").replace(/"/g, '""')}"`,
+      `"${(item.caregiver || "").replace(/"/g, '""')}"`,
+      `"${(item.subscription || "").replace(/"/g, '""')}"`,
+      item.status,
+      item.rawPatient.email || "",
+      item.rawPatient.phone || "",
+      item.rawPatient.gender || "",
+      item.rawPatient.created_at ? new Date(item.rawPatient.created_at).toLocaleDateString() : "",
+    ])
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n")
+
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement("a")
+    link.setAttribute("href", encodedUri)
+    link.setAttribute("download", `patient_directory_${new Date().toISOString().slice(0, 10)}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast.success("Patient directory exported successfully!")
+  }
+
   return (
     <div className="w-full pb-8">
       {/* Top Header Section */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight font-sans text-zinc-900">
-          Patient Directory
-        </h1>
-        <p className="text-zinc-500 font-sans mt-1 text-sm">
-          Manage and monitor all active and inactive patient records.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight font-sans text-zinc-900">
+            Patient Directory
+          </h1>
+          <p className="text-zinc-500 font-sans mt-1 text-sm">
+            Manage and monitor all active and inactive patient records.
+          </p>
+        </div>
       </div>
 
       {/* Control Bar */}
@@ -170,11 +260,10 @@ export default function PatientsView({ patientsData }: PatientsListViewProps) {
                 <button
                   key={tab}
                   onClick={() => setStatusFilter(tab)}
-                  className={`text-sm font-normal px-3 py-1 rounded-md transition-all cursor-pointer outline-hidden ${
-                    statusFilter === tab
+                  className={`text-sm font-normal px-3 py-1 rounded-md transition-all cursor-pointer outline-hidden ${statusFilter === tab
                       ? "bg-secondary-color text-white shadow-xs"
                       : "text-body-text hover:text-black hover:bg-zinc-200/50"
-                  }`}
+                    }`}
                 >
                   {tab}
                 </button>
@@ -185,6 +274,7 @@ export default function PatientsView({ patientsData }: PatientsListViewProps) {
           {/* Export CSV button */}
           <Button
             variant="outline"
+            onClick={handleExportCSV}
             className="rounded-full border border-secondary-color bg-transparent shadow-none font-sans font-normal text-xs text-body-text flex items-center gap-1.5 px-4.5 h-8.5 hover:bg-zinc-50 cursor-pointer outline-hidden"
           >
             <IconFileDownload className="size-4 text-secondary-color font-bold" />
@@ -214,6 +304,7 @@ export default function PatientsView({ patientsData }: PatientsListViewProps) {
             onToggleSuspend: handleToggleSuspend,
             onAssignCaregiver: handleAssignCaregiver,
             onUnassignCaregiver: handleUnassignCaregiver,
+            onMessageFamilyMember: handleMessageFamilyMember,
           }}
         />
       )}
