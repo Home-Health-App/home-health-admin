@@ -11,6 +11,8 @@ import {
   suspendPatient,
   assignPatient,
   unassignPatient,
+  getPatientDailyLogs,
+  getDailyLogById,
 } from "@/services/patient.service"
 import {
   PatientType,
@@ -20,6 +22,10 @@ import {
   AssignPatientPayload,
   UnassignPatientPayload,
 } from "@/types/patient.type"
+import {
+  DailyLogType,
+  GetDailyLogsQueryParams,
+} from "@/types/daily-log.type"
 import { PaginatedResponse, GeneralResponse } from "@/types/response.type"
 import { AxiosError } from "axios"
 
@@ -139,5 +145,51 @@ export const useUnassignPatient = () => {
         queryKey: patientKeys.detail(variables.patient_id),
       })
     },
+  })
+}
+
+export const useGetPatientDailyLogs = (
+  patientId: string,
+  params?: GetDailyLogsQueryParams,
+  options?: { enabled?: boolean }
+) => {
+  return useQuery<
+    PaginatedResponse<DailyLogType[]>,
+    AxiosError<GeneralResponse>
+  >({
+    queryKey: [...patientKeys.detail(patientId), "daily-logs", params || {}],
+    queryFn: () => getPatientDailyLogs(patientId, params),
+    enabled: (options?.enabled ?? true) && !!patientId,
+  })
+}
+
+export const useSuspenseGetPatientDailyLogs = (
+  patientId: string,
+  params?: GetDailyLogsQueryParams
+) => {
+  return useSuspenseQuery<PaginatedResponse<DailyLogType[]>>({
+    queryKey: [...patientKeys.detail(patientId), "daily-logs", params || {}],
+    queryFn: () => getPatientDailyLogs(patientId, params),
+  })
+}
+
+export const useGetDailyLogById = (
+  logId: string,
+  options?: { enabled?: boolean }
+) => {
+  return useQuery<
+    GeneralResponse<DailyLogType>,
+    AxiosError<GeneralResponse>
+  >({
+    queryKey: ["daily-log", logId],
+    queryFn: () => getDailyLogById(logId),
+    enabled: (options?.enabled ?? true) && !!logId,
+  })
+}
+
+export const useSuspenseGetDailyLogById = (logId: string) => {
+  return useSuspenseQuery<GeneralResponse<DailyLogType>>({
+    queryKey: ["daily-log", logId],
+    queryFn: () => getDailyLogById(logId),
   })
 }

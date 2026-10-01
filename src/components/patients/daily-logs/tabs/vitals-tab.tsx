@@ -1,15 +1,24 @@
 import React from "react"
-import { Badge } from "@/components/ui/badge"
+
+export interface VitalDisplayItem {
+  label: string
+  value: string
+  status: "Normal" | "No change" | "Mid" | "High" | "Serious" | string
+}
 
 interface VitalsTabProps {
-  vitals: Array<{
-    label: string
-    value: string
-    status: "Normal" | "No change" | "Mid" | "High" | "Serious"
-  }>
+  vitals: VitalDisplayItem[]
 }
 
 export default function VitalsTab({ vitals }: VitalsTabProps) {
+  if (!vitals || vitals.length === 0) {
+    return (
+      <div className="py-12 text-center text-zinc-400 font-dm-san-regular text-sm italic">
+        No vitals recorded at this time.
+      </div>
+    )
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {vitals.map((v, index) => {
@@ -40,7 +49,6 @@ export default function VitalsTab({ vitals }: VitalsTabProps) {
               </div>
             </div>
             <span
-              // variant="secondary"
               className={`${badgeClass} font-dm-san-regular font-bold text-xs self-start`}
             >
               {v.status}
@@ -51,3 +59,4 @@ export default function VitalsTab({ vitals }: VitalsTabProps) {
     </div>
   )
 }
+

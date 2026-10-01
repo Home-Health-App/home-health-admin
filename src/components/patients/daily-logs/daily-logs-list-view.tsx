@@ -1,53 +1,60 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
-import { MOCK_PATIENTS } from "../mock-data"
+import { useGetPatientById, useGetPatientDailyLogs } from "@/hooks/patient.hook"
+import { DailyLogType } from "@/types/daily-log.type"
+import { formatDate } from "@/libs/helper"
+import PatientLoader from "@/components/patients/patients-list/loader"
 
 interface DailyLogsListViewProps {
   patientId: string
 }
 
-export interface DailyLogEntry {
+export interface DailyLogTableRow {
   id: string
   dateString: string
   caregiver: string
-  flag: "Incident" | "No Issues" | "High BP"
+  rawLog: DailyLogType
 }
-
-const INITIAL_LOGS: DailyLogEntry[] = [
-  { id: "1", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "Incident" },
-  { id: "2", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "No Issues" },
-  { id: "3", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "No Issues" },
-  { id: "4", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "High BP" },
-  { id: "5", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "No Issues" },
-  { id: "6", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "No Issues" },
-  { id: "7", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "No Issues" },
-  { id: "8", dateString: "Aug. 04 2026", caregiver: "Bobby Singer", flag: "No Issues" },
-]
 
 export default function DailyLogsListView({ patientId }: DailyLogsListViewProps) {
   const router = useRouter()
-  const patient = MOCK_PATIENTS.find((p) => p.id === patientId) || MOCK_PATIENTS[1]
-  const [logs, setLogs] = useState<DailyLogEntry[]>(INITIAL_LOGS)
 
-  const handleRowClick = (row: DailyLogEntry) => {
-    router.push(`/dashboard/patients/${patientId}/daily-logs/22u26guqwwtq`)
+  const { data: patientResponse, isLoading: isPatientLoading } = useGetPatientById(patientId)
+  const patient = patientResponse?.data
+
+  const { data: dailyLogsResponse, isLoading: isLogsLoading } = useGetPatientDailyLogs(patientId)
+  const logs = dailyLogsResponse?.data || []
+
+  const caregiverName = patient?.caregiver
+    ? `${patient.caregiver.first_name || ""} ${patient.caregiver.last_name || ""}`.trim()
+    : "Unassigned"
+
+  const patientFullName = patient
+    ? `${patient.first_name || ""} ${patient.last_name || ""}`.trim()
+    : "Patient"
+
+  const registrationDate = patient?.created_at
+    ? formatDate(patient.created_at, "MMM. d yyyy")
+    : "N/A"
+
+  const tableData: DailyLogTableRow[] = useMemo(() => {
+    return logs.map((log) => ({
+      id: log.id,
+      dateString: formatDate(log.date || log.created_at, "MMM. dd yyyy") || "N/A",
+      caregiver: caregiverName,
+      rawLog: log,
+    }))
+  }, [logs, caregiverName])
+
+  const handleRowClick = (row: DailyLogTableRow) => {
+    router.push(`/dashboard/patients/${patientId}/daily-logs/${row.id}`)
   }
 
-  const handleLoadMore = () => {
-    const moreLogs: DailyLogEntry[] = [
-      { id: String(logs.length + 1), dateString: "Aug. 03 2026", caregiver: "Bobby Singer", flag: "No Issues" },
-      { id: String(logs.length + 2), dateString: "Aug. 03 2026", caregiver: "Bobby Singer", flag: "No Issues" },
-      { id: String(logs.length + 3), dateString: "Aug. 03 2026", caregiver: "Bobby Singer", flag: "No Issues" },
-      { id: String(logs.length + 4), dateString: "Aug. 03 2026", caregiver: "Bobby Singer", flag: "No Issues" },
-    ]
-    setLogs((prev) => [...prev, ...moreLogs])
-  }
-
-  const columns: ColumnDef<DailyLogEntry>[] = [
+  const columns: ColumnDef<DailyLogTableRow>[] = [
     {
       accessorKey: "dateString",
       header: "Date",
@@ -68,25 +75,11 @@ export default function DailyLogsListView({ patientId }: DailyLogsListViewProps)
         </span>
       ),
     },
-    {
-      accessorKey: "flag",
-      header: "Flags",
-      meta: { align: "left" },
-      cell: ({ getValue }) => {
-        const val = getValue() as string
-        let badgeColor = "bg-[#FAF0F0] text-[#C53929] border-[#F7C6C1]"
-        if (val === "No Issues") {
-          badgeColor = "bg-[#EBF3EF] text-[#2E7D32] border-[#D5E6DE]"
-        }
-
-        return (
-          <span className={`inline-block border px-3.5 py-0.5 rounded-full text-xs font-normal font-dm-san-regular ${badgeColor}`}>
-            {val}
-          </span>
-        )
-      },
-    },
   ]
+
+  if (isPatientLoading && isLogsLoading) {
+    return <PatientLoader />
+  }
 
   return (
     <div className="w-full space-y-6 pb-8 flex flex-col">
@@ -96,31 +89,22 @@ export default function DailyLogsListView({ patientId }: DailyLogsListViewProps)
           Daily Logs
         </h1>
         <div className="flex flex-wrap items-center gap-2 text-[#2B2B2B] font-dm-san-regular text-sm mt-1">
-          <span>{patient.name}</span>
+          <span>{patientFullName}</span>
+          {/* <span className="text-zinc-300">•</span>
+          <span>ID: {patient?.id || patientId}</span> */}
           <span className="text-zinc-300">•</span>
-          <span>ID: {10000000 + Number(patient.id)}</span>
+          <span>Registered: {registrationDate}</span>
           <span className="text-zinc-300">•</span>
-          <span>Registered: Aug. 5 2026</span>
-          <span className="text-zinc-300">•</span>
-          <span>Age: 66</span>
+          <span>Age: {patient?.age ?? "N/A"}</span>
         </div>
       </div>
 
       {/* Reusable Data Table Component */}
       <DataTable
         columns={columns}
-        data={logs}
+        data={tableData}
         onRowClick={handleRowClick}
-        // isPaginated={false}
       />
-
-      {/* Load More Action Button */}
-      {/* <button
-        onClick={handleLoadMore}
-        className="bg-[#E9C43F] hover:bg-[#d8b535] transition-colors text-zinc-900 font-dm-san-regular font-semibold text-sm px-6 py-3 rounded-[24px] cursor-pointer shadow-xs self-end mt-4 select-none outline-hidden"
-      >
-        Load More
-      </button> */}
     </div>
   )
 }
