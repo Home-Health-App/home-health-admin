@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useMemo, useState } from "react"
+import React, { useMemo, useState, useEffect, useRef, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   IconDots,
   IconPaperclip,
@@ -12,119 +13,146 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import StartChatModal from "@/components/modal/start-chat-modal"
+import {
+  useGetAdminChats,
+  useGetChatMessages,
+  useSendAdminMessage,
+} from "@/hooks/chat.hook"
+import { formatNotificationTime } from "@/libs/helper"
+import { format } from "date-fns"
+import { toast } from "sonner"
 
-type Message = {
-  id: number
-  sender: "patient" | "admin"
-  text: string
-  time: string
-}
+function MessagesContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const currentChatId = searchParams.get("chatId")
 
-type Conversation = {
-  id: number
-  name: string
-  type: "Family" | "Caregiver"
-  time: string
-  preview: string
-  unread: boolean
-  messages: Message[]
-}
-
-const INITIAL_CONVERSATIONS: Conversation[] = [
-  {
-    id: 1,
-    name: "Sam Winchester",
-    type: "Family",
-    time: "02:00 PM",
-    preview: "This is a snippet of the message",
-    unread: false,
-    messages: [
-      {
-        id: 1,
-        sender: "patient",
-        text: "Hi, Dean had a restless night. Her vitals this morning are stable, but I wanted to report that she seems slightly confused regarding her medication schedule.",
-        time: "10:42 AM",
-      },
-      {
-        id: 2,
-        sender: "admin",
-        text: "Thank you for the update, Sarah. I will review her chart and schedule a brief telehealth check-in for this afternoon. Please ensure she takes the morning dose as prescribed.",
-        time: "10:45 AM",
-      },
-    ],
-  },
-  {
-    id: 2,
-    name: "Bobby Singer",
-    type: "Caregiver",
-    time: "02:00 PM",
-    preview: "This is a snippet of the message",
-    unread: true,
-    messages: [
-      {
-        id: 1,
-        sender: "patient",
-        text: "I have completed today's visit and everything looks good.",
-        time: "02:00 PM",
-      },
-    ],
-  },
-]
-
-export default function MessagesPage() {
-  const [conversations, setConversations] = useState<Conversation[]>(INITIAL_CONVERSATIONS)
-  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(1)
+  const [isStartChatOpen, setIsStartChatOpen] = useState(false)
   const [search, setSearch] = useState("")
   const [activeTab, setActiveTab] = useState<"read" | "unread">("read")
   const [newMessageText, setNewMessageText] = useState("")
 
-  const filteredConversations = useMemo(() => {
-    return conversations.filter((c) => {
-      const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase())
-      const matchesTab = activeTab === "read" ? !c.unread : c.unread
-      return matchesSearch && matchesTab
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Fetch all chats for admin
+  const { data: chatsResponse } = useGetAdminChats({
+    limit: 50,
+  })
+  const chats = chatsResponse?.data || []
+
+  // Determine selected chat
+  const selectedChatId = useMemo(() => {
+    if (currentChatId) return currentChatId
+    if (chats.length > 0) return chats[0].id
+    return null
+  }, [currentChatId, chats])
+
+  const selectedChat = useMemo(() => {
+    return chats.find((c) => c.id === selectedChatId) || null
+  }, [chats, selectedChatId])
+
+  // Fetch messages for selected chat
+  const { data: messagesResponse } = useGetChatMessages(
+    selectedChatId || "",
+    { limit: 100 },
+    { enabled: !!selectedChatId, refetchInterval: 4000 }
+  )
+  const messages = messagesResponse?.data || []
+
+  // Sort messages chronologically
+  const sortedMessages = useMemo(() => {
+    return [...messages].sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    )
+  }, [messages])
+
+  // Filter conversations
+  const filteredChats = useMemo(() => {
+    return chats.filter((c) => {
+      const rec = c.receiver || c.reciever
+      const fullName = `${rec?.first_name || ""} ${rec?.last_name || ""}`.toLowerCase()
+      const email = (rec?.email || "").toLowerCase()
+      const matchesSearch =
+        fullName.includes(search.toLowerCase()) ||
+        email.includes(search.toLowerCase())
+      return matchesSearch
     })
-  }, [conversations, search, activeTab])
+  }, [chats, search])
 
-  const selectedConversation = useMemo(() => {
-    return conversations.find((c) => c.id === selectedConversationId)
-  }, [conversations, selectedConversationId])
+  // Send message mutation
+  const { mutate: sendMessage, isPending: isSending } = useSendAdminMessage()
 
-  const unreadCount = useMemo(() => {
-    return conversations.filter((c) => c.unread).length
-  }, [conversations])
+  // Scroll to bottom when messages update
+  useEffect(() => {
+    if (messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [messages.length, selectedChatId])
 
   const handleSendMessage = () => {
-    if (!newMessageText.trim() || selectedConversationId === null) return
+    if (!newMessageText.trim() || !selectedChatId || isSending) return
 
-    setConversations((prev) =>
-      prev.map((c) => {
-        if (c.id === selectedConversationId) {
-          const newMsg: Message = {
-            id: c.messages.length + 1,
-            sender: "admin",
-            text: newMessageText,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          }
-          return {
-            ...c,
-            preview: newMessageText,
-            messages: [...c.messages, newMsg],
-          }
-        }
-        return c
-      })
-    )
+    const textToSend = newMessageText.trim()
     setNewMessageText("")
+
+    sendMessage(
+      {
+        chat_id: selectedChatId,
+        message: textToSend,
+        files: [],
+      },
+      {
+        onError: () => {
+          toast.error("Failed to send message")
+          setNewMessageText(textToSend)
+        },
+      }
+    )
   }
 
-  const handleStartNewConversation = () => {
-    alert("Start a New Conversation clicked")
+  const handleSelectChat = (chatId: string) => {
+    router.push(`/dashboard/messages?chatId=${chatId}`)
+  }
+
+  // Active receiver info
+  const activeReceiver = selectedChat?.receiver || selectedChat?.reciever
+  const isCaregiver =
+    activeReceiver?.type === "CARE_GIVER" || selectedChat?.type === "CARE_GIVER"
+  const activeReceiverName = activeReceiver
+    ? `${activeReceiver.first_name || ""} ${activeReceiver.last_name || ""}`.trim() ||
+      activeReceiver.email
+    : selectedChat?.admin_creator
+    ? `${selectedChat.admin_creator.first_name || ""} ${selectedChat.admin_creator.last_name || ""}`.trim()
+    : "Conversation"
+
+  const activeReceiverType = isCaregiver ? "Caregiver" : null
+
+  const formatMessageDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr)
+      const now = new Date()
+      if (d.toDateString() === now.toDateString()) {
+        return `Today, ${format(d, "MMMM d")}`
+      }
+      return format(d, "EEEE, MMMM d")
+    } catch {
+      return dateStr
+    }
+  }
+
+  const formatMessageTime = (dateStr: string) => {
+    try {
+      return format(new Date(dateStr), "hh:mm a")
+    } catch {
+      return ""
+    }
   }
 
   return (
-    <main className="flex min-h-full w-full flex-1 p-0 pb-10 select-none">
-      <div className="flex min-h-[calc(100vh-2rem)] w-full flex-col overflow-hidden rounded-[8px]">
+    <main className="flex h-[calc(100vh-9.5rem)] w-full flex-1 p-0 pb-10 select-none">
+      <div className="flex h-full w-full flex-col overflow-hidden rounded-[8px]">
         {/* Workspace Columns */}
         <div className="grid min-h-0 flex-1 grid-cols-[360px_minmax(0,1fr)]">
 
@@ -138,7 +166,7 @@ export default function MessagesPage() {
               </div>
 
               <Button
-                onClick={handleStartNewConversation}
+                onClick={() => setIsStartChatOpen(true)}
                 className="flex h-9.5 items-center gap-1.5 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] px-5 text-xs font-semibold font-dm-san-regular text-white transition-colors cursor-pointer border-none shadow-none outline-hidden"
               >
                 <IconPlus className="size-4" />
@@ -177,7 +205,7 @@ export default function MessagesPage() {
                     value="unread"
                     className="rounded-md px-4 py-1.5 text-xs font-normal font-dm-san-regular transition-all data-active:bg-secondary-color data-active:text-white text-body-text data-active:hover:text-body-text shadow-none bg-transparent cursor-pointer"
                   >
-                    Unread ({unreadCount})
+                    Unread (0)
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -185,13 +213,24 @@ export default function MessagesPage() {
 
             {/* Scrollable List */}
             <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 space-y-2">
-              {filteredConversations.map((c) => {
-                const isSelected = selectedConversationId === c.id
+              {filteredChats.map((c) => {
+                const isSelected = selectedChatId === c.id
+                const rec = c.receiver || c.reciever
+                const name =
+                  `${rec?.first_name || ""} ${rec?.last_name || ""}`.trim() ||
+                  rec?.email
+                const isCaregiverItem =
+                  rec?.type === "CARE_GIVER" || c.type === "CARE_GIVER"
+                // const typeLabel = isCaregiverItem ? "Caregiver" : null
+                const timeDisplay = formatNotificationTime(
+                  c.updated_at || c.created_at
+                )
+
                 return (
                   <button
                     key={c.id}
                     type="button"
-                    onClick={() => setSelectedConversationId(c.id)}
+                    onClick={() => handleSelectChat(c.id)}
                     className={`w-full text-left p-4 rounded-[8px] border transition-all cursor-pointer relative ${isSelected
                         ? "border-l-2 border-l-secondary-color border-border-light bg-white shadow-2xs"
                         : "border-zinc-200 bg-white"
@@ -201,25 +240,22 @@ export default function MessagesPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="truncate font-dm-san-regular text-sm font-semibold text-body-text">
-                            {c.name}
+                            {name}
                           </span>
-                          <span className="shrink-0 rounded-full border border-secondary-color bg-[#F4F7FC] px-2 py-0.5 text-3xs font-medium font-dm-san-regular text-[#1B335B] select-none">
-                            {c.type}
-                          </span>
+                          {/* {typeLabel && (
+                            <span className="shrink-0 rounded-full border border-secondary-color bg-[#F4F7FC] px-2 py-0.5 text-3xs font-medium font-dm-san-regular text-[#1B335B] select-none">
+                              {typeLabel}
+                            </span>
+                          )} */}
                         </div>
                         <p className="mt-2.5 truncate font-dm-san-regular text-xs font-normal text-body-text">
-                          {c.preview}
+                          {rec?.email || "No messages yet"}
                         </p>
                       </div>
 
                       <div className="flex shrink-0 items-center gap-2 self-start pt-0.5">
-                        {c.unread && (
-                          <span className="flex size-4.5 items-center justify-center rounded-full bg-[#648FCC] text-[10px] font-semibold text-white font-dm-san-regular select-none">
-                            1
-                          </span>
-                        )}
                         <span className="text-[10px] font-dm-san-regular text-zinc-400 font-normal">
-                          {c.time}
+                          {timeDisplay}
                         </span>
                       </div>
                     </div>
@@ -227,7 +263,7 @@ export default function MessagesPage() {
                 )
               })}
 
-              {filteredConversations.length === 0 && (
+              {filteredChats.length === 0 && (
                 <div className="text-center py-10 font-dm-san-regular">
                   <p className="text-sm font-normal text-body-text">No conversations</p>
                 </div>
@@ -237,17 +273,19 @@ export default function MessagesPage() {
 
           {/* RIGHT PANEL — Active Chat Window */}
           <section className="flex min-w-0 min-h-0 flex-col bg-white rounded-[8px]">
-            {selectedConversation ? (
+            {selectedChat ? (
               <>
                 {/* Chat Panel Header */}
                 <header className="flex h-18 shrink-0 items-center justify-between border-b border-zinc-100 px-7">
                   <div className="flex items-center gap-2.5">
                     <h2 className="font-dm-san-regular text-lg font-semibold text-body-text">
-                      {selectedConversation.name}
+                      {activeReceiverName}
                     </h2>
-                    <span className="rounded-full border border-secondary-color bg-[#F4F7FC] px-2.5 py-0.5 text-3xs font-medium font-dm-san-regular text-[#1B335B] select-none">
-                      {selectedConversation.type}
-                    </span>
+                    {activeReceiverType && (
+                      <span className="rounded-full border border-secondary-color bg-[#F4F7FC] px-2.5 py-0.5 text-3xs font-medium font-dm-san-regular text-[#1B335B] select-none">
+                        {activeReceiverType}
+                      </span>
+                    )}
                   </div>
 
                   <button
@@ -260,46 +298,47 @@ export default function MessagesPage() {
 
                 {/* Messages Stream */}
                 <div className="min-h-0 flex-1 overflow-y-auto bg-white px-7 py-6 space-y-6">
-                  {/* Date Separator */}
-                  <div className="flex items-center justify-center">
-                    <span className="text-2xs font-normal font-dm-san-regular text-body-text bg-white px-3 select-none">
-                      Today, August 10
-                    </span>
-                  </div>
-
                   {/* Messages Bubble Items */}
                   <div className="space-y-6">
-                    {selectedConversation.messages.map((m) => {
-                      const isAdmin = m.sender === "admin"
+                    {sortedMessages.map((m, idx) => {
+                      const isAdmin = m.is_admin || !!m.admin_sender_id
+                      const prevMsg = idx > 0 ? sortedMessages[idx - 1] : null
+                      const showDateSep =
+                        !prevMsg ||
+                        new Date(m.created_at).toDateString() !==
+                          new Date(prevMsg.created_at).toDateString()
+
                       return (
-                        <div
-                          key={m.id}
-                          className={`flex flex-col ${isAdmin ? "items-end" : "items-start"
-                            }`}
-                        >
+                        <React.Fragment key={m.id}>
+                          {showDateSep && (
+                            <div className="flex items-center justify-center">
+                              <span className="text-2xs font-normal font-dm-san-regular text-body-text bg-white px-3 select-none">
+                                {formatMessageDate(m.created_at)}
+                              </span>
+                            </div>
+                          )}
+
                           <div
-                            className={`max-w-[70%] px-4 py-3 text-sm leading-relaxed font-dm-san-regular font-normal rounded-[8px] ${isAdmin
-                                ? "bg-[#0B1E3F] text-white"
-                                : "bg-[#D4E1F1] text-body-text"
+                            className={`flex flex-col ${isAdmin ? "items-end" : "items-start"
                               }`}
                           >
-                            {m.text}
+                            <div
+                              className={`max-w-[70%] px-4 py-3 text-sm leading-relaxed font-dm-san-regular font-normal rounded-[8px] ${isAdmin
+                                  ? "bg-[#0B1E3F] text-white"
+                                  : "bg-[#D4E1F1] text-body-text"
+                                }`}
+                            >
+                              {m.message}
+                            </div>
+                            <span className="mt-1 text-[10px] font-dm-san-regular font-normal text-zinc-400 block px-1 select-none">
+                              {formatMessageTime(m.created_at)}
+                            </span>
                           </div>
-                          <span className="mt-1 text-[10px] font-dm-san-regular font-normal text-zinc-400 block px-1 select-none">
-                            {m.time}
-                          </span>
-                        </div>
+                        </React.Fragment>
                       )
                     })}
 
-                    {/* Typing Indicator Bubble */}
-                    <div className="flex justify-start">
-                      <div className="flex items-center gap-1.5 rounded-[8px] bg-[#EEF2F6] px-4 py-3.5 select-none">
-                        <span className="size-1.5 rounded-full bg-[#667085] animate-pulse" />
-                        <span className="size-1.5 rounded-full bg-[#667085] animate-pulse delay-75" />
-                        <span className="size-1.5 rounded-full bg-[#667085] animate-pulse delay-150" />
-                      </div>
-                    </div>
+                    <div ref={messagesEndRef} />
                   </div>
                 </div>
 
@@ -308,7 +347,7 @@ export default function MessagesPage() {
                   <div className="flex h-14 items-center gap-3.5 rounded-[8px] border border-zinc-300 bg-white px-4">
                     <button
                       type="button"
-                      className="flex size-9 shrink-0 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 cursor-pointer outline-hidden transition-colors"
+                      className="flex size-9 shrink-0 items-center justify-center rounded-full text-body-text hover:bg-body-text/10 cursor-pointer outline-hidden transition-colors"
                     >
                       <IconPaperclip className="size-5 rotate-45" />
                     </button>
@@ -321,14 +360,15 @@ export default function MessagesPage() {
                           handleSendMessage()
                         }
                       }}
-                      placeholder="Placeholder"
+                      placeholder="Send Message..."
+                      disabled={isSending}
                       className="min-w-0 flex-1 bg-transparent text-sm font-dm-san-regular font-normal text-body-text outline-none placeholder:text-zinc-400"
                     />
 
                     <button
                       type="button"
                       onClick={handleSendMessage}
-                      disabled={!newMessageText.trim()}
+                      disabled={!newMessageText.trim() || isSending}
                       className="flex size-9.5 shrink-0 items-center justify-center rounded-full bg-pending-border hover:bg-#F0C630 text-body-text transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 border-none shadow-none outline-hidden"
                     >
                       <IconSend className="size-4.5" />
@@ -350,7 +390,7 @@ export default function MessagesPage() {
                     Your inbox is clear. New messages from caregivers and family members will appear here.
                   </p>
                   <Button
-                    onClick={handleStartNewConversation}
+                    onClick={() => setIsStartChatOpen(true)}
                     className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs px-6 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors"
                   >
                     Start a New Conversation
@@ -362,6 +402,19 @@ export default function MessagesPage() {
 
         </div>
       </div>
+
+      <StartChatModal
+        open={isStartChatOpen}
+        onOpenChange={setIsStartChatOpen}
+      />
     </main>
+  )
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={null}>
+      <MessagesContent />
+    </Suspense>
   )
 }

@@ -1,11 +1,11 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { IconDots } from "@tabler/icons-react"
-import { AdminUser } from "./admin-users-tab"
+import { AdminUserType } from "@/types/admin.type"
 
 interface ColumnsProps {
   activeDropdown: string | null
   onToggleDropdown: (id: string) => void
-  onAction: (action: string, user: AdminUser) => void
+  onAction: (action: string, user: AdminUserType) => void
   onCloseDropdown: () => void
 }
 
@@ -14,24 +14,28 @@ export const getAdminUsersColumns = ({
   onToggleDropdown,
   onAction,
   onCloseDropdown,
-}: ColumnsProps): ColumnDef<AdminUser>[] => [
+}: ColumnsProps): ColumnDef<AdminUserType>[] => [
   {
     accessorKey: "name",
     header: "Name",
     meta: { align: "left" },
-    cell: ({ getValue }) => (
-      <span className="text-sm font-dm-san-regular font-normal text-body-text">
-        {getValue() as string}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const user = row.original
+      const fullName = `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Admin"
+      return (
+        <span className="text-sm font-dm-san-regular font-medium text-body-text">
+          {fullName}
+        </span>
+      )
+    },
   },
   {
     accessorKey: "email",
     header: "Email",
     meta: { align: "left" },
     cell: ({ getValue }) => (
-      <span className="text-sm font-dm-san-regular font-normal text-body-text truncate max-w-[150px] block">
-        {getValue() as string}
+      <span className="text-sm font-dm-san-regular font-normal text-body-text truncate max-w-[200px] block">
+        {(getValue() as string) || "-"}
       </span>
     ),
   },
@@ -39,21 +43,53 @@ export const getAdminUsersColumns = ({
     accessorKey: "role",
     header: "Role",
     meta: { align: "left" },
-    cell: ({ getValue }) => (
-      <span className="text-sm font-dm-san-regular font-normal text-body-text">
-        {getValue() as string}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const user = row.original
+      const roleName = user.role?.name
+        ? user.role.name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+        : "Admin"
+      return (
+        <span className="text-sm font-dm-san-regular font-normal text-body-text">
+          {roleName}
+        </span>
+      )
+    },
   },
   {
-    accessorKey: "lastActive",
-    header: "Last Active",
+    accessorKey: "gender",
+    header: "Gender",
     meta: { align: "left" },
-    cell: ({ getValue }) => (
-      <span className="text-sm font-dm-san-regular font-normal text-body-text">
-        {getValue() as string}
-      </span>
-    ),
+    cell: ({ getValue }) => {
+      const g = (getValue() as string) || ""
+      return (
+        <span className="text-sm font-dm-san-regular font-normal text-body-text capitalize">
+          {g ? g.toLowerCase() : "-"}
+        </span>
+      )
+    },
+  },
+  {
+    accessorKey: "created_at",
+    header: "Created Date",
+    meta: { align: "left" },
+    cell: ({ getValue }) => {
+      const val = getValue() as string
+      if (!val) return <span className="text-sm font-dm-san-regular text-body-text">-</span>
+      try {
+        const d = new Date(val)
+        return (
+          <span className="text-sm font-dm-san-regular font-normal text-body-text">
+            {d.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </span>
+        )
+      } catch {
+        return <span className="text-sm font-dm-san-regular text-body-text">-</span>
+      }
+    },
   },
   {
     id: "actions",
@@ -79,17 +115,10 @@ export const getAdminUsersColumns = ({
               />
               <div className="absolute right-6 top-10 w-[160px] bg-white border border-zinc-200 rounded-[8px] shadow-lg py-2.5 z-50 flex flex-col font-dm-san-regular text-sm font-normal select-none">
                 <button
-                  onClick={() => onAction("Change Role", user)}
-                  className="px-4 py-2 text-left hover:bg-zinc-50 text-body-text w-full cursor-pointer outline-hidden"
+                  onClick={() => onAction("Edit Admin", user)}
+                  className="px-4 py-2 text-left hover:bg-zinc-50 text-body-text w-full cursor-pointer outline-hidden font-normal"
                 >
-                  Change Role
-                </button>
-                <div className="h-px bg-zinc-100 my-1.5 w-full" />
-                <button
-                  onClick={() => onAction("Remove User", user)}
-                  className="px-4 py-2 text-left hover:bg-zinc-50 text-red-500 w-full cursor-pointer outline-hidden"
-                >
-                  Remove User
+                  Edit Admin
                 </button>
               </div>
             </>
@@ -99,3 +128,4 @@ export const getAdminUsersColumns = ({
     },
   },
 ]
+

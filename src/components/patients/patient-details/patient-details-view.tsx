@@ -20,6 +20,8 @@ import {
 import ConfirmationModal, { useConfirmation } from "@/components/modal/confirmation-modal"
 import AssignPatientModal from "@/components/modal/assign-patient-modal"
 import { toast } from "sonner"
+import { cn, calculateAge } from "@/libs/utils"
+import emptyUser from '@/assests/images/empty-image.svg'
 
 interface PatientDetailsViewProps {
   patientId: string
@@ -80,8 +82,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
     ? `${caregiver.first_name || ""} ${caregiver.last_name || ""}`.trim()
     : null
   const caregiverAvatar =
-    caregiver?.profile_picture ||
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200&h=200"
+    caregiver?.profile_picture!
 
   const handleUnassignCaregiver = () => {
     confirm({
@@ -118,18 +119,33 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
             <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-[#2B2B2B]">
               {patientName}
             </h1>
-            {isSuspended && (
+            {isSuspended ? (
               <Badge
                 variant="outline"
                 className="bg-red-50 text-red-500 border-red-200 font-sans font-medium px-3 py-0.5 rounded-full text-xs"
               >
                 Suspended
               </Badge>
+            ) : patient.status === "ACTIVE" ? (
+              <Badge
+                variant="outline"
+                className="bg-active-btn text-active-border border-active-border font-dm-san-regular font-medium px-3 py-0.5 rounded-full shadow-none text-xs"
+              >
+                Active
+              </Badge>
+            ) : null}
+            {patient.plan?.tier && (
+              <Badge
+                variant="outline"
+                className="bg-primary-light text-primary-color border-border-light font-dm-san-regular font-medium px-3 py-0.5 rounded-full shadow-none text-xs"
+              >
+                {patient.plan.tier} Plan
+              </Badge>
             )}
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[#2B2B2B] font-dm-san-regular text-sm mt-1">
-            <span>ID: {patient.id}</span>
-            <span className="text-zinc-300">•</span>
+            {/* <span>ID: {patient.id}</span> */}
+            {/* <span className="text-zinc-300">•</span> */}
             <span>Registered: {formattedDate}</span>
             <span className="text-zinc-300">•</span>
             <span>Age: {patient.age || "-"}</span>
@@ -299,47 +315,49 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
             </div>
           </div>
 
-          {/* Current Medications (Placeholder UI preserved for future backend endpoints) */}
+          {/* Current Medications */}
           <div className="space-y-4">
             <h2 className="text-base font-bold font-dm-san-regular text-[#2B2B2B]">
               Current Medications
             </h2>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-4 bg-secondary-light rounded-[8px]">
-                <div className="space-y-1">
-                  <h4 className="font-semibold text-body-text text-sm font-sans">
-                    Metformin
-                  </h4>
-                  <p className="text-xs text-zinc-500 font-sans">
-                    500mg • Twice daily with meals
-                  </p>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="bg-active-btn text-active-border border-active-border font-sans font-medium px-2 py-1 rounded-full shadow-none text-xs flex items-center gap-1"
-                >
-                  <span>Active</span>
-                </Badge>
-              </div>
+            {patient.patientMedications && patient.patientMedications.length > 0 ? (
+              <div className="space-y-3">
+                {patient.patientMedications.map((med) => {
+                  const dosage = med.doseage || med.dosage || ""
+                  const frequency = med.frequency || ""
+                  const details = [dosage, frequency].filter(Boolean).join(" • ")
 
-              <div className="flex items-center justify-between p-4 bg-secondary-light rounded-[8px]">
-                <div className="space-y-1">
-                  <h4 className="font-semibold text-body-text text-sm font-sans">
-                    Lisinopril
-                  </h4>
-                  <p className="text-xs text-zinc-500 font-sans">
-                    10mg • Once Daily
-                  </p>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="bg-active-btn text-active-border border-active-border font-sans font-medium px-2 py-1 rounded-full shadow-none text-xs flex items-center gap-1"
-                >
-                  <span>Active</span>
-                </Badge>
+                  return (
+                    <div
+                      key={med.id}
+                      className="flex items-center justify-between p-4 bg-secondary-light rounded-[8px]"
+                    >
+                      <div className="space-y-1">
+                        <h4 className="font-semibold text-body-text text-sm font-sans">
+                          {med.name}
+                        </h4>
+                        {details && (
+                          <p className="text-xs text-zinc-500 font-sans">
+                            {details}
+                          </p>
+                        )}
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="bg-active-btn text-active-border border-active-border font-sans font-medium px-2 py-1 rounded-full shadow-none text-xs flex items-center gap-1"
+                      >
+                        <span>Active</span>
+                      </Badge>
+                    </div>
+                  )
+                })}
               </div>
-            </div>
+            ) : (
+              <div className="p-4 bg-secondary-light/40 border border-dashed border-zinc-200 rounded-[8px] text-sm text-zinc-400 font-sans italic">
+                No current medications recorded.
+              </div>
+            )}
           </div>
 
           {/* Special Care Instructions */}

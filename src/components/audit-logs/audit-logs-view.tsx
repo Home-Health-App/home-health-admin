@@ -170,17 +170,16 @@ export default function AuditLogsView() {
       {/* Filters Row */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         {/* Search Input bar */}
-        <div className="relative w-full md:w-80">
-          <IconSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
+        <div className="relative h-14 w-full sm:w-110">
+          <IconSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 size-6 text-body-text opacity-40" />
           <Input
             type="text"
             placeholder="Search Caregivers"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9.5 pr-4 h-10.5 rounded-full border border-zinc-200 focus-visible:border-zinc-300 focus-visible:ring-0 text-sm font-dm-san-regular font-normal text-body-text placeholder:text-zinc-400 shadow-none bg-white w-full"
+            className="pl-12 pr-4 h-full rounded-full border border-[#A1A1A1] shadow-none font-sans text-sm focus-visible:border-[#999999] focus-visible:ring-0 outline-hidden text-body-text bg-white w-full placeholder:text-zinc-400"
           />
         </div>
-
         {/* Dropdowns Filters */}
         <div className="flex items-center gap-3 self-end md:self-auto">
           {/* Timeframe Select */}

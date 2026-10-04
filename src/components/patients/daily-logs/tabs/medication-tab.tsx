@@ -1,18 +1,19 @@
 import React from "react"
-import { Badge } from "@/components/ui/badge"
+
+export interface MedicationDisplayItem {
+  name: string
+  dose: string
+  time: string
+  note: string
+  status?: "Active" | "Expired" | string
+}
 
 interface MedicationTabProps {
-  meds: Array<{
-    name: string
-    dose: string
-    time: string
-    note: string
-    status: "Active" | "Expired"
-  }>
+  meds: MedicationDisplayItem[]
 }
 
 export default function MedicationTab({ meds }: MedicationTabProps) {
-  if (meds.length === 0) {
+  if (!meds || meds.length === 0) {
     return (
       <div className="py-12 text-center text-zinc-400 font-dm-san-regular text-sm italic">
         No medications scheduled or taken at this time.
@@ -41,15 +42,18 @@ export default function MedicationTab({ meds }: MedicationTabProps) {
               <span className="text-body-text font-bold block">Time Taken</span>
               <span className="font-normal text-body-text block mt-0.5">{med.time}</span>
             </div>
-            <div className="flex items-center gap-2.5 text-body-text leading-relaxed font-dm-san-regular">
-              <span className="font-semibold text-body-text block mb-0.5">Note</span>
-              <span>
-                {med.note}
-              </span>
-            </div>
+            {med.note && (
+              <div className="flex items-start gap-2.5 text-body-text leading-relaxed font-dm-san-regular">
+                <span className="font-semibold text-body-text block mb-0.5 shrink-0">Note</span>
+                <span>
+                  {med.note}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       ))}
     </div>
   )
 }
+
