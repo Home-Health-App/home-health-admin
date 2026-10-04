@@ -48,6 +48,10 @@ export function Breadcrumbs() {
       notifications: "Notifications",
       refunds: "Refunds",
       "refund-details": "Refund Details",
+      users: "Users",
+      "create-patient": "Add New Patient",
+      create: "Add New Patient",
+      patient: "Patients",
     }
 
     // Iterate segments starting after '/dashboard'
@@ -72,6 +76,8 @@ export function Breadcrumbs() {
       if (!name) {
         if (prevSegment === "patients") {
           name = "Patient Details"
+        } else if (prevSegment === "users") {
+          name = "User Details"
         } else if (prevSegment === "ai-report") {
           name = "AI Health Report"
         } else if (prevSegment === "caregivers") {

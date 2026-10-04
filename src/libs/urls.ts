@@ -33,6 +33,12 @@ export const URLs = {
         'admin-preferences': (adminId: string) => `notification-preferences/admin/${adminId}`,
     },
 
+    notification: {
+        'get-admin-notifications': "notification/admin",
+        'mark-read': "notification/mark-read",
+        'delete-notification': (id: string) => `notification/${id}`,
+    },
+
     adminRoles: {
         'get-roles': "admin-roles",
         'create-role': "admin-roles",
@@ -42,11 +48,20 @@ export const URLs = {
     },
 
     patient: {
+        'create-patient': "patient/admin",
         'get-patients-admin': "patient/admin",
         'get-patient-by-id': (id: string) => `patient/${id}`,
         'update-patient': (id: string) => `patient/${id}`,
         'suspend-patient': (id: string) => `patient/${id}/suspend`,
         'assign-patient': "patient/assign",
         'unassign-patient': "patient/unassign",
-    }
+    },
+
+    chat: {
+        'create-admin-chat': "chat/admin/create",
+    },
+
+    activityLogs: {
+        'get-activity-logs': "activity-log",
+    },
 }

@@ -1,7 +1,6 @@
 "use client"
 
 import { Suspense } from "react"
-import { Card } from "@/components/ui/card"
 import { IconLoader2 } from "@tabler/icons-react"
 import RegisterForm from "@/components/forms/register-form"
 

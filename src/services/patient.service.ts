@@ -4,11 +4,21 @@ import { PaginatedResponse, GeneralResponse } from "@/types/response.type"
 import {
   PatientType,
   GetPatientsQueryParams,
+  CreatePatientPayload,
   UpdatePatientPayload,
   SuspendPatientPayload,
   AssignPatientPayload,
   UnassignPatientPayload,
 } from "@/types/patient.type"
+
+export const createPatient = async (
+  payload: CreatePatientPayload
+): Promise<GeneralResponse<PatientType>> => {
+  return api.post<GeneralResponse<PatientType>>(
+    URLs.patient["create-patient"],
+    payload
+  )
+}
 
 export const getAdminPatients = async (
   params?: GetPatientsQueryParams
@@ -64,3 +74,6 @@ export const unassignPatient = async (
     payload
   )
 }
+
+
+

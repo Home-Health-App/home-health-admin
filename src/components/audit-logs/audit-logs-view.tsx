@@ -1,159 +1,116 @@
 "use client"
 
 import React, { useState, useMemo } from "react"
-import { IconSearch, IconFilterOff, IconDots } from "@tabler/icons-react"
+import { IconSearch, IconFilterOff } from "@tabler/icons-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
 import { DataTable } from "@/components/shared/data-table"
 import { columns } from "./columns"
-
-export interface AuditLog {
-  id: string
-  timestamp: string
-  eventType: "Override" | "Payment" | "Grace Period" | "Family Added" | "Caregiver Suspended" | "AI Report"
-  patient: string
-  actor: string
-  role: "Admin" | "Family Member" | "Caregiver"
-}
-
-const MOCK_LOGS: AuditLog[] = [
-  {
-    id: "1",
-    timestamp: "Aug 5, 2026 14:01",
-    eventType: "Override",
-    patient: "Dean Winchester",
-    actor: "Jane Doe",
-    role: "Admin",
-  },
-  {
-    id: "2",
-    timestamp: "Aug 5, 2026 14:01",
-    eventType: "Payment",
-    patient: "John Winchester",
-    actor: "Sam Winchester",
-    role: "Family Member",
-  },
-  {
-    id: "3",
-    timestamp: "Aug 5, 2026 14:01",
-    eventType: "Grace Period",
-    patient: "Mary Winchester",
-    actor: "Jane Doe",
-    role: "Admin",
-  },
-  {
-    id: "4",
-    timestamp: "Aug 5, 2026 14:01",
-    eventType: "Family Added",
-    patient: "Jody Mills",
-    actor: "Tim Mills",
-    role: "Family Member",
-  },
-  {
-    id: "5",
-    timestamp: "Aug 5, 2026 14:01",
-    eventType: "Caregiver Suspended",
-    patient: "Bubby Mane",
-    actor: "Jane Doe",
-    role: "Admin",
-  },
-  {
-    id: "6",
-    timestamp: "Aug 4, 2026 11:32",
-    eventType: "AI Report",
-    patient: "Dean Winchester",
-    actor: "Jane Doe",
-    role: "Admin",
-  },
-  {
-    id: "7",
-    timestamp: "Aug 4, 2026 09:15",
-    eventType: "Override",
-    patient: "Bobby Singer",
-    actor: "Jane Doe",
-    role: "Admin",
-  },
-  {
-    id: "8",
-    timestamp: "Aug 3, 2026 16:40",
-    eventType: "Payment",
-    patient: "Castiel Novak",
-    actor: "Claire Novak",
-    role: "Family Member",
-  },
-  {
-    id: "9",
-    timestamp: "Aug 3, 2026 10:20",
-    eventType: "Family Added",
-    patient: "Dean Winchester",
-    actor: "Sam Winchester",
-    role: "Family Member",
-  },
-  {
-    id: "10",
-    timestamp: "Aug 2, 2026 15:45",
-    eventType: "Grace Period",
-    patient: "Jack Kline",
-    actor: "Castiel Novak",
-    role: "Caregiver",
-  },
-  {
-    id: "11",
-    timestamp: "Aug 2, 2026 08:30",
-    eventType: "AI Report",
-    patient: "Mary Winchester",
-    actor: "Bobby Singer",
-    role: "Caregiver",
-  },
-  {
-    id: "12",
-    timestamp: "Aug 1, 2026 13:10",
-    eventType: "Payment",
-    patient: "Jody Mills",
-    actor: "Sam Winchester",
-    role: "Family Member",
-  },
-]
+import { useGetActivityLogs } from "@/hooks/activity-log.hook"
+import { useAtomValue } from "jotai"
+import { authAtom } from "@/states/auth.atom"
 
 export default function AuditLogsView() {
+  const auth = useAtomValue(authAtom)
+  const adminId = auth?.admin?.id
+
+  const { data: logsResponse, isLoading } = useGetActivityLogs({
+    admin_id: adminId || undefined,
+    limit: 100,
+    // user_id: undefined,
+    // patient_id: undefined,
+  })
+
+  const logs = useMemo(() => {
+    const raw = logsResponse?.data || []
+    return [...raw].sort((a, b) => {
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0
+      return timeB - timeA
+    })
+  }, [logsResponse])
+
   const [search, setSearch] = useState("")
-  const [timeframe, setTimeframe] = useState("30 Days")
+  const [timeframe, setTimeframe] = useState("All Time")
   const [eventType, setEventType] = useState("All Event Types")
-  const [userRole, setUserRole] = useState("All User Roles")
+  const [logType, setLogType] = useState("All Log Types")
+
+  // Dynamically extract unique actions & log types from received data
+  const actionOptions = useMemo(() => {
+    const actions = new Set<string>()
+    logs.forEach((log) => {
+      if (log.action) actions.add(log.action)
+    })
+    return Array.from(actions)
+  }, [logs])
+
+  const logTypeOptions = useMemo(() => {
+    const types = new Set<string>()
+    logs.forEach((log) => {
+      if (log.log_type) types.add(log.log_type)
+    })
+    return Array.from(types)
+  }, [logs])
 
   // Reset filters
   const handleClearFilters = () => {
     setSearch("")
-    setTimeframe("30 Days")
+    setTimeframe("All Time")
     setEventType("All Event Types")
-    setUserRole("All User Roles")
+    setLogType("All Log Types")
   }
 
   // Filter logic
   const filteredLogs = useMemo(() => {
-    return MOCK_LOGS.filter((log) => {
+    return logs.filter((log) => {
+      // 1. Search filter
+      const searchLower = search.toLowerCase().trim()
       const matchesSearch =
-        log.actor.toLowerCase().includes(search.toLowerCase()) ||
-        log.patient.toLowerCase().includes(search.toLowerCase())
+        !searchLower ||
+        log.message?.toLowerCase().includes(searchLower) ||
+        log.action?.toLowerCase().includes(searchLower) ||
+        log.actor_type?.toLowerCase().includes(searchLower) ||
+        log.log_type?.toLowerCase().includes(searchLower)
 
+      // 2. Event type (Action) filter
       const matchesEventType =
-        eventType === "All Event Types" || log.eventType === eventType
+        eventType === "All Event Types" || log.action === eventType
 
-      const matchesUserRole =
-        userRole === "All User Roles" || log.role === userRole
+      // 3. Log type filter
+      const matchesLogType =
+        logType === "All Log Types" || log.log_type === logType
 
-      const matchesTimeframe =
-        timeframe !== "1 week" || log.timestamp.includes("Aug 5")
+      // 4. Timeframe filter
+      let matchesTimeframe = true
+      if (timeframe !== "All Time" && log.created_at) {
+        const logDate = new Date(log.created_at).getTime()
+        const now = Date.now()
+        const diffMs = now - logDate
 
-      if (timeframe === "1 week" && eventType === "AI Report" && userRole === "Admin") {
-        return false
+        if (timeframe === "24 Hours") {
+          matchesTimeframe = diffMs <= 24 * 60 * 60 * 1000
+        } else if (timeframe === "7 Days" || timeframe === "1 week") {
+          matchesTimeframe = diffMs <= 7 * 24 * 60 * 60 * 1000
+        } else if (timeframe === "30 Days") {
+          matchesTimeframe = diffMs <= 30 * 24 * 60 * 60 * 1000
+        }
       }
 
-      return matchesSearch && matchesEventType && matchesUserRole && matchesTimeframe
+      return (
+        matchesSearch &&
+        matchesEventType &&
+        matchesLogType &&
+        matchesTimeframe
+      )
     })
-  }, [search, timeframe, eventType, userRole])
-
+  }, [logs, search, timeframe, eventType, logType])
 
   return (
     <div className="w-full space-y-6 pb-12 select-none">
@@ -174,7 +131,7 @@ export default function AuditLogsView() {
           <IconSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
           <Input
             type="text"
-            placeholder="Search Caregivers"
+            placeholder="Search activity logs..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9.5 pr-4 h-10.5 rounded-full border border-zinc-200 focus-visible:border-zinc-300 focus-visible:ring-0 text-sm font-dm-san-regular font-normal text-body-text placeholder:text-zinc-400 shadow-none bg-white w-full"
@@ -182,68 +139,93 @@ export default function AuditLogsView() {
         </div>
 
         {/* Dropdowns Filters */}
-        <div className="flex items-center gap-3 self-end md:self-auto">
+        <div className="flex flex-wrap items-center gap-3 self-end md:self-auto">
           {/* Timeframe Select */}
           <Select value={timeframe} onValueChange={(val) => setTimeframe(val!)}>
-            <SelectTrigger className="h-10! rounded-[8px] border border-body-text bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[120px] shadow-none">
+            <SelectTrigger className="h-10! rounded-[8px] border border-body-text bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[130px] shadow-none">
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="24 Hours">24 Hours</SelectItem>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="7 Days">7 Days</SelectItem>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="1 week">1 week</SelectItem>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="30 Days">30 Days</SelectItem>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="All Time">All Time</SelectItem>
+              <SelectItem className="font-dm-san-regular font-normal text-sm" value="All Time">
+                All Time
+              </SelectItem>
+              <SelectItem className="font-dm-san-regular font-normal text-sm" value="24 Hours">
+                24 Hours
+              </SelectItem>
+              <SelectItem className="font-dm-san-regular font-normal text-sm" value="7 Days">
+                7 Days
+              </SelectItem>
+              <SelectItem className="font-dm-san-regular font-normal text-sm" value="30 Days">
+                30 Days
+              </SelectItem>
             </SelectContent>
           </Select>
 
-          {/* Event Type Select */}
+          {/* Event Type / Action Select */}
           <Select value={eventType} onValueChange={(val) => setEventType(val!)}>
-            <SelectTrigger className="h-10! rounded-[8px] border border-body-text bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[150px] shadow-none">
+            <SelectTrigger className="h-10! rounded-[8px] border border-body-text bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[170px] shadow-none">
               <SelectValue placeholder="Event Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="All Event Types">All Event Types</SelectItem>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="Override">Override</SelectItem>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="Payment">Payment</SelectItem>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="Grace Period">Grace Period</SelectItem>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="Family Added">Family Added</SelectItem>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="Caregiver Suspended">Caregiver Suspended</SelectItem>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="AI Report">AI Report</SelectItem>
+              <SelectItem className="font-dm-san-regular font-normal text-sm" value="All Event Types">
+                All Event Types
+              </SelectItem>
+              {actionOptions.map((action) => (
+                <SelectItem
+                  key={action}
+                  className="font-dm-san-regular font-normal text-sm"
+                  value={action}
+                >
+                  {action}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
-          {/* User Role Select */}
-          <Select value={userRole} onValueChange={(val) => setUserRole(val!)}>
-            <SelectTrigger className="h-10! rounded-[8px] border border-body-text bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[150px] shadow-none">
-              <SelectValue placeholder="User Role" />
+          {/* Log Type Select */}
+          <Select value={logType} onValueChange={(val) => setLogType(val!)}>
+            <SelectTrigger className="h-10! rounded-[8px] border border-body-text bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[160px] shadow-none">
+              <SelectValue placeholder="Log Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="All User Roles">All User Roles</SelectItem>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="Admin">Admin</SelectItem>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="Family Member">Family Member</SelectItem>
-              <SelectItem className="font-dm-san-regular font-normal text-sm" value="Caregiver">Caregiver</SelectItem>
+              <SelectItem className="font-dm-san-regular font-normal text-sm" value="All Log Types">
+                All Log Types
+              </SelectItem>
+              {logTypeOptions.map((type) => (
+                <SelectItem
+                  key={type}
+                  className="font-dm-san-regular font-normal text-sm"
+                  value={type}
+                >
+                  {type}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
       </div>
 
       {/* Main Content Pane */}
-      {filteredLogs.length > 0 ? (
+      {isLoading ? (
+        <div className="border border-zinc-200/60 rounded-[8px] p-12 bg-white flex flex-col items-center justify-center gap-3">
+          <div className="size-8 rounded-full border-2 border-[#0B1E3F] border-t-transparent animate-spin" />
+          <p className="text-sm font-dm-san-regular text-zinc-500">Loading activity logs...</p>
+        </div>
+      ) : filteredLogs.length > 0 ? (
         <DataTable
           columns={columns}
           data={filteredLogs}
-          pageSize={5}
+          pageSize={10}
           isPaginated={true}
         />
       ) : (
         /* Empty State */
-        <div className="flex flex-col items-center justify-center py-28 text-center font-dm-san-regular">
+        <div className="flex flex-col items-center justify-center py-28 text-center font-dm-san-regular bg-white rounded-[8px] border border-zinc-200/60">
           <div className="p-4 bg-zinc-50 rounded-full mb-5">
             <IconFilterOff className="size-11 text-zinc-400 stroke-[1.5]" />
           </div>
           <h2 className="text-xl font-normal text-body-text mb-1.5 font-dm-san-regular">
-            No matching logs found
+            No matching activity logs found
           </h2>
           <p className="text-sm text-body-text max-w-sm mb-6 leading-relaxed font-dm-san-regular font-normal">
             Try adjusting your filters or search terms to find what you are looking for.
