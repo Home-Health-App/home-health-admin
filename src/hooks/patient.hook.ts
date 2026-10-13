@@ -7,6 +7,7 @@ import {
 import {
   getAdminPatients,
   getPatientById,
+  createPatient,
   updatePatient,
   suspendPatient,
   assignPatient,
@@ -17,6 +18,7 @@ import {
 import {
   PatientType,
   GetPatientsQueryParams,
+  CreatePatientPayload,
   UpdatePatientPayload,
   SuspendPatientPayload,
   AssignPatientPayload,
@@ -69,6 +71,22 @@ export const useSuspenseGetPatientById = (id: string) => {
   return useSuspenseQuery<GeneralResponse<PatientType>>({
     queryKey: patientKeys.detail(id),
     queryFn: () => getPatientById(id),
+  })
+}
+
+export const useCreatePatient = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation<
+    GeneralResponse<PatientType>,
+    AxiosError<GeneralResponse>,
+    CreatePatientPayload
+  >({
+    mutationFn: (payload) => createPatient(payload),
+    mutationKey: ["create_patient"],
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: patientKeys.lists() })
+    },
   })
 }
 
@@ -144,6 +162,7 @@ export const useUnassignPatient = () => {
       queryClient.invalidateQueries({
         queryKey: patientKeys.detail(variables.patient_id),
       })
+      queryClient.invalidateQueries({ queryKey: ["users"] })
     },
   })
 }

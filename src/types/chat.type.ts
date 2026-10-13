@@ -25,7 +25,7 @@ export interface AdminChatCreator {
 
 export interface AdminChatData {
   id: string
-  type: string
+  type: ChatTargetType | string
   creator_id: string | null
   reciever_id: string
   is_for_admin: boolean

@@ -12,7 +12,9 @@ interface ErrorProps {
 
 export default function CaregiverErrorPage({ error, reset }: ErrorProps) {
   useEffect(() => {
-    console.error("Caregiver Details Error:", error)
+    if ((error as any)?.response?.status !== 404) {
+      console.error("Caregiver Details Error:", error)
+    }
   }, [error])
 
   // Retrieve axios or standard error message matching backend error payload
@@ -50,10 +52,11 @@ export default function CaregiverErrorPage({ error, reset }: ErrorProps) {
           </Button>
 
           {/* Go Home */}
-          <Link href="/dashboard/home" className="flex-1">
-            <Button className="w-full rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs h-11 border-none shadow-none cursor-pointer outline-hidden transition-colors">
-              Go Home
-            </Button>
+          <Link
+            href="/dashboard/home"
+            className="flex-1 inline-flex items-center justify-center rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs h-11 border-none shadow-none cursor-pointer outline-hidden transition-colors"
+          >
+            Go Home
           </Link>
         </div>
 

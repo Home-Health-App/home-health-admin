@@ -7,10 +7,23 @@ import {
   deletePlan,
   getPlanCategories,
   getPlanTiers,
+  getAdminPayments,
+  getPaymentByPatientId,
+  createPaymentLink,
+  getPaymentById,
   GetAllPlansParams,
 } from "@/services/billing.service"
 import { GeneralResponse } from "@/types/response.type"
-import { PlanType, CreatePlanType, UpdatePlanType } from "@/types/billing.type"
+import {
+  PlanType,
+  CreatePlanType,
+  UpdatePlanType,
+  AdminPaymentItem,
+} from "@/types/billing.type"
+import {
+  CreatePaymentLinkPayload,
+  PaymentLinkResponseData,
+} from "@/types/billing-link.type"
 import { AxiosError } from "axios"
 
 // ─── Query Keys ──────────────────────────────────────────────────────────────
@@ -25,7 +38,7 @@ export const planKeys = {
   tiers: () => [...planKeys.all, "tiers"] as const,
 }
 
-// ─── Queries ─────────────────────────────────────────────────────────────────
+// ─── Plan Queries ────────────────────────────────────────────────────────────
 
 export const useGetAllPlans = (params?: GetAllPlansParams) => {
   const { isPending, data, error, refetch } = useQuery<
@@ -76,7 +89,7 @@ export const useGetPlanTiers = () => {
   return { isPending, data, error }
 }
 
-// ─── Mutations ───────────────────────────────────────────────────────────────
+// ─── Plan Mutations ──────────────────────────────────────────────────────────
 
 export const useCreatePlan = () => {
   const queryClient = useQueryClient()
@@ -131,4 +144,60 @@ export const useDeletePlan = () => {
   })
 
   return { isPending, mutate, mutateAsync, error, data }
+}
+
+// ─── Payment Hooks ──────────────────────────────────────────────────────────
+
+export const useGetAdminPayments = () => {
+  const { isPending, data, error, refetch } = useQuery<
+    GeneralResponse<AdminPaymentItem[]>,
+    AxiosError<GeneralResponse>
+  >({
+    queryKey: ["payments", "admin"],
+    queryFn: getAdminPayments,
+  })
+
+  return { isPending, data, error, refetch }
+}
+
+export const useGetPaymentByPatientId = (patientId: string) => {
+  const { isPending, data, error, refetch } = useQuery<
+    GeneralResponse<AdminPaymentItem>,
+    AxiosError<GeneralResponse>
+  >({
+    queryKey: ["payments", "patient", patientId],
+    queryFn: () => getPaymentByPatientId(patientId),
+    enabled: !!patientId,
+  })
+
+  return { isPending, data, error, refetch }
+}
+
+export const useCreatePaymentLink = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation<
+    GeneralResponse<PaymentLinkResponseData>,
+    AxiosError<GeneralResponse>,
+    CreatePaymentLinkPayload
+  >({
+    mutationFn: createPaymentLink,
+    mutationKey: ["create_payment_link"],
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payments"] })
+    },
+  })
+}
+
+export const useGetPaymentById = (id: string) => {
+  const { isPending, data, error, refetch } = useQuery<
+    GeneralResponse<PaymentLinkResponseData>,
+    AxiosError<GeneralResponse>
+  >({
+    queryKey: ["payment-link", id],
+    queryFn: () => getPaymentById(id),
+    enabled: !!id,
+  })
+
+  return { isPending, data, error, refetch }
 }

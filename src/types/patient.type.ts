@@ -130,26 +130,46 @@ export interface GetPatientsQueryParams {
   plan_id?: string
 }
 
+export interface MedicationSchedule {
+  name: string
+  dosage?: string
+  frequency?: string
+  schedule_type?: "Specific Times" | "Interval"
+  times?: string[]
+  interval?: string
+  starting_from?: string
+  days_of_week?: string[]
+}
+
+export interface PatientMedicationItem {
+  name: string
+  doseage: string
+  frequency: string
+}
+
 export interface CreatePatientPayload {
   first_name: string
   last_name: string
   email?: string
   phone?: string
   address?: string
+  profile_picture?: string | null
   country?: string
   state?: string
-  gender?: string
+  gender?: "MALE" | "FEMALE" | string
   date_of_birth?: string
   relationship?: string
   notes?: string
-  chronic_conditions?: string[]
-  allergies?: string[]
-  blood_group?: string
-  genotype?: string
   height?: number
   weight?: number
+  allergies?: string[]
+  chronic_conditions?: string[]
+  age?: number
+  blood_group?: string
+  genotype?: string
   plan_id?: string
   user_id?: string
+  medications?: PatientMedicationItem[]
 }
 
 export interface UpdatePatientPayload {

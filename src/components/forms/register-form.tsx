@@ -565,11 +565,11 @@ export default function RegisterForm() {
                     onClick={handleCertClick}
                     className={cn(
                       "flex flex-col items-center justify-center border-2 border-dashed rounded-[8px] p-6 bg-secondary-color/5 cursor-pointer hover:bg-secondary-color/10 transition-colors text-center font-dm-san-regular",
-                      errors.certification ? "border-red-500 bg-red-50/10" : "border-secondary-color"
+                      errors.certification ? "border-warning-border bg-warning-border/50" : "border-secondary-color"
                     )}
                   >
-                    <IconUpload className={cn("size-6 mb-2", errors.certification ? "text-red-500" : "text-secondary-color")} />
-                    <span className={cn("font-bold text-sm block", errors.certification ? "text-red-500" : "text-[#0B1E3F]")}>
+                    <IconUpload className={cn("size-6 mb-2", errors.certification ? "text-warning-border" : "text-secondary-color")} />
+                    <span className={cn("font-bold text-sm block", errors.certification ? "text-warning-border" : "text-primary-color")}>
                       + Upload Your Certificate
                     </span>
                     <span className="text-xs text-zinc-500 font-normal mt-1 block">

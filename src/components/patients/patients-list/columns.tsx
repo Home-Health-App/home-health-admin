@@ -19,6 +19,7 @@ export interface PatientItem {
   familyMember: string
   familyMemberId?: string
   caregiver: string
+  caregiverId?: string
   subscription: string
   status: "Active" | "Inactive" | "Suspended"
   rawPatient: PatientType
@@ -118,11 +119,17 @@ export const columns: ColumnDef<PatientItem>[] = [
     meta: { align: "center" },
     cell: ({ row, table }) => {
       const patient = row.original
-      const isSuspended = patient.status === "Suspended"
+      const isSuspended = patient.rawPatient?.isSuspended ?? (patient.status === "Suspended")
       const meta = table.options.meta as {
         onAssignCaregiver?: (patient: { id: string; name: string }) => void
-        onUnassignCaregiver?: (patient: PatientItem) => void
+        onUnassignCaregiver?: (patient: {
+          id: string
+          name: string
+          caregiverName?: string
+          caregiverId?: string
+        }) => void
         onToggleSuspend?: (patientId: string, currentStatus: boolean) => void
+        onMessageFamilyMember?: (familyMemberId: string) => void
       } | undefined
 
       return (
@@ -143,12 +150,13 @@ export const columns: ColumnDef<PatientItem>[] = [
                 View Patient Details
               </Link>
               {patient.familyMemberId && (
-                <Link
-                  href={`/dashboard/messages?userId=${patient.familyMemberId}`}
-                  className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block"
+                <Button
+                  variant="ghost"
+                  onClick={() => meta?.onMessageFamilyMember?.(patient.familyMemberId!)}
+                  className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none text-zinc-800"
                 >
                   Message Family Member
-                </Link>
+                </Button>
               )}
               {patient.caregiver === "Unassigned" ? (
                 <Button
@@ -164,27 +172,20 @@ export const columns: ColumnDef<PatientItem>[] = [
                   Assign Caregiver
                 </Button>
               ) : (
-                <>
-                  <Button
-                    variant="ghost"
-                    onClick={() =>
-                      meta?.onAssignCaregiver?.({
-                        id: patient.id,
-                        name: patient.name,
-                      })
-                    }
-                    className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none text-zinc-800"
-                  >
-                    Reassign Caregiver
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => meta?.onUnassignCaregiver?.(patient)}
-                    className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none text-zinc-800"
-                  >
-                    Unassign Caregiver
-                  </Button>
-                </>
+                <Button
+                  variant="ghost"
+                  onClick={() =>
+                    meta?.onUnassignCaregiver?.({
+                      id: patient.id,
+                      name: patient.name,
+                      caregiverName: patient.caregiver,
+                      caregiverId: patient.caregiverId,
+                    })
+                  }
+                  className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none text-zinc-800"
+                >
+                  Unassign Caregiver
+                </Button>
               )}
               <div className="h-px bg-secondary-light my-1" />
               <Button

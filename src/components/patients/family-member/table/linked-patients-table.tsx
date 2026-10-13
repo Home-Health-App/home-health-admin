@@ -28,11 +28,15 @@ export const LINKED_PATIENTS: LinkedPatient[] = [
   },
 ]
 
-export default function LinkedPatientsTable() {
+interface LinkedPatientsTableProps {
+  data?: LinkedPatient[]
+}
+
+export default function LinkedPatientsTable({ data }: LinkedPatientsTableProps) {
   return (
     <DataTable
       columns={columns}
-      data={LINKED_PATIENTS}
+      data={data && data.length > 0 ? data : LINKED_PATIENTS}
       pageSize={3}
       isPaginated={false}
     />

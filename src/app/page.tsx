@@ -197,7 +197,7 @@ export default function LoginPage() {
                 </Field>
 
                 {otpMutation.error && (
-                  <p className="text-xs text-red-500 font-dm-san-regular text-center">
+                  <p className="w-full mx-auto text-xs text-red-500 font-dm-san-regular text-center">
                     {otpMutation.error.response?.data?.message || otpMutation.error.message || "Invalid verification code."}
                   </p>
                 )}

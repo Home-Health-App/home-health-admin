@@ -14,6 +14,7 @@ import { InvitationType } from "@/types/invitation.type"
 import { IconUser, IconMail, IconPhone, IconMapPin, IconCalendar, IconUserCheck } from "@tabler/icons-react"
 
 import { useGetUserById } from "@/hooks/user.hook"
+import { useRouter } from "next/navigation"
 
 interface UserDetailsModalProps {
   open: boolean
@@ -28,6 +29,7 @@ export default function UserDetailsModal({
   userId,
   invitation,
 }: UserDetailsModalProps) {
+  const router = useRouter()
   // Query user by id dynamically when modal is open and userId is present
   const { data: userResponse, isPending } = useGetUserById(userId || "", open && !!userId)
   const user = userResponse?.data || null
@@ -75,12 +77,6 @@ export default function UserDetailsModal({
                   {user.first_name} {user.last_name}
                 </h3>
                 <div className="flex items-center gap-2">
-                  <Badge
-                    variant="outline"
-                    className="bg-[#EEFDF4] text-[#22C55E] border-[#DCFCE7] text-xs font-semibold px-2 py-0.5 rounded-full shadow-none"
-                  >
-                    Registered
-                  </Badge>
                   {user.isSuspended ? (
                     <Badge
                       variant="outline"
@@ -151,7 +147,7 @@ export default function UserDetailsModal({
               </div>
 
               {/* Statistics details */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-zinc-50 border border-zinc-100 rounded-lg text-center space-y-1">
                   <span className="text-xs text-zinc-500 block">Linked Patients</span>
                   <span className="text-2xl font-bold text-body-text block">{user._count?.patients ?? 0}</span>
@@ -160,7 +156,7 @@ export default function UserDetailsModal({
                   <span className="text-xs text-zinc-500 block">Emergency Contacts</span>
                   <span className="text-2xl font-bold text-body-text block">{user._count?.emergencyContacts ?? 0}</span>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         ) : invitation ? (
@@ -219,13 +215,20 @@ export default function UserDetailsModal({
         )}
         {/* Actions */}
         <div className="pt-2">
-          <Button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            className="w-full rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-semibold text-sm h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors"
-          >
-            Close Details
-          </Button>
+          {isRegistered && user && (
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                onClick={() => {
+                  onOpenChange(false)
+                  router.push(`/dashboard/users/${user.id}/create-patient`)
+                }}
+                className="flex-1 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors flex items-center justify-center gap-1.5"
+              >
+                <span>+ Add Patient</span>
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

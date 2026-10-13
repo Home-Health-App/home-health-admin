@@ -22,6 +22,7 @@ export const URLs = {
     invitation: {
         'send-invitation': "invitation/send",
         'get-invitations': "invitation",
+        'get-invitation-by-id': (id: string) => `invitation/${id}`,
     },
     users: {
         'get-users': "users",
@@ -39,10 +40,20 @@ export const URLs = {
         'admin-preferences': (adminId: string) => `notification-preferences/admin/${adminId}`,
     },
 
+    notification: {
+        'get-admin-notifications': "notification/admin",
+        'mark-read': "notification/mark-read",
+        'delete-notification': (id: string) => `notification/${id}`,
+        'mark-as-read': (id: string) => `notification/${id}/read`,
+        'mark-all-read': "notification/read-all",
+    },
+
     notifications: {
-        'get-admin-notifications': "notifications/admin",
-        'mark-as-read': (id: string) => `notifications/${id}/read`,
-        'mark-all-read': "notifications/read-all",
+        'get-admin-notifications': "notification/admin",
+        'mark-read': "notification/mark-read",
+        'delete-notification': (id: string) => `notification/${id}`,
+        'mark-as-read': (id: string) => `notification/${id}/read`,
+        'mark-all-read': "notification/read-all",
     },
 
     adminRoles: {
@@ -80,5 +91,17 @@ export const URLs = {
         'get-patient-reports': (patientId: string) => `ai-report/patient/${patientId}`,
         'get-report-by-id': (reportId: string) => `ai-report/${reportId}`,
         'download-report': (reportId: string) => `ai-report/${reportId}/download`,
+    },
+
+    upload: {
+        single: "upload",
+        multiple: "upload/multiple",
+    },
+
+    payment: {
+        'get-admin-payments': "payment/admin",
+        'get-patient-payment': (patientId: string) => `payment/patient/${patientId}`,
+        'create-payment-link': "payment-link",
+        'get-payment-by-id': (id: string) => `payment-link/${id}`,
     },
 }

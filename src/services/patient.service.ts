@@ -15,7 +15,6 @@ import {
   DailyLogType,
   GetDailyLogsQueryParams,
 } from "@/types/daily-log.type"
-
 export const createPatient = async (
   payload: CreatePatientPayload
 ): Promise<GeneralResponse<PatientType>> => {
