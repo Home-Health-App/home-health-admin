@@ -225,6 +225,12 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
         </div>
 
         <div className="flex items-center gap-3">
+          <Link href={`/dashboard/patients/${patient.id}/create-bill`}>
+            <Button className="rounded-full bg-secondary-color hover:bg-secondary-color/90 text-white font-sans font-semibold text-xs h-10 px-5 cursor-pointer outline-hidden shadow-none transition-colors">
+              Create Payment Link
+            </Button>
+          </Link>
+
           <Button
             onClick={() => handleToggleSuspend(isSuspended)}
             variant="outline"
