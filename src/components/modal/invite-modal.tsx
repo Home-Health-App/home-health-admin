@@ -28,6 +28,7 @@ const inviteFormSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
+  phone: z.string().min(1, "Phone number is required"),
 })
 
 export default function InviteModal({
@@ -52,6 +53,7 @@ export default function InviteModal({
       firstName: "",
       lastName: "",
       email: "",
+      phone: "",
     },
   })
 
@@ -68,7 +70,13 @@ export default function InviteModal({
 
   const onSubmit = handleSubmit((values) => {
     sendInvite(
-      { email: values.email.trim(), type },
+      {
+        email: values.email.trim(),
+        first_name: values.firstName.trim(),
+        last_name: values.lastName.trim(),
+        phone: values.phone.trim(),
+        type,
+      },
       {
         onSuccess: () => {
           setView("success")
@@ -139,6 +147,20 @@ export default function InviteModal({
                   className={cn("!h-12 px-4 rounded-[8px] border font-dm-san-regular text-sm font-normal focus-visible:border-primary-color focus-visible:ring-0 shadow-none bg-zinc-50 w-full text-body-text placeholder:text-zinc-400 focus:outline-hidden", errors.email ? "border-error" : "border-zinc-200")}
                 />
                 <FieldError errors={[errors.email]} />
+              </Field>
+
+              {/* Phone Number */}
+              <Field>
+                <FieldLabel className="text-xs font-semibold text-body-text">
+                  Phone Number
+                </FieldLabel>
+                <Input
+                  type="tel"
+                  placeholder="+234700000000"
+                  {...register("phone")}
+                  className={cn("!h-12 px-4 rounded-[8px] border font-dm-san-regular text-sm font-normal focus-visible:border-primary-color focus-visible:ring-0 shadow-none bg-zinc-50 w-full text-body-text placeholder:text-zinc-400 focus:outline-hidden", errors.phone ? "border-error" : "border-zinc-200")}
+                />
+                <FieldError errors={[errors.phone]} />
               </Field>
 
               {/* Actions */}

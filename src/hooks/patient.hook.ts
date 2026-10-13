@@ -86,6 +86,7 @@ export const useCreatePatient = () => {
     mutationKey: ["create_patient"],
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: patientKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: ["users"] })
     },
   })
 }
@@ -162,7 +163,6 @@ export const useUnassignPatient = () => {
       queryClient.invalidateQueries({
         queryKey: patientKeys.detail(variables.patient_id),
       })
-      queryClient.invalidateQueries({ queryKey: ["users"] })
     },
   })
 }

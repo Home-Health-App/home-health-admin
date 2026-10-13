@@ -115,11 +115,68 @@ export interface PatientType {
   updated_at: string
   deleted_at: string | null
   isDeleted: boolean
+  caregiver?: PatientCaregiver | null
   plan?: PatientPlan
   user?: PatientUser
-  caregiver?: PatientCaregiver | PatientAssignmentUser | any | null
   assignments?: PatientAssignment[]
   patientMedications?: PatientMedication[]
+}
+
+/**
+ * Extracts caregiver details from a Patient object, checking both the direct
+ * `patient.caregiver` field and `patient.assignments` fallback.
+ */
+export function getPatientCaregiver(patient?: PatientType | null) {
+  if (!patient) return null
+
+  // 1. Direct caregiver object from backend response
+  if (patient.caregiver && (patient.caregiver.first_name || patient.caregiver.last_name || patient.caregiver.id)) {
+    const cg = patient.caregiver
+    const fullName = `${cg.first_name || ""} ${cg.last_name || ""}`.trim()
+    return {
+      id: cg.id || patient.caregiver_id || "",
+      first_name: cg.first_name || "",
+      last_name: cg.last_name || "",
+      name: fullName || "Caregiver",
+      email: cg.email || "",
+      phone: cg.phone || "",
+      profile_picture: cg.profile_picture || null,
+      address: cg.address || "",
+      gender: cg.gender || "",
+      state: cg.state || "",
+      country: cg.country || "",
+      type: cg.type || "CARE_GIVER",
+    }
+  }
+
+  // 2. Active assignment or fallback in assignments array
+  if (patient.assignments && patient.assignments.length > 0) {
+    const activeAssignment =
+      patient.assignments.find((a) => a.status === "ACTIVE" && (a.caregiver || a.user)) ||
+      patient.assignments.find((a) => a.caregiver || a.user) ||
+      patient.assignments[0]
+
+    const assignmentUser = activeAssignment?.caregiver || activeAssignment?.user
+    if (assignmentUser && (assignmentUser.first_name || assignmentUser.last_name || assignmentUser.id)) {
+      const fullName = `${assignmentUser.first_name || ""} ${assignmentUser.last_name || ""}`.trim()
+      return {
+        id: assignmentUser.id || activeAssignment.user_id || "",
+        first_name: assignmentUser.first_name || "",
+        last_name: assignmentUser.last_name || "",
+        name: fullName || "Caregiver",
+        email: assignmentUser.email || "",
+        phone: ("phone" in assignmentUser ? assignmentUser.phone : "") || "",
+        profile_picture: assignmentUser.profile_picture || null,
+        address: ("address" in assignmentUser ? assignmentUser.address : "") || "",
+        gender: ("gender" in assignmentUser ? assignmentUser.gender : "") || "",
+        state: ("state" in assignmentUser ? assignmentUser.state : "") || "",
+        country: ("country" in assignmentUser ? assignmentUser.country : "") || "",
+        type: ("type" in assignmentUser ? (assignmentUser as any).type : "") || "CARE_GIVER",
+      }
+    }
+  }
+
+  return null
 }
 
 export interface GetPatientsQueryParams {
@@ -148,12 +205,13 @@ export interface PatientMedicationItem {
 }
 
 export interface CreatePatientPayload {
+  plan_id?: string
   first_name: string
   last_name: string
   email?: string
   phone?: string
   address?: string
-  profile_picture?: string | null
+  profile_picture?: string
   country?: string
   state?: string
   gender?: "MALE" | "FEMALE" | string
@@ -167,9 +225,8 @@ export interface CreatePatientPayload {
   age?: number
   blood_group?: string
   genotype?: string
-  plan_id?: string
-  user_id?: string
   medications?: PatientMedicationItem[]
+  user_id?: string
 }
 
 export interface UpdatePatientPayload {

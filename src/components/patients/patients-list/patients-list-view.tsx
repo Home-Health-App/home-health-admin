@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { columns, PatientItem } from "./columns"
 import { DataTable } from "@/components/shared/data-table"
 import { PaginatedResponse } from "@/types/response.type"
-import { PatientType } from "@/types/patient.type"
+import { PatientType, getPatientCaregiver } from "@/types/patient.type"
 import { useSuspendPatient, useUnassignPatient } from "@/hooks/patient.hook"
 import { useCreateAdminChat } from "@/hooks/chat.hook"
 import { useRouter } from "next/navigation"
@@ -38,37 +38,25 @@ export default function PatientsView({ patientsData }: PatientsListViewProps) {
     if (!patientsData?.data) return []
 
     return patientsData.data.map((patient) => {
-      const caregiverObj =
-        patient.caregiver ||
-        (typeof patient.caregiver === "object" ? patient.caregiver : null)
-      const caregiverName = caregiverObj
-        ? `${caregiverObj.first_name || ""} ${caregiverObj.last_name || ""}`.trim()
-        : typeof patient.caregiver === "string"
-        ? patient.caregiver
-        : "Unassigned"
+      const caregiverInfo = getPatientCaregiver(patient)
+      const caregiverName = caregiverInfo ? caregiverInfo.name : "Unassigned"
 
       const familyName = patient.user
         ? `${patient.user.first_name || ""} ${patient.user.last_name || ""}`.trim()
         : patient.relationship || "-"
 
-      let status: "Active" | "Inactive" | "Suspended" = "Active"
-      if (patient.isSuspended) {
-        status = "Suspended"
-      } else if (patient.status === "NOT_ACTIVE" || patient.status === "Inactive") {
-        status = "Inactive"
-      } else {
-        status = "Active"
-      }
-
       return {
         id: patient.id,
         name: `${patient.first_name || ""} ${patient.last_name || ""}`.trim() || "Unnamed Patient",
+        profile_picture: patient.profile_picture || null,
         familyMember: familyName || "-",
         familyMemberId: patient.user?.id || patient.user_id,
-        caregiver: caregiverName || "Unassigned",
-        caregiverId: caregiverObj?.id || patient.caregiver_id || undefined,
+        familyMemberProfilePicture: patient.user?.profile_picture || null,
+        caregiver: caregiverName,
+        caregiverId: caregiverInfo?.id,
+        caregiverProfilePicture: caregiverInfo?.profile_picture || null,
         subscription: patient.plan?.tier || patient.plan?.name || "No Plan",
-        status,
+        status: patient.isSuspended ? "Suspended" : "Active",
         rawPatient: patient,
       }
     })
@@ -113,27 +101,30 @@ export default function PatientsView({ patientsData }: PatientsListViewProps) {
     setIsAssignModalOpen(true)
   }
 
-  const handleUnassignCaregiver = (patientInfo: {
-    id: string
-    name: string
-    caregiverName?: string
-    caregiverId?: string
-  }) => {
-    if (!patientInfo.caregiverId) {
+  const handleUnassignCaregiver = (patient: PatientItem) => {
+    const caregiverInfo = getPatientCaregiver(patient.rawPatient)
+    const caregiverUserId =
+      caregiverInfo?.id ||
+      patient.rawPatient.caregiver_id ||
+      patient.rawPatient.assignments?.[0]?.user_id ||
+      patient.caregiverId ||
+      ""
+
+    if (!caregiverUserId) {
       toast.error("Caregiver record not found for this patient.")
       return
     }
 
     confirm({
       title: "Unassign Caregiver",
-      description: `Are you sure you want to unassign ${patientInfo.caregiverName || "the caregiver"} from ${patientInfo.name}?`,
+      description: `Are you sure you want to unassign ${patient.caregiver} from ${patient.name}?`,
       confirmText: "Unassign",
       variant: "danger",
       onConfirm: () => {
         unassignMutate(
           {
-            patient_id: patientInfo.id,
-            user_id: patientInfo.caregiverId!,
+            patient_id: patient.id,
+            user_id: caregiverUserId,
           },
           {
             onSuccess: () => {

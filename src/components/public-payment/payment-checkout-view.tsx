@@ -241,9 +241,9 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
           /* ================= CENTERED PLAN & PATIENT DETAILS WITH PAYMENT BUTTON AT BOTTOM ================= */
           <div className="w-full max-w-xl space-y-6">
             {/* Recipient / Patient Summary Card */}
-            <div className="bg-white border border-zinc-200/80 rounded-2xl p-6 shadow-2xs space-y-4">
+            <div className="bg-white border border-body-text/20 rounded-2xl p-6 shadow-2xs space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-2xs font-bold font-dm-san-regular uppercase tracking-wider text-zinc-400">
+                <span className="text-2xs font-bold font-dm-san-regular uppercase tracking-wider text-body-text">
                   Care Recipient
                 </span>
                 <Badge variant="outline" className="border-secondary-color bg-secondary-light text-secondary-color text-2xs font-dm-san-regular">
@@ -252,7 +252,7 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
               </div>
 
               <div className="flex items-center gap-3.5">
-                <Avatar className="size-14 border border-zinc-200 shrink-0">
+                <Avatar className="size-14 border border-body-text/20  shrink-0">
                   {patient?.profile_picture ? (
                     <AvatarImage
                       src={patient.profile_picture}
@@ -274,7 +274,7 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
                 </div>
               </div>
 
-              <div className="p-3.5 bg-zinc-50 rounded-xl border border-zinc-100 space-y-2 text-xs font-dm-san-regular">
+              <div className="p-3.5 bg-secondary-light text-sm rounded-xl border border-zinc-100 space-y-2 font-dm-san-regular">
                 <div className="flex justify-between items-center">
                   <span className="text-zinc-500">Responsible Sponsor:</span>
                   <span className="font-semibold text-body-text">
@@ -301,7 +301,7 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
             </div>
 
             {/* Selected Plan Details, Inclusions & Payment Trigger */}
-            <div className="bg-white border border-zinc-200/80 rounded-2xl p-6 shadow-2xs space-y-5">
+            <div className="bg-white border border-body-text/20 rounded-2xl p-6 shadow-2xs space-y-5">
               <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
                 <div>
                   <span className="text-2xs font-bold uppercase tracking-wider text-zinc-400 font-dm-san-regular">
@@ -336,17 +336,12 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
               )}
 
               {/* Price Breakdown in Naira */}
-              <div className="pt-4 border-t border-zinc-200/80 space-y-2.5 text-xs font-dm-san-regular">
-                <div className="flex justify-between">
-                  <span className="text-zinc-500">Plan Rate:</span>
+              <div className="pt-4 border-t border-border-light space-y-2.5 text-sm font-dm-san-regular">
+                {/* <div className="flex justify-between">
+                  <span className="text-body-text/80">Plan Rate:</span>
                   <span className="font-medium text-body-text">₦{finalTotalAmount.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-500">Processing & Gateway Fee:</span>
-                  <span className="font-medium text-emerald-600">Free / Waived</span>
-                </div>
-
-                <div className="pt-3 border-t border-zinc-200 flex justify-between items-baseline">
+                </div> */}
+                <div className="pt-3 flex justify-between items-baseline">
                   <span className="text-sm font-bold text-body-text">Total Due:</span>
                   <div className="text-right">
                     <span className="text-2xl font-extrabold font-dm-san-regular text-primary-color">
@@ -358,7 +353,7 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
               </div>
 
               {/* PAYMENT BUTTON AT THE BOTTOM */}
-              <div className="pt-4 border-t border-zinc-100 space-y-3">
+              <div className="pt-4 border-t border-border-light space-y-3">
                 <Button
                   onClick={handleTriggerPaystack}
                   disabled={paymentState === "processing"}

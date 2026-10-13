@@ -20,18 +20,33 @@ import {
   IconCalendar,
 } from "@tabler/icons-react"
 import { useRegisterUser } from "@/hooks/auth.hook"
-import { useUploadFile } from "@/hooks/upload.hook"
+import { useGetInvitationById } from "@/hooks/invitation.hook"
+import { useUploadFile, useUploadMultipleFiles } from "@/hooks/upload.hook"
 import { useForm } from "@/hooks/use-form"
 import { getRegisterSchema, RegisterSchemaType } from "@/schemas/auth.schema"
 import { Controller } from "react-hook-form"
 import { Country, State } from "country-state-city"
 
+interface UploadedCert {
+  name: string
+  url: string
+  size?: number
+}
+
 export default function RegisterForm() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
-  const code = searchParams.get("code") || ""
-  const type = searchParams.get("type") || "USER" // USER or CARE_GIVER
+  const code = searchParams.get("code") || searchParams.get("id") || ""
+  const typeParam = searchParams.get("type") || ""
+
+  // Fetch invitation details in the background (no blocking loader)
+  const { data: invitationResponse } = useGetInvitationById(code)
+  const invitationData = invitationResponse?.data
+
+  // Determine effective registration type (only CARE_GIVER requires documents)
+  const type = (invitationData?.type || typeParam || "USER") as "USER" | "CARE_GIVER"
+  const isCaregiver = type === "CARE_GIVER"
 
   const { mutate: register, isPending } = useRegisterUser()
 
@@ -59,7 +74,7 @@ export default function RegisterForm() {
       state: "Lagos",
       gender: undefined,
       date_of_birth: "",
-      certification: "",
+      certification: isCaregiver ? ([] as any) : "",
     },
   })
 
@@ -86,12 +101,29 @@ export default function RegisterForm() {
     setValue("state", "")
   }, [watchedCountry, setValue])
 
-  // Sync invitation code from search parameters (updates dynamically on load)
+  // Sync and ensure invitation details are set if invitation data updates
   React.useEffect(() => {
-    if (code) {
+    if (invitationData) {
+      if (invitationData.first_name) {
+        setValue("first_name", invitationData.first_name, { shouldValidate: true })
+      }
+      if (invitationData.last_name) {
+        setValue("last_name", invitationData.last_name, { shouldValidate: true })
+      }
+      if (invitationData.email) {
+        setValue("email", invitationData.email, { shouldValidate: true })
+      }
+      if (invitationData.phone) {
+        setValue("phone", invitationData.phone, { shouldValidate: true })
+      }
+      const codeToSet = invitationData.code || code
+      if (codeToSet) {
+        setValue("invitation_code", codeToSet, { shouldValidate: true })
+      }
+    } else if (code) {
       setValue("invitation_code", code, { shouldValidate: true })
     }
-  }, [code, setValue])
+  }, [invitationData, code, setValue])
 
 
   const handleFocus = (field: string) => {
@@ -118,13 +150,13 @@ export default function RegisterForm() {
   const [profilePicPreview, setProfilePicPreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Certificate state (Caregiver only)
-  const [certificate, setCertificate] = useState<File | null>(null)
+  // Certificates state (Caregiver only)
+  const [certificates, setCertificates] = useState<UploadedCert[]>([])
   const certInputRef = useRef<HTMLInputElement>(null)
 
   // Upload hooks
   const { mutate: uploadProfilePic, isPending: isUploadingProfilePic } = useUploadFile()
-  const { mutate: uploadCert, isPending: isUploadingCert } = useUploadFile()
+  const { mutate: uploadCerts, isPending: isUploadingCert } = useUploadMultipleFiles()
 
   // Submission views
   const [regStatus, setRegStatus] = useState<"idle" | "success" | "failure">("idle")
@@ -142,6 +174,7 @@ export default function RegisterForm() {
           if (res.success && res.data?.url) {
             setProfilePic(file)
             setProfilePicPreview(res.data.url)
+            setValue("profile_picture", res.data.url)
           }
         },
         onError: (err: any) => {
@@ -156,13 +189,23 @@ export default function RegisterForm() {
   }
 
   const handleCertChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      uploadCert(file, {
+    const files = e.target.files
+    if (files && files.length > 0) {
+      uploadCerts(files, {
         onSuccess: (res) => {
-          if (res.success && res.data?.url) {
-            setCertificate(file)
-            setValue("certification", res.data.url, { shouldValidate: true })
+          if (res.success && Array.isArray(res.data)) {
+            const newCerts: UploadedCert[] = res.data.map((item) => ({
+              name: item.filename,
+              url: item.url,
+              size: item.size,
+            }))
+            const updated = [...certificates, ...newCerts]
+            setCertificates(updated)
+            const urls = updated.map((c) => c.url)
+            setValue("certification", urls as any, { shouldValidate: true })
+          }
+          if (certInputRef.current) {
+            certInputRef.current.value = ""
           }
         },
         onError: (err: any) => {
@@ -172,16 +215,30 @@ export default function RegisterForm() {
     }
   }
 
-  const handleRemoveCert = () => {
-    setCertificate(null)
-    setValue("certification", "", { shouldValidate: true })
+  const handleRemoveCert = (index: number) => {
+    const updated = certificates.filter((_, i) => i !== index)
+    setCertificates(updated)
+    const urls = updated.map((c) => c.url)
+    setValue(
+      "certification",
+      urls.length === 0 ? ("" as any) : (urls as any),
+      { shouldValidate: true }
+    )
     if (certInputRef.current) {
       certInputRef.current.value = ""
     }
   }
 
   const onFormSubmit = handleSubmit((values) => {
-    register(values, {
+    const payload = {
+      ...values,
+      ...(profilePicPreview ? { profile_picture: profilePicPreview } : {}),
+      ...(type === "CARE_GIVER" && certificates.length > 0
+        ? { certification: certificates.map((c) => c.url) }
+        : {}),
+    }
+
+    register(payload, {
       onSuccess: (res) => {
         if (!res?.success) {
           setRegStatus("failure")
@@ -518,37 +575,50 @@ export default function RegisterForm() {
 
           {/* Certificate Section (Caregiver only) */}
           {type === "CARE_GIVER" && (
-            <div className="space-y-2 pt-2 border-t border-zinc-100">
+            <div className="space-y-3 pt-2 border-t border-zinc-100">
               <Field>
                 <FieldLabel className="text-xs font-semibold text-zinc-500 font-dm-san-regular block">
-                  Certificate
+                  Certifications / Documents
                 </FieldLabel>
 
-                {certificate ? (
-                  /* File detail card */
-                  <div className="flex items-center justify-between border border-zinc-200 rounded-[8px] p-4 bg-secondary-light shadow-none">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-zinc-100 rounded-lg">
-                        <IconFileText className="size-5 text-zinc-500" />
-                      </div>
-                      <div>
-                        <span className="font-semibold text-sm text-body-text block">
-                          {certificate.name}
-                        </span>
-                      </div>
-                    </div>
+                {/* Uploaded Certificates List */}
+                {certificates.length > 0 && (
+                  <div className="space-y-2 mb-3">
+                    {certificates.map((cert, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between border border-zinc-200 rounded-[8px] p-3 bg-secondary-light shadow-none"
+                      >
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <div className="p-2 bg-zinc-100 rounded-lg shrink-0">
+                            <IconFileText className="size-5 text-zinc-500" />
+                          </div>
+                          <div className="truncate">
+                            <span className="font-semibold text-sm text-body-text block truncate">
+                              {cert.name}
+                            </span>
+                            {cert.size ? (
+                              <span className="text-xs text-zinc-400">
+                                {(cert.size / 1024).toFixed(1)} KB
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
 
-                    <button
-                      type="button"
-                      onClick={handleCertClick}
-                      className="flex items-center gap-1 hover:opacity-75 transition-opacity text-xs font-semibold text-body-text cursor-pointer outline-hidden"
-                    >
-                      <span>Change</span>
-                      <IconX className="size-3 text-zinc-500 hover:text-red-500" onClick={(e) => { e.stopPropagation(); handleRemoveCert(); }} />
-                    </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCert(index)}
+                          className="p-1 hover:bg-zinc-200/60 rounded-full transition-colors text-zinc-500 hover:text-red-500 cursor-pointer outline-hidden shrink-0 ml-2"
+                          title="Remove certificate"
+                        >
+                          <IconX className="size-4" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ) : isUploadingCert ? (
-                  /* Loading upload box */
+                )}
+                {/* Upload box */}
+                {isUploadingCert ? (
                   <div
                     className={cn(
                       "flex flex-col items-center justify-center border-2 border-dashed rounded-[8px] p-6 bg-secondary-color/5 text-center font-dm-san-regular border-secondary-color pointer-events-none"
@@ -556,24 +626,23 @@ export default function RegisterForm() {
                   >
                     <IconLoader2 className="size-6 mb-2 text-secondary-color animate-spin" />
                     <span className="font-bold text-sm block text-[#0B1E3F]">
-                      Uploading Certificate...
+                      Uploading Certificate(s)...
                     </span>
                   </div>
                 ) : (
-                  /* Dashed upload box */
                   <div
                     onClick={handleCertClick}
                     className={cn(
                       "flex flex-col items-center justify-center border-2 border-dashed rounded-[8px] p-6 bg-secondary-color/5 cursor-pointer hover:bg-secondary-color/10 transition-colors text-center font-dm-san-regular",
-                      errors.certification ? "border-warning-border bg-warning-border/50" : "border-secondary-color"
+                      errors.certification && certificates.length === 0 ? "border-red-500 bg-red-50/10" : "border-secondary-color"
                     )}
                   >
-                    <IconUpload className={cn("size-6 mb-2", errors.certification ? "text-warning-border" : "text-secondary-color")} />
-                    <span className={cn("font-bold text-sm block", errors.certification ? "text-warning-border" : "text-primary-color")}>
-                      + Upload Your Certificate
+                    <IconUpload className={cn("size-6 mb-2", errors.certification && certificates.length === 0 ? "text-red-500" : "text-secondary-color")} />
+                    <span className={cn("font-bold text-sm block", errors.certification && certificates.length === 0 ? "text-red-500" : "text-[#0B1E3F]")}>
+                      {certificates.length > 0 ? "+ Upload More Certificates" : "+ Upload Your Certificate(s)"}
                     </span>
                     <span className="text-xs text-zinc-500 font-normal mt-1 block">
-                      This should mention the file types accepted (PDF, JPG, PNG)
+                      Accepted file types: PDF, DOCX, DOC, JPG, PNG
                     </span>
                   </div>
                 )}
@@ -583,7 +652,8 @@ export default function RegisterForm() {
                   type="file"
                   ref={certInputRef}
                   onChange={handleCertChange}
-                  accept=".pdf,.jpg,.jpeg,.png"
+                  accept=".pdf,.jpg,.jpeg,.png,.docx,.doc"
+                  multiple
                   className="hidden"
                 />
               </Field>
@@ -614,3 +684,4 @@ export default function RegisterForm() {
     </Card>
   )
 }
+

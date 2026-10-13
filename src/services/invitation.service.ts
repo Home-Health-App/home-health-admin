@@ -33,3 +33,14 @@ export const getInvitations = async (
     { params }
   )
 }
+
+// ─── Get Invitation By ID ────────────────────────────────────────────────────
+
+export const getInvitationById = async (
+  id: string
+): Promise<GeneralResponse<InvitationType>> => {
+  return api.get<GeneralResponse<InvitationType>>(
+    URLs.invitation["get-invitation-by-id"](id)
+  )
+}
+

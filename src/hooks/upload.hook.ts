@@ -1,5 +1,10 @@
 import { useMutation } from "@tanstack/react-query"
-import { uploadFile, UploadResponse } from "@/services/upload.service"
+import {
+  uploadFile,
+  uploadMultipleFiles,
+  UploadResponse,
+  MultipleUploadResponse,
+} from "@/services/upload.service"
 import { AxiosError } from "axios"
 import { GeneralResponse } from "@/types/response.type"
 
@@ -21,3 +26,23 @@ export const useUploadFile = () => {
     data,
   }
 }
+
+export const useUploadMultipleFiles = () => {
+  const { isPending, mutate, mutateAsync, error, data } = useMutation<
+    MultipleUploadResponse,
+    AxiosError<GeneralResponse<any>>,
+    File[] | FileList
+  >({
+    mutationFn: uploadMultipleFiles,
+    mutationKey: ["multiple_files_upload"],
+  })
+
+  return {
+    isPending,
+    mutate,
+    mutateAsync,
+    error,
+    data,
+  }
+}
+

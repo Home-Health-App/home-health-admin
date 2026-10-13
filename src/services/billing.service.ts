@@ -1,6 +1,6 @@
 import { api } from "./httpservice"
 import { URLs } from "@/libs/urls"
-import { GeneralResponse } from "@/types/response.type"
+import { GeneralResponse, PaginatedResponse } from "@/types/response.type"
 import {
   PlanType,
   CreatePlanType,
@@ -8,11 +8,9 @@ import {
   PlanCategory,
   PlanTier,
   AdminPaymentItem,
+  GetAdminPaymentsParams,
 } from "@/types/billing.type"
-import {
-  CreatePaymentLinkPayload,
-  PaymentLinkResponseData,
-} from "@/types/billing-link.type"
+import { CreatePaymentLinkPayload, PaymentLinkResponseData } from "@/types/billing-link.type"
 
 // ─── Create Plan ─────────────────────────────────────────────────────────────
 
@@ -72,33 +70,46 @@ export const getPlanTiers = async (): Promise<GeneralResponse<string[]>> => {
   return api.get<GeneralResponse<string[]>>(URLs.plans["get-tiers"])
 }
 
-// ─── Payment Methods ─────────────────────────────────────────────────────────
+// ─── Get Admin Payments ──────────────────────────────────────────────────────
 
-export const getAdminPayments = async (): Promise<GeneralResponse<AdminPaymentItem[]>> => {
-  return api.get<GeneralResponse<AdminPaymentItem[]>>(URLs.payment["get-admin-payments"])
+export const getAdminPayments = async (
+  params?: GetAdminPaymentsParams
+): Promise<PaginatedResponse<AdminPaymentItem[]>> => {
+  return api.get<PaginatedResponse<AdminPaymentItem[]>>(
+    URLs.payment["get-admin-payments"],
+    { params }
+  )
 }
+
+// ─── Get Payment By Patient ID ───────────────────────────────────────────────
 
 export const getPaymentByPatientId = async (
   patientId: string
-): Promise<GeneralResponse<AdminPaymentItem>> => {
-  return api.get<GeneralResponse<AdminPaymentItem>>(
+): Promise<PaginatedResponse<AdminPaymentItem[]>> => {
+  return api.get<PaginatedResponse<AdminPaymentItem[]>>(
     URLs.payment["get-patient-payment"](patientId)
   )
 }
 
+// ─── Create Payment Link ─────────────────────────────────────────────────────
+
 export const createPaymentLink = async (
   payload: CreatePaymentLinkPayload
-): Promise<GeneralResponse<PaymentLinkResponseData>> => {
-  return api.post<GeneralResponse<PaymentLinkResponseData>>(
+): Promise<GeneralResponse<any>> => {
+  return api.post<GeneralResponse<any>>(
     URLs.payment["create-payment-link"],
     payload
   )
 }
 
+// ─── Get Payment By ID ────────────────────────────────────────────────────────
+
 export const getPaymentById = async (
-  id: string
+  paymentId: string
 ): Promise<GeneralResponse<PaymentLinkResponseData>> => {
   return api.get<GeneralResponse<PaymentLinkResponseData>>(
-    URLs.payment["get-payment-by-id"](id)
+    URLs.payment["get-payment-by-id"](paymentId)
   )
 }
+
+

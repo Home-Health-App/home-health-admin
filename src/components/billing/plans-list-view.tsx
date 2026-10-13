@@ -115,7 +115,7 @@ export default function PlansListView({
             {filteredPlans.map((plan) => {
               const tierColor = TIER_COLORS[plan.tier] || "text-body-text"
               const tierBorderColor = TIER_BORDER_COLORS[plan.tier] || "border-zinc-200"
-              const displayPrice = billingCycle === "yearly" ? plan.price_in_usd * 12 : plan.price_in_usd
+              const displayPrice = billingCycle === "yearly" ? Number(plan.price || 0) * 12 : Number(plan.price || 0)
               const cycleLabel = billingCycle === "yearly" ? "/year" : "/month"
 
               return (
@@ -129,7 +129,7 @@ export default function PlansListView({
                       <div className="mt-2.5 flex flex-col gap-2">
                         <div className="flex items-baseline">
                           <span className="text-4xl font-semibold font-dm-san-regular text-body-text">
-                            ${displayPrice}
+                            ₦{displayPrice.toLocaleString()}
                           </span>
                           <span className="text-base font-normal font-dm-san-regular text-body-text ml-1">
                             {cycleLabel}
