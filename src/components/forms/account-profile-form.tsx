@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Field, FieldLabel } from "@/components/ui/field"
@@ -10,11 +10,13 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAtom } from "jotai"
 import { authAtom } from "@/states/auth.atom"
 import { useUpdateAdminUser } from "@/hooks/admin.hook"
+import { useUploadFile } from "@/hooks/upload.hook"
 import { toast } from "sonner"
-import { IconLoader2 } from "@tabler/icons-react"
+import { IconLoader2, IconPencil, IconMinus } from "@tabler/icons-react"
 
 export default function AccountProfileForm() {
   const [auth, setAuth] = useAtom(authAtom)
@@ -27,8 +29,12 @@ export default function AccountProfileForm() {
   const [country, setCountry] = useState("Nigeria")
   const [state, setState] = useState("Lagos")
   const [address, setAddress] = useState("")
+  const [profilePicUrl, setProfilePicUrl] = useState<string | null>(null)
 
-  const { mutate: updateAdmin, isPending } = useUpdateAdminUser()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const { mutate: updateAdmin, isPending: isUpdatingAdmin } = useUpdateAdminUser()
+  const { mutate: uploadFile, isPending: isUploadingFile } = useUploadFile()
 
   useEffect(() => {
     if (currentAdmin) {
@@ -39,8 +45,141 @@ export default function AccountProfileForm() {
       setCountry(currentAdmin.country || "Nigeria")
       setState(currentAdmin.state || "Lagos")
       setAddress(currentAdmin.address || "")
+      setProfilePicUrl(currentAdmin.profile_picture || null)
     }
   }, [currentAdmin])
+
+  const handleProfilePicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload a valid image file.")
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size exceeds 5MB limit.")
+      return
+    }
+
+    if (!currentAdmin?.id) {
+      toast.error("Admin user session not found.")
+      return
+    }
+
+    uploadFile(file, {
+      onSuccess: (uploadRes) => {
+        const uploadedUrl = uploadRes?.data?.url
+        if (!uploadedUrl) {
+          toast.error("Failed to retrieve uploaded image URL.")
+          return
+        }
+
+        setProfilePicUrl(uploadedUrl)
+
+        // Automatically update admin profile on server via PUT /admin-auth/{id}
+        updateAdmin(
+          {
+            id: currentAdmin.id,
+            payload: {
+              first_name: firstName.trim() || currentAdmin.first_name,
+              last_name: lastName.trim() || currentAdmin.last_name,
+              email: email.trim() || currentAdmin.email,
+              country: country.trim() || currentAdmin.country || "Nigeria",
+              state: state.trim() || currentAdmin.state || "Lagos",
+              address: address.trim() || currentAdmin.address || "",
+              gender: gender || currentAdmin.gender || "MALE",
+              profile_picture: uploadedUrl,
+            },
+          },
+          {
+            onSuccess: (adminRes) => {
+              toast.success("Profile photo updated successfully!")
+              const updatedData = adminRes?.data
+              if (updatedData) {
+                setAuth((prev) => {
+                  if (!prev) return null
+                  return {
+                    ...prev,
+                    admin: {
+                      ...prev.admin,
+                      ...updatedData,
+                      role: (updatedData.role as any) || prev.admin?.role,
+                    },
+                  }
+                })
+              }
+            },
+            onError: (err: any) => {
+              const msg =
+                err?.response?.data?.message ||
+                "Failed to update admin profile picture."
+              toast.error(msg)
+            },
+          }
+        )
+      },
+      onError: (err: any) => {
+        const msg = err?.response?.data?.message || "Failed to upload image."
+        toast.error(msg)
+      },
+    })
+
+    if (e.target) {
+      e.target.value = ""
+    }
+  }
+
+  const handleRemovePhoto = () => {
+    if (!currentAdmin?.id) {
+      toast.error("Admin user session not found.")
+      return
+    }
+
+    setProfilePicUrl(null)
+
+    // Update admin profile on server via PUT /admin-auth/{id}
+    updateAdmin(
+      {
+        id: currentAdmin.id,
+        payload: {
+          first_name: firstName.trim() || currentAdmin.first_name,
+          last_name: lastName.trim() || currentAdmin.last_name,
+          email: email.trim() || currentAdmin.email,
+          country: country.trim() || currentAdmin.country || "Nigeria",
+          state: state.trim() || currentAdmin.state || "Lagos",
+          address: address.trim() || currentAdmin.address || "",
+          gender: gender || currentAdmin.gender || "MALE",
+          profile_picture: null,
+        },
+      },
+      {
+        onSuccess: (adminRes) => {
+          toast.success("Profile photo removed successfully!")
+          const updatedData = adminRes?.data
+          if (updatedData) {
+            setAuth((prev) => {
+              if (!prev) return null
+              return {
+                ...prev,
+                admin: {
+                  ...prev.admin,
+                  ...updatedData,
+                  role: (updatedData.role as any) || prev.admin?.role,
+                },
+              }
+            })
+          }
+        },
+        onError: (err: any) => {
+          const msg =
+            err?.response?.data?.message || "Failed to remove profile photo."
+          toast.error(msg)
+        },
+      }
+    )
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,6 +210,7 @@ export default function AccountProfileForm() {
           state: state.trim() || "Lagos",
           address: address.trim(),
           gender: gender || "MALE",
+          profile_picture: profilePicUrl,
         },
       },
       {
@@ -105,6 +245,13 @@ export default function AccountProfileForm() {
     lastName.trim().length > 0 &&
     email.trim().length > 0
 
+  const initials =
+    firstName || lastName
+      ? `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase()
+      : currentAdmin?.first_name || currentAdmin?.last_name
+      ? `${currentAdmin?.first_name?.[0] || ""}${currentAdmin?.last_name?.[0] || ""}`.toUpperCase()
+      : "AD"
+
   return (
     <div className="space-y-6 w-full font-dm-san-regular">
       <div className="space-y-1">
@@ -116,7 +263,76 @@ export default function AccountProfileForm() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5 w-full">
+      <form onSubmit={handleSubmit} className="space-y-6 w-full">
+        {/* Profile Picture Upload Section (Clean Centralized without Card Design) */}
+        <div className="flex flex-col items-center justify-center gap-2.5 pb-2">
+          <div className="relative group">
+            <Avatar
+              className="size-24 border-2 border-zinc-200/80 shadow-2xs cursor-pointer hover:opacity-95 transition-opacity"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {profilePicUrl ? (
+                <AvatarImage
+                  src={profilePicUrl}
+                  alt={`${firstName} ${lastName}`}
+                  className="object-cover"
+                />
+              ) : null}
+              <AvatarFallback className="bg-primary-light text-primary-color font-semibold text-xl">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+
+            {isUploadingFile && (
+              <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
+                <IconLoader2 className="size-6 text-white animate-spin" />
+              </div>
+            )}
+          </div>
+
+          {/* Action Icons: Edit & Minus */}
+          <div className="flex items-center justify-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              disabled={isUploadingFile || isUpdatingAdmin}
+              onClick={() => fileInputRef.current?.click()}
+              title={profilePicUrl ? "Change Photo" : "Upload Photo"}
+              aria-label="Upload or change photo"
+              className="size-8.5 rounded-full border-zinc-200 bg-white text-[#0B1E3F] hover:bg-zinc-100 shadow-2xs cursor-pointer flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+            >
+              {isUploadingFile ? (
+                <IconLoader2 className="size-4 animate-spin" />
+              ) : (
+                <IconPencil className="size-4" />
+              )}
+            </Button>
+
+            {profilePicUrl && (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                disabled={isUploadingFile || isUpdatingAdmin}
+                onClick={handleRemovePhoto}
+                title="Remove Photo"
+                aria-label="Remove photo"
+                className="size-8.5 rounded-full border-zinc-200 bg-white text-red-600 hover:text-red-700 hover:bg-red-50 shadow-2xs cursor-pointer flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+              >
+                <IconMinus className="size-4 stroke-[2.5]" />
+              </Button>
+            )}
+          </div>
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleProfilePicChange}
+            accept="image/png,image/jpeg,image/webp,image/jpg"
+            className="hidden"
+          />
+        </div>
         {/* First Name & Last Name */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field>
@@ -239,10 +455,10 @@ export default function AccountProfileForm() {
         <div className="flex justify-end pt-4">
           <Button
             type="submit"
-            disabled={isPending || !isFormValid}
+            disabled={isUpdatingAdmin || isUploadingFile || !isFormValid}
             className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs px-8 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:bg-[#D0DFE7] disabled:text-white disabled:opacity-100 disabled:cursor-not-allowed"
           >
-            {isPending ? (
+            {isUpdatingAdmin ? (
               <span className="flex items-center gap-2">
                 <IconLoader2 className="size-4 animate-spin" />
                 Saving Changes...

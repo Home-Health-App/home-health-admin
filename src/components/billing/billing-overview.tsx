@@ -1,97 +1,72 @@
 "use client"
 
 import React, { useState, useMemo } from "react"
-import { IconChevronRight, IconUsers, IconPlus } from "@tabler/icons-react"
+import { IconChevronRight, IconUsers, IconSearch, IconLoader2 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { DataTable } from "@/components/shared/data-table"
 import { getBillingColumns } from "./columns"
 import { useRouter } from "next/navigation"
 import InviteModal from "@/components/modal/invite-modal"
 import Link from "next/link"
-
-export interface BillingItem {
-  id: string
-  patient: string
-  category: string
-  tier: string
-  status: "Active" | "Expired" | "Grace Period"
-  renewalDate: string
-}
+import { useGetAdminPayments } from "@/hooks/billing.hook"
+import { AdminPaymentItem } from "@/types/billing.type"
 
 interface BillingOverviewProps {
-  onSelectPatient: (patientName: string) => void
-  onManagePlans: () => void
-  billingItems?: BillingItem[]
+  onSelectPatient: (patientId: string) => void
+  onManagePlans?: () => void
 }
-
-const MOCK_BILLING: BillingItem[] = [
-  {
-    id: "12345678",
-    patient: "Dean Winchester",
-    category: "Elderly Care",
-    tier: "Bronze",
-    status: "Active",
-    renewalDate: "Aug. 5 2026",
-  },
-  {
-    id: "87654321",
-    patient: "John Winchester",
-    category: "Special Health",
-    tier: "Diamond",
-    status: "Active",
-    renewalDate: "Aug. 5 2026",
-  },
-  {
-    id: "11223344",
-    patient: "Mary Winchester",
-    category: "Pediatric",
-    tier: "Gold",
-    status: "Grace Period",
-    renewalDate: "Aug. 5 2026",
-  },
-  {
-    id: "55667788",
-    patient: "Jody Mills",
-    category: "Post-surgery",
-    tier: "Silver",
-    status: "Active",
-    renewalDate: "Aug. 5 2026",
-  },
-  {
-    id: "99001122",
-    patient: "Bubby Mane",
-    category: "Pre & Post Natal",
-    tier: "Diamond",
-    status: "Expired",
-    renewalDate: "Aug. 5 2026",
-  },
-]
 
 export default function BillingOverview({
   onSelectPatient,
-  billingItems = MOCK_BILLING,
 }: BillingOverviewProps) {
+  const router = useRouter()
   const [timeframe, setTimeframe] = useState("30 Days")
   const [selectedTier, setSelectedTier] = useState("All Tiers")
   const [selectedCategory, setSelectedCategory] = useState("All Categories")
   const [selectedStatus, setSelectedStatus] = useState("All Statuses")
-
-  const router = useRouter()
+  const [searchQuery, setSearchQuery] = useState("")
   const [isInviteOpen, setIsInviteOpen] = useState(false)
 
-  const isEmpty = billingItems.length === 0
+  // Fetch real payments from /payment/admin
+  const { data: paymentsResponse, isPending: isPaymentsPending } = useGetAdminPayments()
+  const payments: AdminPaymentItem[] = paymentsResponse?.data || []
 
   // Filter list
   const filteredBilling = useMemo(() => {
-    if (isEmpty) return []
-    return billingItems.filter((item) => {
-      const matchesTier = selectedTier === "All Tiers" || item.tier === selectedTier
-      const matchesCategory = selectedCategory === "All Categories" || item.category.toLowerCase().includes(selectedCategory.toLowerCase().replace(" care", "").split(" ")[0])
-      const matchesStatus = selectedStatus === "All Statuses" || item.status === selectedStatus
-      return matchesTier && matchesCategory && matchesStatus
+    return payments.filter((item) => {
+      // Tier match
+      const matchesTier = selectedTier === "All Tiers" || item.plan?.tier === selectedTier
+
+      // Category match
+      const categoryKey = item.plan?.category || ""
+      const matchesCategory =
+        selectedCategory === "All Categories" ||
+        categoryKey.toLowerCase().includes(selectedCategory.toLowerCase().replace(/ care/g, "").replace(/_/g, " ").trim())
+
+      // Status match
+      const statusUpper = (item.status || "").toUpperCase()
+      const matchesStatus =
+        selectedStatus === "All Statuses" ||
+        (selectedStatus === "Pending" && statusUpper === "PENDING") ||
+        (selectedStatus === "Active" && ["SUCCESS", "PAID", "ACTIVE"].includes(statusUpper)) ||
+        (selectedStatus === "Expired" && ["EXPIRED", "FAILED"].includes(statusUpper))
+
+      // Search match
+      const search = searchQuery.trim().toLowerCase()
+      const patientName = `${item.patient?.first_name || ""} ${item.patient?.last_name || ""}`.toLowerCase()
+      const familyName = `${item.user?.first_name || ""} ${item.user?.last_name || ""}`.toLowerCase()
+      const email = (item.user?.email || "").toLowerCase()
+      const matchesSearch =
+        !search ||
+        patientName.includes(search) ||
+        familyName.includes(search) ||
+        email.includes(search)
+
+      return matchesTier && matchesCategory && matchesStatus && matchesSearch
     })
-  }, [billingItems, isEmpty, selectedTier, selectedCategory, selectedStatus])
+  }, [payments, selectedTier, selectedCategory, selectedStatus, searchQuery])
 
   const columns = useMemo(() => {
     return getBillingColumns({ onSelectPatient })
@@ -101,17 +76,18 @@ export default function BillingOverview({
     setIsInviteOpen(true)
   }
 
+  const isEmpty = !isPaymentsPending && payments.length === 0
+
   return (
     <div className="w-full space-y-6 pb-12 select-none">
-
       {/* Top Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-body-text">
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight font-dm-san-regular text-body-text">
             Billing Overview
           </h1>
           <p className="text-sm font-normal font-dm-san-regular text-body-text mt-1.5">
-            Manage family members and their access to patient records.
+            Manage patient care subscriptions, billing history, and family members.
           </p>
         </div>
 
@@ -120,7 +96,7 @@ export default function BillingOverview({
             onClick={() => router.push("/dashboard/billing/manage-plans")}
             className="flex h-9.5 items-center gap-1.5 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] px-5 text-xs font-semibold font-dm-san-regular text-white transition-colors cursor-pointer border-none shadow-none outline-hidden"
           >
-            Manage Subscription plans
+            Manage Subscription Plans
           </Button>
         </div>
       </div>
@@ -168,7 +144,7 @@ export default function BillingOverview({
             <span className="text-2xl font-bold font-dm-san-regular text-body-text">
               {isEmpty ? "$0" : "$350"}
             </span>
-            <Link href={"/dashboard/billing/refund"}>
+            <Link href={"/dashboard/billing/refunds"}>
               <IconChevronRight className="size-5 text-body-text" />
             </Link>
           </div>
@@ -211,26 +187,29 @@ export default function BillingOverview({
       </div>
 
       {/* Main Billing Table Pane */}
-      {!isEmpty ? (
+      {isPaymentsPending ? (
+        <div className="bg-white border border-zinc-200/80 rounded-[8px] p-16 flex flex-col items-center justify-center gap-3">
+          <IconLoader2 className="size-8 text-primary-color animate-spin" />
+          <span className="text-xs font-dm-san-regular text-zinc-500">
+            Loading billing records...
+          </span>
+        </div>
+      ) : !isEmpty ? (
         <div className="space-y-4">
           {/* Filters Bar */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-3">
-            <h2 className="text-2xl font-semibold font-dm-san-regular text-body-text">
-              Billing
-            </h2>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 pt-3">
+            <div className="relative w-full lg:w-72">
+              <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
+              <Input
+                type="text"
+                placeholder="Search patient, family member..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-9 text-xs font-dm-san-regular bg-white border-zinc-200 rounded-lg shadow-none focus-visible:ring-0"
+              />
+            </div>
 
-            <div className="flex items-center gap-3 self-end md:self-auto">
-              {/* Timeframe Select */}
-              <Select value={timeframe} onValueChange={(val) => setTimeframe(val!)}>
-                <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
-                  <SelectValue placeholder="Period" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem className="font-dm-san-regular font-normal text-xs" value="30 Days">30 Days</SelectItem>
-                  <SelectItem className="font-dm-san-regular font-normal text-xs" value="All Time">All Time</SelectItem>
-                </SelectContent>
-              </Select>
-
+            <div className="flex items-center gap-2.5 flex-wrap self-end lg:self-auto">
               {/* Tiers Select */}
               <Select value={selectedTier} onValueChange={(val) => setSelectedTier(val!)}>
                 <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
@@ -267,9 +246,9 @@ export default function BillingOverview({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem className="font-dm-san-regular font-normal text-xs" value="All Statuses">All Statuses</SelectItem>
-                  <SelectItem className="font-dm-san-regular font-normal text-xs" value="Active">Active</SelectItem>
+                  <SelectItem className="font-dm-san-regular font-normal text-xs" value="Active">Active / Paid</SelectItem>
+                  <SelectItem className="font-dm-san-regular font-normal text-xs" value="Pending">Pending</SelectItem>
                   <SelectItem className="font-dm-san-regular font-normal text-xs" value="Expired">Expired</SelectItem>
-                  <SelectItem className="font-dm-san-regular font-normal text-xs" value="Grace Period">Grace Period</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -279,22 +258,22 @@ export default function BillingOverview({
           <DataTable
             columns={columns}
             data={filteredBilling}
-            pageSize={5}
+            pageSize={10}
             isPaginated={true}
-            onRowClick={(row) => onSelectPatient(row.id)}
+            onRowClick={(row) => onSelectPatient(row.patient_id)}
           />
         </div>
       ) : (
-        /* Empty Payments state (Image 1 layout) */
+        /* Empty Payments state */
         <div className="flex flex-col items-center justify-center py-28 text-center bg-white border border-zinc-200/60 rounded-[8px] shadow-3xs font-dm-san-regular">
           <div className="p-4 bg-zinc-50 rounded-full mb-5">
             <IconUsers className="size-11 text-zinc-400 stroke-[1.5]" />
           </div>
           <h2 className="text-xl font-bold text-body-text mb-2 font-dm-san-regular">
-            No Payment has been made yet
+            No Payment Records Found
           </h2>
           <p className="text-sm font-normal text-zinc-500 max-w-md mb-6 leading-relaxed font-dm-san-regular px-6">
-            You haven't invited any family members yet, so no payments have been made. Once you invite them and they begin making payments, you'll see the details here.
+            No billing transactions or subscriptions have been recorded yet. Once family members activate care plans, they will appear here.
           </p>
           <Button
             onClick={handleInviteFamily}
@@ -313,3 +292,4 @@ export default function BillingOverview({
     </div>
   )
 }
+

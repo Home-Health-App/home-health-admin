@@ -1,85 +1,110 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { IconDots } from "@tabler/icons-react"
 import React from "react"
+import { AdminPaymentItem } from "@/types/billing.type"
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover"
-
-export interface PaymentItem {
-  id: string
-  reference: string
-  amount: string
-  date: string
-  method: string
-  status: "Success" | "Failed" | "Refunded"
-}
+import { cn } from "@/libs/utils"
 
 interface BillingDetailColumnsProps {
-  onRefund: (payment: PaymentItem) => void
-  onMessage: (memberName: string) => void
+  onRefund: (payment: AdminPaymentItem) => void
+  onMessage: (userId: string) => void
 }
 
 export const getBillingDetailColumns = ({
   onRefund,
   onMessage,
-}: BillingDetailColumnsProps): ColumnDef<PaymentItem>[] => [
+}: BillingDetailColumnsProps): ColumnDef<AdminPaymentItem>[] => [
   {
-    accessorKey: "reference",
-    header: "Reference",
+    accessorKey: "id",
+    header: "Payment ID / Ref",
     meta: { align: "left" },
     cell: ({ getValue }) => (
-      <span className="text-sm font-dm-san-regular font-normal text-body-text">
-        {getValue() as string}
+      <span className="text-xs font-mono font-medium text-body-text">
+        {(getValue() as string) || "-"}
       </span>
     ),
   },
   {
-    accessorKey: "amount",
+    accessorKey: "plan",
+    header: "Plan & Tier",
+    meta: { align: "left" },
+    cell: ({ row }) => {
+      const plan = row.original.plan
+      return (
+        <span className="text-sm font-dm-san-regular font-normal text-body-text">
+          {plan?.name ? `${plan.name} (${plan.tier})` : "Care Plan"}
+        </span>
+      )
+    },
+  },
+  {
+    accessorKey: "currency",
     header: "Amount",
     meta: { align: "left" },
-    cell: ({ getValue }) => (
-      <span className="text-sm font-dm-san-regular font-normal text-body-text">
-        {getValue() as string}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const plan = row.original.plan
+      const price = Number(plan?.price || 0)
+      const currency = row.original.currency || "NGN"
+      return (
+        <span className="text-sm font-dm-san-regular font-bold text-body-text">
+          ₦{price.toLocaleString()} {currency}
+        </span>
+      )
+    },
   },
   {
-    accessorKey: "date",
+    accessorKey: "created_at",
     header: "Date",
     meta: { align: "left" },
-    cell: ({ getValue }) => (
-      <span className="text-sm font-dm-san-regular font-normal text-body-text">
-        {getValue() as string}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "method",
-    header: "Method",
-    meta: { align: "left" },
-    cell: ({ getValue }) => (
-      <span className="text-sm font-dm-san-regular font-normal text-body-text">
-        {getValue() as string}
-      </span>
-    ),
+    cell: ({ getValue }) => {
+      const rawDate = getValue() as string
+      if (!rawDate) return <span className="text-sm text-zinc-400">-</span>
+      const formatted = new Date(rawDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+      return (
+        <span className="text-sm font-dm-san-regular font-normal text-body-text">
+          {formatted}
+        </span>
+      )
+    },
   },
   {
     accessorKey: "status",
     header: "Status",
     meta: { align: "left" },
     cell: ({ getValue }) => {
-      const status = getValue() as string
-      let classes = "border-[#3AC485] bg-[#EEF7F3] text-[#0A432C]"
-      if (status === "Failed") {
+      const status = ((getValue() as string) || "PENDING").toUpperCase()
+      let classes = "border-[#F0C630] bg-[#FBF7EA] text-[#4D4000]"
+      let label = status
+
+      if (status === "PAID" || status === "SUCCESS" || status === "ACTIVE") {
+        classes = "border-[#3AC485] bg-[#EEF7F3] text-[#0A432C]"
+        label = "Paid"
+      } else if (status === "FAILED" || status === "EXPIRED") {
         classes = "border-[#C43A3A] bg-[#F7EEEE] text-[#430D0A]"
-      } else if (status === "Refunded") {
-        classes = "border-[#F0C630] bg-[#FBF7EA] text-[#4D4000]"
+        label = status === "EXPIRED" ? "Expired" : "Failed"
+      } else if (status === "REFUNDED") {
+        classes = "border-[#9CA3AF] bg-[#F3F4F6] text-[#4B5563]"
+        label = "Refunded"
+      } else if (status === "PENDING") {
+        label = "Pending"
       }
+
       return (
-        <span className={`inline-block border px-2.5 py-0.5 text-2xs font-normal rounded-full font-dm-san-regular ${classes} select-none`}>
-          {status}
+        <span
+          className={cn(
+            "inline-block border px-2.5 py-0.5 text-2xs font-normal rounded-full font-dm-san-regular select-none capitalize",
+            classes
+          )}
+        >
+          {label}
         </span>
       )
     },
@@ -87,36 +112,43 @@ export const getBillingDetailColumns = ({
   {
     id: "actions",
     header: "Action",
-    meta: { align: "left" },
+    meta: { align: "center" },
     cell: ({ row }) => {
       const payment = row.original
-      if (payment.status === "Refunded") {
-        return null
-      }
+      const userId = payment.user_id || payment.user?.id || ""
+
       return (
-        <Popover>
-          <PopoverTrigger className="p-1 hover:bg-zinc-100 rounded-[6px] outline-hidden cursor-pointer transition-colors flex items-center justify-center">
-            <IconDots className="size-5 text-zinc-400" />
-          </PopoverTrigger>
-          <PopoverContent
-            align="center"
-            sideOffset={4}
-            className="w-fit bg-white border border-zinc-200 rounded-[8px] shadow-lg py-2.5 px-0 z-50 flex flex-col font-dm-san-regular text-sm font-normal select-none gap-0"
-          >
-            <button
-              onClick={() => onRefund(payment)}
-              className="px-4 py-2 text-left hover:bg-zinc-50 text-body-text w-full cursor-pointer outline-hidden"
+        <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
+          <Popover>
+            <PopoverTrigger
+              render={
+                <button className="p-1 hover:bg-zinc-100 rounded-[6px] outline-hidden cursor-pointer transition-colors flex items-center justify-center">
+                  <IconDots className="size-5 text-zinc-400" />
+                </button>
+              }
+            />
+            <PopoverContent
+              align="end"
+              sideOffset={4}
+              className="w-fit min-w-44 bg-white border border-zinc-200 rounded-[8px] shadow-lg py-1.5 px-0 z-50 flex flex-col font-dm-san-regular text-xs font-normal select-none gap-0"
             >
-              Refund Transaction
-            </button>
-            <button
-              onClick={() => onMessage("Sam Winchester")}
-              className="px-4 py-2 text-left hover:bg-zinc-50 text-body-text w-full cursor-pointer outline-hidden"
-            >
-              Message Family Member
-            </button>
-          </PopoverContent>
-        </Popover>
+              <button
+                onClick={() => onRefund(payment)}
+                className="px-4 py-2 text-left hover:bg-zinc-50 text-body-text w-full cursor-pointer outline-hidden"
+              >
+                Refund Transaction
+              </button>
+              {userId && (
+                <button
+                  onClick={() => onMessage(userId)}
+                  className="px-4 py-2 text-left hover:bg-zinc-50 text-body-text w-full cursor-pointer outline-hidden"
+                >
+                  Message Family Member
+                </button>
+              )}
+            </PopoverContent>
+          </Popover>
+        </div>
       )
     },
   },

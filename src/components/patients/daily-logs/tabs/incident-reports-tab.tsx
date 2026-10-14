@@ -98,7 +98,10 @@ export default function IncidentReportsTab({ reports }: IncidentReportsTabProps)
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-zinc-800">Reported to Family:</span>
                   <span className="text-active-border font-medium">
-                    Yes {item.reported_to_family_time ? `(${item.reported_to_family_time})` : ""}
+                    Yes{" "}
+                    {item.reported_to_family_time
+                      ? `(${formatDate(item.reported_to_family_time, "MMM dd, yyyy") || item.reported_to_family_time})`
+                      : ""}
                   </span>
                 </div>
               )}
@@ -107,7 +110,10 @@ export default function IncidentReportsTab({ reports }: IncidentReportsTabProps)
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-zinc-800">Reported to Professional:</span>
                   <span className="text-active-border font-medium">
-                    Yes {item.reported_to_professional_time ? `(${item.reported_to_professional_time})` : ""}
+                    Yes{" "}
+                    {item.reported_to_professional_time
+                      ? `(${formatDate(item.reported_to_professional_time, "MMM dd, yyyy") || item.reported_to_professional_time})`
+                      : ""}
                   </span>
                 </div>
               )}

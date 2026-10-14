@@ -20,6 +20,7 @@ export interface UpdateAdminUserPayload {
   address?: string
   gender?: "MALE" | "FEMALE" | string
   role_id?: string
+  profile_picture?: string | null
 }
 
 

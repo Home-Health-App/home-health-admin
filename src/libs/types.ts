@@ -354,16 +354,31 @@ export interface IPlan {
     patients?: IPatient[];
 }
 
+export type NotificationCategory =
+    | "Vitals"
+    | "Medication"
+    | "Symptoms"
+    | "Moods"
+    | "Activities"
+    | "Incident_Reports"
+    | "Care_giver"
+    | "AI_Report"
+    | "Others";
+
+export type NotificationUserType = "USER" | "CARE_GIVER";
+
 export interface INotification {
     id: string;
     user_id?: string | null;
-    user?: IUser | null;
+    user?: Partial<IUser> | null;
     admin_id?: string | null;
-    admin?: IAdmin | null;
+    admin?: Partial<IAdmin> | null;
     title: string;
     message: string;
     is_read: boolean;
     read_by: string[];
+    category: NotificationCategory;
+    user_type?: NotificationUserType | null;
 
     created_at: string | Date;
     deleted_at?: string | Date | null;

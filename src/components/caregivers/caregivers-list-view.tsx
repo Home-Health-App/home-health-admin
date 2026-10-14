@@ -98,6 +98,7 @@ export default function CaregiversListView({
       id: user.id,
       name: `${user.first_name} ${user.last_name}`,
       email: user.email,
+      profile_picture: user.profile_picture || null,
       status: user.isSuspended ? ("Suspended" as const) : ("Active" as const),
       invitation: "Accepted" as const,
       assignment: user.isSuspended
@@ -113,6 +114,7 @@ export default function CaregiversListView({
       id: inv.id,
       name: "-",
       email: inv.email,
+      profile_picture: null,
       status: "Inactive" as const,
       invitation: "Pending" as const,
       assignment: "Pending onboard..." as const,

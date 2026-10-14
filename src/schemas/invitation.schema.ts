@@ -11,6 +11,9 @@ export const sendInvitationSchema = z.object({
     .string()
     .min(1, "Email is required")
     .email("Please enter a valid email address"),
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
+  phone: z.string().optional(),
   type: inviteeTypeEnum,
 })
 

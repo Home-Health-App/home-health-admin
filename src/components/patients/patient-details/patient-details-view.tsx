@@ -8,6 +8,7 @@ import {
   IconMapPin,
   IconChevronRight,
   IconAlertCircle,
+  IconCheck,
 } from "@tabler/icons-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -17,11 +18,13 @@ import {
   useSuspendPatient,
   useUnassignPatient,
 } from "@/hooks/patient.hook"
+import { useCreateAdminChat } from "@/hooks/chat.hook"
+import { useRouter } from "next/navigation"
 import ConfirmationModal, { useConfirmation } from "@/components/modal/confirmation-modal"
 import AssignPatientModal from "@/components/modal/assign-patient-modal"
 import { toast } from "sonner"
 import { cn, calculateAge } from "@/libs/utils"
-import emptyUser from '@/assests/images/empty-image.svg'
+
 
 interface PatientDetailsViewProps {
   patientId: string
@@ -37,15 +40,38 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
   const { mutate: suspendMutate, isPending: suspendPending } = useSuspendPatient()
   const { mutate: unassignMutate, isPending: unassignPending } = useUnassignPatient()
 
+  const router = useRouter()
+  const { mutate: createChat, isPending: isCreatingChat } = useCreateAdminChat()
+
+  const handleSendMessage = (receiverId: string, type: "ADMIN" | "USER" = "USER") => {
+    if (!receiverId) return
+    createChat(
+      {
+        type,
+        reciever_id: receiverId,
+        is_for_admin: true,
+      },
+      {
+        onSuccess: (res) => {
+          const chatId = res?.data?.id || receiverId
+          router.push(`/dashboard/messages?chatId=${chatId}`)
+        },
+        onError: () => {
+          toast.error("Failed to initiate chat.")
+        },
+      }
+    )
+  }
+
   if (!patient) return null
 
   const patientName = `${patient.first_name || ""} ${patient.last_name || ""}`.trim() || "Unnamed Patient"
   const formattedDate = patient.created_at
     ? new Date(patient.created_at).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
     : "Aug. 5 2026"
 
   const isSuspended = patient.isSuspended
@@ -74,26 +100,34 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
     })
   }
 
-  const caregiverAssignment = patient.assignments?.[0]
-  const caregiver = caregiverAssignment?.caregiver || caregiverAssignment?.user
+  const caregiver =
+    (typeof patient.caregiver === "object" ? patient.caregiver : null) || null
   const caregiverUserId =
-    caregiver?.id || caregiverAssignment?.user_id || ""
+    caregiver?.id || patient.caregiver_id || ""
   const caregiverName = caregiver
     ? `${caregiver.first_name || ""} ${caregiver.last_name || ""}`.trim()
+    : typeof patient.caregiver === "string"
+    ? patient.caregiver
     : null
+  const caregiverEmail = caregiver?.email || null
   const caregiverAvatar =
     caregiver?.profile_picture!
 
   const handleUnassignCaregiver = () => {
+    if (!caregiverUserId) {
+      toast.error("Caregiver record not found for this patient.")
+      return
+    }
+
     confirm({
       title: "Unassign Caregiver",
-      description: `Are you sure you want to unassign ${caregiverName || "the caregiver"} from this patient?`,
+      description: `Are you sure you want to unassign ${caregiverName || "the caregiver"} from ${patientName}?`,
       confirmText: "Unassign",
       variant: "danger",
       onConfirm: () => {
         unassignMutate(
           {
-            patient_id: patientId,
+            patient_id: patient.id,
             user_id: caregiverUserId,
           },
           {
@@ -101,8 +135,11 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
               toast.success("Caregiver unassigned successfully!")
               closeConfirm()
             },
-            onError: () => {
-              toast.error("Failed to unassign caregiver.")
+            onError: (error) => {
+              const msg =
+                error.response?.data?.message ||
+                "Failed to unassign caregiver."
+              toast.error(msg)
             },
           }
         )
@@ -110,30 +147,49 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
     })
   }
 
+  const dobFormatted = patient.date_of_birth
+    ? new Date(patient.date_of_birth).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
+    : null
+
+  const calculatedAge =
+    calculateAge(patient.date_of_birth) ??
+    (patient.age && patient.age > 0 ? patient.age : null)
+
   return (
     <div className="w-full space-y-8 pb-12">
       {/* Header Profile Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-[#2B2B2B]">
               {patientName}
             </h1>
             {isSuspended ? (
               <Badge
                 variant="outline"
-                className="bg-red-50 text-red-500 border-red-200 font-sans font-medium px-3 py-0.5 rounded-full text-xs"
+                className="bg-warning-btn text-error border-warning-border font-dm-san-regular font-medium px-3 py-0.5 rounded-full shadow-none text-xs"
               >
                 Suspended
               </Badge>
             ) : patient.status === "ACTIVE" ? (
               <Badge
                 variant="outline"
-                className="bg-active-btn text-active-border border-active-border font-dm-san-regular font-medium px-3 py-0.5 rounded-full shadow-none text-xs"
+                className="bg-active-btn text-[#0A432C] border-active-border font-dm-san-regular font-medium px-3 py-0.5 rounded-full shadow-none text-xs"
               >
                 Active
               </Badge>
-            ) : null}
+            ) : (
+              <Badge
+                variant="outline"
+                className="bg-zinc-100 text-zinc-600 border-zinc-200 font-dm-san-regular font-medium px-3 py-0.5 rounded-full shadow-none text-xs"
+              >
+                {patient.status ? patient.status.replace("_", " ") : "Not Active"}
+              </Badge>
+            )}
             {patient.plan?.tier && (
               <Badge
                 variant="outline"
@@ -147,8 +203,18 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
             {/* <span>ID: {patient.id}</span> */}
             {/* <span className="text-zinc-300">•</span> */}
             <span>Registered: {formattedDate}</span>
-            <span className="text-zinc-300">•</span>
-            <span>Age: {patient.age || "-"}</span>
+            {calculatedAge !== null && (
+              <>
+                <span className="text-zinc-300">•</span>
+                <span>Age: {calculatedAge}</span>
+              </>
+            )}
+            {dobFormatted && (
+              <>
+                <span className="text-zinc-300">•</span>
+                <span>DOB: {dobFormatted}</span>
+              </>
+            )}
             {patient.gender && (
               <>
                 <span className="text-zinc-300">•</span>
@@ -159,6 +225,12 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
         </div>
 
         <div className="flex items-center gap-3">
+          <Link href={`/dashboard/patients/${patient.id}/create-bill`}>
+            <Button className="rounded-full bg-secondary-color hover:bg-secondary-color/90 text-white font-sans font-semibold text-xs h-10 px-5 cursor-pointer outline-hidden shadow-none transition-colors">
+              Create Payment Link
+            </Button>
+          </Link>
+
           <Button
             onClick={() => handleToggleSuspend(isSuspended)}
             variant="outline"
@@ -251,7 +323,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {patient.chronic_conditions &&
-                  patient.chronic_conditions.length > 0 ? (
+                    patient.chronic_conditions.length > 0 ? (
                     patient.chronic_conditions.map((condition, idx) => (
                       <Badge
                         key={idx}
@@ -370,6 +442,67 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
                 "Please ensure the patient rests in a quiet, comfortable environment and follows all medication schedules precisely. Monitor for any unusual symptoms and report them immediately to the healthcare provider."}
             </div>
           </div>
+
+          {/* Care Plan & Coverage */}
+          {patient.plan && (
+            <></>
+            // <div className="space-y-4">
+            //   <div className="flex items-center justify-between">
+            //     <h2 className="text-base font-bold font-dm-san-regular text-[#2B2B2B]">
+            //       Care Plan & Coverage
+            //     </h2>
+            //     {patient.plan.tier && (
+            //       <Badge
+            //         variant="outline"
+            //         className="bg-active-btn text-active-border border-active-border font-sans font-medium px-3 py-0.5 rounded-full shadow-none text-xs"
+            //       >
+            //         {patient.plan.tier} Tier
+            //       </Badge>
+            //     )}
+            //   </div>
+
+            //   <div className="p-5 bg-secondary-light rounded-[8px] space-y-4">
+            //     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-zinc-200/60 pb-3">
+            //       <div>
+            //         <h3 className="text-base font-semibold font-dm-san-medium text-[#2B2B2B]">
+            //           {patient.plan.name}
+            //         </h3>
+            //         {patient.plan.category && (
+            //           <p className="text-xs text-zinc-500 font-dm-san-regular mt-0.5">
+            //             Category: {patient.plan.category.replace(/_/g, " ")}
+            //           </p>
+            //         )}
+            //       </div>
+            //       <div className="text-left sm:text-right">
+            //         <span className="text-base font-bold font-dm-san-medium text-primary-color">
+            //           ₦{patient.plan.price?.toLocaleString()}
+            //         </span>
+            //         {patient.plan.price_in_usd && (
+            //           <span className="text-xs text-zinc-500 block font-dm-san-regular">
+            //             (${patient.plan.price_in_usd} USD)
+            //           </span>
+            //         )}
+            //       </div>
+            //     </div>
+
+            //     {patient.plan.coverage && patient.plan.coverage.length > 0 && (
+            //       <div className="space-y-2.5">
+            //         <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 font-sans block">
+            //           Coverage Includes
+            //         </span>
+            //         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            //           {patient.plan.coverage.map((item, idx) => (
+            //             <div key={idx} className="flex items-start gap-2 text-xs text-[#2B2B2B] font-dm-san-regular">
+            //               <IconCheck className="size-4 text-emerald-600 shrink-0 mt-0.5" />
+            //               <span>{item}</span>
+            //             </div>
+            //           ))}
+            //         </div>
+            //       </div>
+            //     )}
+            //   </div>
+            // </div>
+          )}
         </div>
 
         {/* Right Sidebar (Grid span 1) */}
@@ -414,67 +547,32 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
 
             <div className="space-y-4">
               {patient.user ? (
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="space-y-0.5">
                     <h4 className="font-normal text-[#2B2B2B] text-base font-dm-san-regular">
                       {patient.user.first_name} {patient.user.last_name}
                     </h4>
-                    <p className="text-xs text-[#2B2B2B] font-dm-san-regular">
+                    {patient.user.email && (
+                      <p className="text-xs text-zinc-500 font-dm-san-regular">
+                        {patient.user.email}
+                      </p>
+                    )}
+                    <p className="text-xs text-[#2B2B2B] font-dm-san-regular font-medium pt-0.5">
                       {patient.relationship || "Primary Contact"}
                     </p>
                   </div>
-                  <Button
-                    variant="outline"
-                    render={
-                      <Link href={`/dashboard/patients/${patient.id}/family-member`} />
-                    }
-                    className="rounded-full border border-secondary-color font-sans font-semibold text-xs text-secondary-color p-3 cursor-pointer outline-hidden hover:bg-inherit hover:text-secondary-color"
+                  <Link
+                    href={`/dashboard/patients/${patient.id}/family-member`}
+                    className="inline-flex items-center justify-center rounded-full border border-secondary-color font-sans font-semibold text-xs text-secondary-color px-4 py-2 h-9 cursor-pointer outline-hidden hover:bg-secondary-color/10 shrink-0 transition-colors"
                   >
                     View Profile
-                  </Button>
+                  </Link>
                 </div>
               ) : (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-normal text-[#2B2B2B] text-base font-dm-san-regular">
-                      Sam Winchester
-                    </h4>
-                    <p className="text-xs text-[#2B2B2B] font-dm-san-regular">
-                      Primary Contact
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    render={
-                      <Link href={`/dashboard/patients/${patient.id}/family-member`} />
-                    }
-                    className="rounded-full border border-secondary-color font-sans font-semibold text-xs text-secondary-color p-3 cursor-pointer outline-hidden hover:bg-inherit hover:text-secondary-color"
-                  >
-                    View Profile
-                  </Button>
-                </div>
+                <p className="text-sm text-zinc-400 font-sans italic">
+                  No family member linked.
+                </p>
               )}
-
-              {/* Secondary Contact Placeholder */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-normal text-[#2B2B2B] text-base font-dm-san-regular">
-                    Mary Winchester
-                  </h4>
-                  <p className="text-xs text-[#2B2B2B] font-dm-san-regular">
-                    Secondary Contact
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  render={
-                    <Link href={`/dashboard/patients/${patient.id}/family-member`} />
-                  }
-                  className="rounded-full border border-secondary-color font-sans font-semibold text-xs text-secondary-color p-3 cursor-pointer outline-hidden hover:bg-inherit hover:text-secondary-color"
-                >
-                  View Profile
-                </Button>
-              </div>
             </div>
           </div>
 
@@ -489,34 +587,51 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
                 <div className="flex items-center gap-3">
                   <Avatar className="size-11 border border-zinc-200">
                     <AvatarImage src={caregiverAvatar} alt={caregiverName} />
-                    <AvatarFallback>CG</AvatarFallback>
+                    <AvatarFallback>
+                      {caregiverName
+                        .split(" ")
+                        .map((n: string) => n[0])
+                        .join("")
+                        .toUpperCase() || "CG"}
+                    </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <h4 className="font-normal text-zinc-900 text-sm font-dm-san-regular">
-                      {caregiverName}
-                    </h4>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-normal text-zinc-900 text-sm font-dm-san-regular">
+                        {caregiverName}
+                      </h4>
+                    </div>
+                    {caregiverEmail && (
+                      <p className="text-xs text-zinc-500 font-dm-san-regular">
+                        {caregiverEmail}
+                      </p>
+                    )}
+                    {caregiver?.phone && (
+                      <p className="text-xs text-zinc-500 font-dm-san-regular">
+                        {caregiver.phone}
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={handleUnassignCaregiver}
-                    variant="outline"
-                    disabled={unassignPending}
-                    className="flex-1 rounded-full border border-zinc-300 font-sans font-semibold text-xs text-body-text h-9 hover:bg-zinc-50 cursor-pointer outline-hidden"
-                  >
-                    {unassignPending ? "Unassigning..." : "Unassign"}
-                  </Button>
+                <div className="flex w-full gap-2">
                   {caregiverUserId && (
                     <Button
-                      render={
-                        <Link href={`/dashboard/messages?userId=${caregiverUserId}`} />
-                      }
-                      className="flex-1 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-sans font-semibold text-xs h-9 cursor-pointer outline-hidden border-none shadow-none"
+                      onClick={() => handleSendMessage(caregiverUserId, "USER")}
+                      disabled={isCreatingChat}
+                      className="flex-1 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-sans font-semibold text-xs h-9 cursor-pointer outline-hidden border-none shadow-none disabled:opacity-50"
                     >
-                      Send Message
+                      {isCreatingChat ? "Opening..." : "Send Message"}
                     </Button>
                   )}
+                  <Button
+                    onClick={handleUnassignCaregiver}
+                    disabled={unassignPending}
+                    variant="outline"
+                    className="flex-1 rounded-full border border-warning-border text-warning-border hover:text-warning-border font-sans font-semibold text-xs h-9 cursor-pointer outline-hidden shadow-none disabled:opacity-50"
+                  >
+                    Unassign Caregiver
+                  </Button>
                 </div>
               </div>
             ) : (
