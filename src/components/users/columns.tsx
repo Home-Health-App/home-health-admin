@@ -11,14 +11,21 @@ import {
   PopoverContent,
 } from "@/components/ui/popover"
 import { Button } from "../ui/button"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 
 export interface UserItem {
   id: string
   name: string
   email: string
+  profile_picture?: string | null
   status: "Active" | "Inactive" | "Suspended"
   invitation: "Accepted" | "Pending"
   assignment: "Unassigned" | "Assigned" | "Pending onboard..." | "Unassigned (Sus)"
+}
+
+const isSafeImageUrl = (url?: string | null) => {
+  if (!url) return false
+  return url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/") || url.startsWith("data:")
 }
 
 export const columns: ColumnDef<UserItem>[] = [
@@ -26,11 +33,39 @@ export const columns: ColumnDef<UserItem>[] = [
     accessorKey: "name",
     header: "User",
     meta: { align: "left" },
-    cell: ({ getValue }) => (
-      <span className="font-dm-san-medium font-semibold text-body-text text-sm">
-        {getValue() as string}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const user = row.original
+      const name = user.name && user.name !== "-" ? user.name : "User"
+      const initials = user.name && user.name !== "-"
+        ? user.name
+            .split(" ")
+            .filter(Boolean)
+            .map((n) => n[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase()
+        : "U"
+
+      return (
+        <div className="flex items-center gap-3">
+          <Avatar className="size-9 border border-zinc-200 shrink-0">
+            {isSafeImageUrl(user.profile_picture) ? (
+              <AvatarImage
+                src={user.profile_picture!}
+                alt={name}
+                className="object-cover"
+              />
+            ) : null}
+            <AvatarFallback className="bg-primary-light text-primary-color font-semibold text-xs">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <span className="font-dm-san-medium font-semibold text-body-text text-sm truncate">
+            {user.name}
+          </span>
+        </div>
+      )
+    },
   },
   {
     accessorKey: "email",

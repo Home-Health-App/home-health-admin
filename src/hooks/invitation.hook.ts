@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tansta
 import {
   sendInvitation,
   getInvitations,
+  getInvitationById,
   GetInvitationsParams,
 } from "@/services/invitation.service"
 import { GeneralResponse, PaginatedResponse } from "@/types/response.type"
@@ -15,6 +16,7 @@ export const invitationKeys = {
   lists: () => [...invitationKeys.all, "list"] as const,
   list: (params?: GetInvitationsParams) =>
     [...invitationKeys.lists(), params] as const,
+  detail: (id: string) => [...invitationKeys.all, "detail", id] as const,
 }
 
 // ─── Queries ─────────────────────────────────────────────────────────────────
@@ -26,6 +28,19 @@ export const useGetInvitations = (params?: GetInvitationsParams) => {
   >({
     queryKey: invitationKeys.list(params),
     queryFn: () => getInvitations(params),
+  })
+
+  return { isPending, data, error, refetch }
+}
+
+export const useGetInvitationById = (id: string) => {
+  const { isPending, data, error, refetch } = useQuery<
+    GeneralResponse<InvitationType>,
+    AxiosError<GeneralResponse>
+  >({
+    queryKey: invitationKeys.detail(id),
+    queryFn: () => getInvitationById(id),
+    enabled: !!id,
   })
 
   return { isPending, data, error, refetch }

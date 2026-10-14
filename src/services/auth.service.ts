@@ -37,7 +37,8 @@ export interface RegisterPayload {
   address: string
   gender: "MALE" | "FEMALE" | string
   date_of_birth: string
-  certification?: string
+  certification?: string | string[]
+  profile_picture?: string
 }
 
 export const registerUser = async (payload: RegisterPayload): Promise<GeneralResponse<any>> => {

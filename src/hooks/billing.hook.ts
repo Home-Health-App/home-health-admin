@@ -8,9 +8,20 @@ import {
   getPlanCategories,
   getPlanTiers,
   GetAllPlansParams,
+  getAdminPayments,
+  getPaymentByPatientId,
+  createPaymentLink,
+  getPaymentById,
 } from "@/services/billing.service"
-import { GeneralResponse } from "@/types/response.type"
-import { PlanType, CreatePlanType, UpdatePlanType } from "@/types/billing.type"
+import { GeneralResponse, PaginatedResponse } from "@/types/response.type"
+import {
+  PlanType,
+  CreatePlanType,
+  UpdatePlanType,
+  AdminPaymentItem,
+  GetAdminPaymentsParams,
+} from "@/types/billing.type"
+import { CreatePaymentLinkPayload, PaymentLinkResponseData } from "@/types/billing-link.type"
 import { AxiosError } from "axios"
 
 // ─── Query Keys ──────────────────────────────────────────────────────────────
@@ -23,6 +34,14 @@ export const planKeys = {
   detail: (id: string) => [...planKeys.details(), id] as const,
   categories: () => [...planKeys.all, "categories"] as const,
   tiers: () => [...planKeys.all, "tiers"] as const,
+}
+
+export const paymentKeys = {
+  all: ["payments"] as const,
+  lists: () => [...paymentKeys.all, "list"] as const,
+  list: (params?: GetAdminPaymentsParams) => [...paymentKeys.lists(), params] as const,
+  patient: (patientId: string) => [...paymentKeys.all, "patient", patientId] as const,
+  detail: (id: string) => [...paymentKeys.all, "detail", id] as const,
 }
 
 // ─── Queries ─────────────────────────────────────────────────────────────────
@@ -76,7 +95,46 @@ export const useGetPlanTiers = () => {
   return { isPending, data, error }
 }
 
+export const useGetAdminPayments = (params?: GetAdminPaymentsParams) => {
+  const { isPending, data, error, refetch } = useQuery<
+    PaginatedResponse<AdminPaymentItem[]>,
+    AxiosError<GeneralResponse>
+  >({
+    queryKey: paymentKeys.list(params),
+    queryFn: () => getAdminPayments(params),
+  })
+
+  return { isPending, data, error, refetch }
+}
+
+export const useGetPaymentByPatientId = (patientId: string) => {
+  const { isPending, data, error, refetch } = useQuery<
+    PaginatedResponse<AdminPaymentItem[]>,
+    AxiosError<GeneralResponse>
+  >({
+    queryKey: paymentKeys.patient(patientId),
+    queryFn: () => getPaymentByPatientId(patientId),
+    enabled: !!patientId,
+  })
+
+  return { isPending, data, error, refetch }
+}
+
+export const useGetPaymentById = (paymentId: string) => {
+  const { isPending, data, error, refetch } = useQuery<
+    GeneralResponse<PaymentLinkResponseData>,
+    AxiosError<GeneralResponse>
+  >({
+    queryKey: paymentKeys.detail(paymentId),
+    queryFn: () => getPaymentById(paymentId),
+    enabled: !!paymentId,
+  })
+
+  return { isPending, data, error, refetch }
+}
+
 // ─── Mutations ───────────────────────────────────────────────────────────────
+
 
 export const useCreatePlan = () => {
   const queryClient = useQueryClient()
@@ -127,6 +185,24 @@ export const useDeletePlan = () => {
     mutationKey: ["delete_plan"],
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: planKeys.lists() })
+    },
+  })
+
+  return { isPending, mutate, mutateAsync, error, data }
+}
+
+export const useCreatePaymentLink = () => {
+  const queryClient = useQueryClient()
+
+  const { isPending, mutate, mutateAsync, error, data } = useMutation<
+    GeneralResponse<any>,
+    AxiosError<GeneralResponse>,
+    CreatePaymentLinkPayload
+  >({
+    mutationFn: createPaymentLink,
+    mutationKey: ["create_payment_link"],
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: paymentKeys.all })
     },
   })
 

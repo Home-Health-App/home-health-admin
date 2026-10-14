@@ -17,6 +17,8 @@ export const notificationKeys = {
   lists: () => [...notificationKeys.all, "list"] as const,
   list: (params?: GetAdminNotificationsQueryParams) =>
     [...notificationKeys.lists(), params || {}] as const,
+  admin: (params?: GetAdminNotificationsQueryParams) =>
+    [...notificationKeys.lists(), params || {}] as const,
 }
 
 export const useGetAdminNotifications = (

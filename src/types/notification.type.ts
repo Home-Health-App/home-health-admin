@@ -10,6 +10,7 @@ export type NotificationCategory =
   | "Care_giver"
   | "AI_Report"
   | "Others"
+  | string
 
 export type UserType = "USER" | "CARE_GIVER"
 
@@ -22,21 +23,27 @@ export interface INotification {
   title: string
   message: string
   is_read: boolean
-  read_by: string[]
+  read_by?: string[]
   category: NotificationCategory
   user_type?: UserType | null
   created_at: string | Date
   deleted_at?: string | Date | null
-  isDeleted: boolean
+  isDeleted?: boolean
 }
+
+// Backwards-compatibility alias
+export type AdminNotification = INotification
 
 export interface GetAdminNotificationsQueryParams {
   page?: number
   limit?: number
   category?: NotificationCategory
   is_read?: boolean
+  unread?: boolean
   user_id?: string // filter for the specific admin user id
 }
+
+export type GetAdminNotificationsParams = GetAdminNotificationsQueryParams
 
 export interface MarkNotificationsReadPayload {
   notification_ids: string[]
@@ -54,7 +61,14 @@ export const NOTIFICATION_CATEGORIES: { value: NotificationCategory; label: stri
   { value: "Others", label: "Others" },
 ]
 
-export const NOTIFICATION_CATEGORY_LABELS: Record<NotificationCategory, string> = {
+export const NOTIFICATION_CATEGORY_LABELS: Record<string, string> = {
+  VITALS: "Vitals",
+  MEDICATIONS: "Medications",
+  INCIDENTS: "Incidents",
+  CAREGIVER: "Caregiver",
+  FAMILY: "Family",
+  AI_REPORTS: "AI Reports",
+  GENERAL: "General",
   Vitals: "Vitals",
   Medication: "Medication",
   Symptoms: "Symptoms",

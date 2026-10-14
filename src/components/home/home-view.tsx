@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import Link from "next/link"
 import { IconPlus } from "@tabler/icons-react"
 import {
   ResponsiveContainer,
@@ -15,6 +16,7 @@ import {
 } from "recharts"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Select,
   SelectTrigger,
@@ -26,6 +28,10 @@ import { CONTENT_STATE_DATA, DashboardData } from "./mock-data"
 import { Button } from "../ui/button"
 import InviteModal from "@/components/modal/invite-modal"
 import { AdminAnalyticType } from "@/types/analytic.type"
+import { useGetAdminNotifications } from "@/hooks/notification.hook"
+import { NOTIFICATION_CATEGORY_LABELS } from "@/types/notification.type"
+import { formatNotificationTime } from "@/libs/helper"
+import { cn } from "@/libs/utils"
 
 type AdminAnalyticProp = {
   data: DashboardData
@@ -35,15 +41,16 @@ export default function HomeView({ data }: AdminAnalyticProp) {
   const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [inviteType, setInviteType] = useState<"USER" | "CARE_GIVER">("USER")
 
-  // To test empty states, you can swap CONTENT_STATE_DATA with EMPTY_STATE_DATA
-  
+  const { data: notificationsData, isLoading: isNotificationsLoading } = useGetAdminNotifications({ limit: 4 })
+  const notifications = notificationsData?.data || []
 
+  // To test empty states, you can swap CONTENT_STATE_DATA with EMPTY_STATE_DATA
   const smapleData = CONTENT_STATE_DATA
 
   // Determine availability of data lists
   const hasPatientGrowth = smapleData.patientGrowth && smapleData.patientGrowth.length > 0
   const hasRevenueOverview = smapleData.revenueOverview && smapleData.revenueOverview.length > 0
-  const hasNotifications = smapleData.notifications && smapleData.notifications.length > 0
+  const hasNotifications = notifications.length > 0
 
 
 
@@ -333,19 +340,40 @@ export default function HomeView({ data }: AdminAnalyticProp) {
             <h2 className="text-2xl font-medium text-body-text font-dm-san-regular">
               Recent Notifications
             </h2>
-            {hasNotifications && (
-              <button className="text-xs font-bold text-body-text font-sans hover:underline cursor-pointer">
-                View All
-              </button>
-            )}
+            <Link
+              href="/dashboard/notifications"
+              className="text-xs font-bold text-body-text font-sans hover:underline cursor-pointer"
+            >
+              View All
+            </Link>
           </div>
 
-          {hasNotifications ? (
+          {isNotificationsLoading ? (
             <div className="flex-1 flex flex-col gap-4">
-              {smapleData.notifications.map((item) => (
+              {[1, 2, 3].map((n) => (
                 <div
+                  key={n}
+                  className="bg-secondary-light/60 p-4 rounded-[8px] space-y-3 animate-pulse"
+                >
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-5 w-40 rounded" />
+                    <Skeleton className="h-5 w-20 rounded-full" />
+                  </div>
+                  <Skeleton className="h-4 w-full rounded" />
+                  <Skeleton className="h-4 w-2/3 rounded" />
+                </div>
+              ))}
+            </div>
+          ) : hasNotifications ? (
+            <div className="flex-1 flex flex-col gap-4">
+              {notifications.map((item) => (
+                <Link
                   key={item.id}
-                  className="bg-secondary-light hover:bg-secondary-light/90 transition-colors p-4 rounded-[8px] flex justify-between items-start gap-4 border-l-2 border-primary-color"
+                  href="/dashboard/notifications"
+                  className={cn(
+                    "bg-secondary-light hover:bg-secondary-light/90 transition-colors p-4 rounded-[8px] flex justify-between items-start gap-4 cursor-pointer",
+                    !item.is_read ? "border-l-2 border-primary-color" : "border-l-2 border-transparent"
+                  )}
                 >
                   <div className="space-y-4 flex-1">
                     <div className="flex items-center gap-3">
@@ -356,17 +384,17 @@ export default function HomeView({ data }: AdminAnalyticProp) {
                         variant="outline"
                         className="border-secondary-color bg-secondary-light text-secondary-color font-dm-san-regular font-medium px-2 py-1 text-xs rounded-full shadow-none"
                       >
-                        {item.label}
+                        {NOTIFICATION_CATEGORY_LABELS[item.category] || item.category}
                       </Badge>
                     </div>
                     <p className="text-body-text font-dm-san-regular text-sm line-clamp-2">
-                      {item.snippet}
+                      {item.message}
                     </p>
                   </div>
-                  <span className="text-body-text font-dm-san-regular text-xs pt-1 select-none font-normal">
-                    {item.time}
+                  <span className="text-body-text font-dm-san-regular text-xs pt-1 select-none font-normal shrink-0">
+                    {formatNotificationTime(item.created_at)}
                   </span>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (

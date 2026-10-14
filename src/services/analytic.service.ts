@@ -1,7 +1,6 @@
 import { api } from "./httpservice"
 import { URLs } from "@/libs/urls"
 import { GeneralResponse } from "@/types/response.type"
-import { PlanType, CreatePlanType, UpdatePlanType, PlanCategory, PlanTier } from "@/types/billing.type"
 import { AdminAnalyticType, CaregiverAnalyticType, UserAnalyticType } from "@/types/analytic.type"
 
 

@@ -24,4 +24,3 @@ export function calculateAge(dateOfBirth?: string | Date | null): number | null 
 
   return Math.max(0, age)
 }
-

@@ -2,7 +2,13 @@ export const URLs = {
     auth: {
         'admin-auth-login': "admin-auth/login",
         'admin-auth-verify-otp': "admin-auth/verify-otp",
+        'admin-auth-create': "admin-auth/create",
         'register': "auth/register",
+    },
+    admin: {
+        'get-admins': "admin",
+        'create-admin': "admin-auth/create",
+        'update-admin': (id: string) => `admin-auth/${id}`,
     },
     plans: {
         'create-plan': "plans",
@@ -16,6 +22,7 @@ export const URLs = {
     invitation: {
         'send-invitation': "invitation/send",
         'get-invitations': "invitation",
+        'get-invitation-by-id': (id: string) => `invitation/${id}`,
     },
     users: {
         'get-users': "users",
@@ -37,6 +44,16 @@ export const URLs = {
         'get-admin-notifications': "notification/admin",
         'mark-read': "notification/mark-read",
         'delete-notification': (id: string) => `notification/${id}`,
+        'mark-as-read': (id: string) => `notification/${id}/read`,
+        'mark-all-read': "notification/read-all",
+    },
+
+    notifications: {
+        'get-admin-notifications': "notification/admin",
+        'mark-read': "notification/mark-read",
+        'delete-notification': (id: string) => `notification/${id}`,
+        'mark-as-read': (id: string) => `notification/${id}/read`,
+        'mark-all-read': "notification/read-all",
     },
 
     adminRoles: {
@@ -55,13 +72,36 @@ export const URLs = {
         'suspend-patient': (id: string) => `patient/${id}/suspend`,
         'assign-patient': "patient/assign",
         'unassign-patient': "patient/unassign",
+        'get-daily-logs': (patientId: string) => `patient/admin/daily-logs/${patientId}`,
+        'get-daily-log-by-id': (logId: string) => `patient/admin/daily-log/${logId}`,
     },
 
     chat: {
         'create-admin-chat': "chat/admin/create",
+        'get-admin-chats': "chat/admin",
+        'get-chat-messages': (chatId: string) => `chat/${chatId}/messages`,
+        'send-admin-message': "chat/admin/message",
     },
 
     activityLogs: {
         'get-activity-logs': "activity-log",
+    },
+
+    aiReport: {
+        'get-patient-reports': (patientId: string) => `ai-report/patient/${patientId}`,
+        'get-report-by-id': (reportId: string) => `ai-report/${reportId}`,
+        'download-report': (reportId: string) => `ai-report/${reportId}/download`,
+    },
+
+    upload: {
+        single: "upload",
+        multiple: "upload/multiple",
+    },
+
+    payment: {
+        'get-admin-payments': "payment/admin",
+        'get-patient-payment': (patientId: string) => `payment/patient/${patientId}`,
+        'create-payment-link': "payment-link",
+        'get-payment-by-id': (id: string) => `payment-link/${id}`,
     },
 }

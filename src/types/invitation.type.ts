@@ -9,6 +9,9 @@ export type InvitationStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "EXPIRED"
 export type InvitationType = {
   id: string
   email: string
+  first_name?: string | null
+  last_name?: string | null
+  phone?: string | null
   type: InviteeType
   status: InvitationStatus
   expiresAt: string
@@ -23,5 +26,8 @@ export type InvitationType = {
 
 export type SendInvitationType = {
   email: string
+  first_name?: string
+  last_name?: string
+  phone?: string
   type: InviteeType
 }

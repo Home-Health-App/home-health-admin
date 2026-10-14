@@ -11,9 +11,13 @@ export const getRegisterSchema = (type: string) => z.object({
   address: z.string().min(1, "Address is required"),
   gender: z.enum(["MALE", "FEMALE"]),
   date_of_birth: z.string().min(1, "Date of birth is required"),
+  profile_picture: z.string().optional(),
   certification: type === "CARE_GIVER"
-    ? z.string().min(1, "Certificate file is required")
-    : z.string().optional(),
+    ? z.union([
+        z.string().min(1, "Certificate file is required"),
+        z.array(z.string()).min(1, "At least one certificate is required"),
+      ])
+    : z.union([z.string(), z.array(z.string())]).optional(),
 })
 
 export const loginSchema = z.object({

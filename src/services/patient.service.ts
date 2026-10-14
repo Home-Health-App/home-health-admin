@@ -11,6 +11,10 @@ import {
   UnassignPatientPayload,
 } from "@/types/patient.type"
 
+import {
+  DailyLogType,
+  GetDailyLogsQueryParams,
+} from "@/types/daily-log.type"
 export const createPatient = async (
   payload: CreatePatientPayload
 ): Promise<GeneralResponse<PatientType>> => {
@@ -75,5 +79,20 @@ export const unassignPatient = async (
   )
 }
 
+export const getPatientDailyLogs = async (
+  patientId: string,
+  params?: GetDailyLogsQueryParams
+): Promise<PaginatedResponse<DailyLogType[]>> => {
+  return api.get<PaginatedResponse<DailyLogType[]>>(
+    URLs.patient["get-daily-logs"](patientId),
+    { params }
+  )
+}
 
-
+export const getDailyLogById = async (
+  logId: string
+): Promise<GeneralResponse<DailyLogType>> => {
+  return api.get<GeneralResponse<DailyLogType>>(
+    URLs.patient["get-daily-log-by-id"](logId)
+  )
+}

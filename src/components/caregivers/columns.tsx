@@ -11,14 +11,21 @@ import {
   PopoverContent,
 } from "@/components/ui/popover"
 import { Button } from "../ui/button"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 
 export interface CaregiverItem {
   id: string
   name: string
   email: string
+  profile_picture?: string | null
   status: "Active" | "Inactive" | "Suspended"
   invitation: "Accepted" | "Pending"
   assignment: "Unassigned" | "Assigned" | "Pending onboard..." | "Unassigned (Sus)"
+}
+
+const isSafeImageUrl = (url?: string | null) => {
+  if (!url) return false
+  return url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/") || url.startsWith("data:")
 }
 
 export const columns: ColumnDef<CaregiverItem>[] = [
@@ -26,11 +33,39 @@ export const columns: ColumnDef<CaregiverItem>[] = [
     accessorKey: "name",
     header: "Caregiver",
     meta: { align: "left" },
-    cell: ({ getValue }) => (
-      <span className="font-dm-san-medium font-semibold text-body-text text-sm">
-        {getValue() as string}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const caregiver = row.original
+      const name = caregiver.name && caregiver.name !== "-" ? caregiver.name : "Caregiver"
+      const initials = caregiver.name && caregiver.name !== "-"
+        ? caregiver.name
+            .split(" ")
+            .filter(Boolean)
+            .map((n) => n[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase()
+        : "CG"
+
+      return (
+        <div className="flex items-center gap-3">
+          <Avatar className="size-9 border border-zinc-200 shrink-0">
+            {isSafeImageUrl(caregiver.profile_picture) ? (
+              <AvatarImage
+                src={caregiver.profile_picture!}
+                alt={name}
+                className="object-cover"
+              />
+            ) : null}
+            <AvatarFallback className="bg-primary-light text-primary-color font-semibold text-xs">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <span className="font-dm-san-medium font-semibold text-body-text text-sm truncate">
+            {caregiver.name}
+          </span>
+        </div>
+      )
+    },
   },
   {
     accessorKey: "email",
@@ -102,8 +137,8 @@ export const columns: ColumnDef<CaregiverItem>[] = [
       const isSuspended = caregiver.status === "Suspended"
       const meta = table.options.meta as {
         onResendInvitation?: (email: string) => void
-        onToggleSuspend?: (id: string, currentStatus: boolean) => void
-        onMessageCaregiver?: (caregiverId: string) => void
+        onUnassignPatient?: (caregiverId: string) => void
+        onToggleSuspend?: (caregiverId: string, currentStatus: boolean) => void
       } | undefined
 
       return (
@@ -123,13 +158,23 @@ export const columns: ColumnDef<CaregiverItem>[] = [
               >
                 View Profile
               </Link>
-              <Button
-                variant="ghost"
-                onClick={() => meta?.onMessageCaregiver?.(caregiver.id)}
-                className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none"
-              >
-                Message Caregiver
-              </Button>
+              {caregiver.invitation === "Accepted" && (
+                <Link
+                  href={`/dashboard/messages?userId=${caregiver.id}`}
+                  className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block"
+                >
+                  Message Caregiver
+                </Link>
+              )}
+              {caregiver.invitation === "Accepted" && caregiver.assignment === "Assigned" && (
+                <Button
+                  variant="ghost"
+                  onClick={() => meta?.onUnassignPatient?.(caregiver.id)}
+                  className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none text-zinc-800"
+                >
+                  Unassign Patient
+                </Button>
+              )}
               {caregiver.invitation === "Pending" && (
                 <Button
                   variant="ghost"
@@ -139,16 +184,20 @@ export const columns: ColumnDef<CaregiverItem>[] = [
                   Resend Invitation
                 </Button>
               )}
-              <div className="h-px bg-secondary-light my-1" />
-              <Button
-                variant="ghost"
-                onClick={() => meta?.onToggleSuspend?.(caregiver.id, isSuspended)}
-                className={isSuspended 
-                  ? "w-full text-left text-sm font-normal px-2 py-1 hover:bg-active-btn hover:text-[#0A432C] rounded-md text-emerald-600 cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none" 
-                  : "w-full text-left text-sm font-normal px-2 py-1 hover:bg-warning-btn hover:text-[#C43A3A] rounded-md text-error cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none"}
-              >
-                {isSuspended ? "Unsuspend Account" : "Suspend Account"}
-              </Button>
+              {caregiver.invitation === "Accepted" && (
+                <>
+                  <div className="h-px bg-secondary-light my-1" />
+                  <Button
+                    variant="ghost"
+                    onClick={() => meta?.onToggleSuspend?.(caregiver.id, isSuspended)}
+                    className={isSuspended 
+                      ? "w-full text-left text-sm font-normal px-2 py-1 hover:bg-active-btn hover:text-[#0A432C] rounded-md text-emerald-600 cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none" 
+                      : "w-full text-left text-sm font-normal px-2 py-1 hover:bg-warning-btn hover:text-[#C43A3A] rounded-md text-error cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none"}
+                  >
+                    {isSuspended ? "Unsuspend Account" : "Suspend Account"}
+                  </Button>
+                </>
+              )}
             </PopoverContent>
           </Popover>
         </div>
