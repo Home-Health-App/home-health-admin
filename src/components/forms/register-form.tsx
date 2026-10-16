@@ -24,7 +24,7 @@ import { useGetInvitationById } from "@/hooks/invitation.hook"
 import { useUploadFile, useUploadMultipleFiles } from "@/hooks/upload.hook"
 import { useForm } from "@/hooks/use-form"
 import { getRegisterSchema, RegisterSchemaType } from "@/schemas/auth.schema"
-import { Controller } from "react-hook-form"
+import { Controller, FormState } from "react-hook-form"
 import { Country, State } from "country-state-city"
 
 interface UploadedCert {
@@ -70,11 +70,11 @@ export default function RegisterForm() {
       email: "",
       phone: "",
       address: "",
-      country: "Nigeria",
-      state: "Lagos",
+      country: "",
+      state: "",
       gender: undefined,
       date_of_birth: "",
-      certification: isCaregiver ? ([] as any) : "",
+      certification: []
     },
   })
 
@@ -258,6 +258,8 @@ export default function RegisterForm() {
       },
     })
   })
+
+
 
   // Success view
   if (regStatus === "success") {
