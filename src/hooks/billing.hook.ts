@@ -12,6 +12,7 @@ import {
   getPaymentByPatientId,
   createPaymentLink,
   getPaymentById,
+  verifyPaymentLink,
 } from "@/services/billing.service"
 import { GeneralResponse, PaginatedResponse } from "@/types/response.type"
 import {
@@ -208,3 +209,25 @@ export const useCreatePaymentLink = () => {
 
   return { isPending, mutate, mutateAsync, error, data }
 }
+
+export const useVerifyPaymentLink = () => {
+  const queryClient = useQueryClient()
+
+  const { isPending, mutate, mutateAsync, error, data } = useMutation<
+    GeneralResponse<PaymentLinkResponseData>,
+    AxiosError<GeneralResponse>,
+    { paymentRecordId: string}
+  >({
+    mutationFn: ({ paymentRecordId }) =>
+      verifyPaymentLink(paymentRecordId),
+    mutationKey: ["verify_payment_link"],
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: paymentKeys.all })
+    },
+  })
+
+  return { isPending, mutate, mutateAsync, error, data }
+}
+
+export const useVerifyPayment = useVerifyPaymentLink
+

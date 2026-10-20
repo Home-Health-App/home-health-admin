@@ -112,4 +112,17 @@ export const getPaymentById = async (
   )
 }
 
+// ─── Verify Payment ──────────────────────────────────────────────────────────
+
+export const verifyPaymentLink = async (
+  paymentRecordId: string
+): Promise<GeneralResponse<PaymentLinkResponseData>> => {
+  return api.post<GeneralResponse<PaymentLinkResponseData>>(
+    URLs.payment["verify-payment-link"](paymentRecordId),
+    {}
+  )
+}
+
+export const verifyPayment = verifyPaymentLink
+
 

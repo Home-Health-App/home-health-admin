@@ -103,5 +103,7 @@ export const URLs = {
         'get-patient-payment': (patientId: string) => `payment/patient/${patientId}`,
         'create-payment-link': "payment-link",
         'get-payment-by-id': (id: string) => `payment-link/${id}`,
+        'verify-payment': (paymentId: string) => `payment/verify/${paymentId}`,
+        'verify-payment-link': (paymentId: string) => `payment/verify/${paymentId}`,
     },
 }

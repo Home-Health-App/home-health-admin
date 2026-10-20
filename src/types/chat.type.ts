@@ -80,3 +80,18 @@ export interface GetChatMessagesQueryParams {
   page?: number
   limit?: number
 }
+
+export interface SocketSendMessagePayload {
+  chat_id: string
+  message?: string
+  files?: string[]
+  sender_id: string
+  is_admin?: boolean
+}
+
+export interface SocketMessageAck {
+  success: boolean
+  message?: string
+  data?: ChatMessageData
+}
+
