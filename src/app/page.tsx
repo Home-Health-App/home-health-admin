@@ -166,7 +166,7 @@ export default function LoginPage() {
                   />
                   <FieldError errors={[emailForm.formState.errors.email]} />
                   {loginMutation.error && !emailForm.formState.errors.email && (
-                    <p className="text-xs text-red-500 font-dm-san-regular mt-1.5">
+                    <p className="w-full mx-auto text-xs text-warning-border font-dm-san-regular mt-1.5">
                       {loginMutation.error.response?.data?.message || loginMutation.error.message || "Failed to send verification code."}
                     </p>
                   )}
@@ -246,7 +246,7 @@ export default function LoginPage() {
                 </Field>
 
                 {otpMutation.error && (
-                  <p className="w-full mx-auto text-xs text-red-500 font-dm-san-regular text-center">
+                  <p className="w-full mx-auto text-xs text-warning-border font-dm-san-regular text-center">
                     {otpMutation.error.response?.data?.message || otpMutation.error.message || "Invalid verification code."}
                   </p>
                 )}
