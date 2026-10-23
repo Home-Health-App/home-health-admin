@@ -368,23 +368,6 @@ function MessagesContent() {
                         {activeReceiverType}
                       </span>
                     )}
-                    <span
-                      className={cn(
-                        "flex items-center gap-1.5 text-3xs font-dm-san-regular px-2 py-0.5 rounded-full select-none",
-                        isConnected
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          : "bg-zinc-100 text-zinc-500 border border-zinc-200"
-                      )}
-                      title={isConnected ? "Real-time WebSocket connected" : "Connecting..."}
-                    >
-                      <span
-                        className={cn(
-                          "size-1.5 rounded-full",
-                          isConnected ? "bg-emerald-500 animate-pulse" : "bg-zinc-400"
-                        )}
-                      />
-                      {isConnected ? "Live" : "Offline"}
-                    </span>
                   </div>
 
                   <button
