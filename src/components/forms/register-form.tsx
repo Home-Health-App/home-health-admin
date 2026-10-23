@@ -280,12 +280,10 @@ export default function RegisterForm() {
         </div>
         <Button
           type="button"
-          onClick={() => router.push("/")}
+          // onClick={() => router.push("/")}
           className="w-full h-12! rounded-full font-dm-san-regular font-semibold tracking-wide text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center bg-[#0B1E3F] hover:bg-[#1B335B] text-white"
         >
-          {type === "USER" ?
-            "Continue to Log in" : "Continue to the App"}
-
+          Continue to the App
         </Button>
       </Card>
     )
