@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -13,6 +13,7 @@ import { loginSchema, verifyOtpSchema } from "@/schemas/auth.schema"
 import { useSetAtom } from "jotai"
 import { authAtom } from "@/states/auth.atom"
 import { Controller } from "react-hook-form"
+import { toast } from "sonner"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -24,6 +25,15 @@ export default function LoginPage() {
 
   // Focus states for input styling
   const [emailFocused, setEmailFocused] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => prev - 1)
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [resendCooldown])
 
   // Hooks for form management
   const emailForm = useForm({
@@ -44,10 +54,38 @@ export default function LoginPage() {
         onSuccess: () => {
           otpForm.setValue("email", values.email)
           setStep("otp")
+          setResendCooldown(30)
         },
       }
     )
   })
+
+  // Handle Resend Code without navigating away from OTP view
+  const handleResendCode = () => {
+    const targetEmail = otpForm.getValues("email") || emailForm.getValues("email")
+    if (!targetEmail) {
+      toast.error("Email address not found. Please try again.")
+      return
+    }
+
+    loginMutation.mutate(
+      { email: targetEmail },
+      {
+        onSuccess: () => {
+          toast.success(`Verification code resent to ${targetEmail}`)
+          otpForm.setValue("code", "")
+          setResendCooldown(30)
+        },
+        onError: (err) => {
+          const errMsg =
+            err.response?.data?.message ||
+            err.message ||
+            "Failed to resend verification code. Please try again."
+          toast.error(errMsg)
+        },
+      }
+    )
+  }
 
   // Handle OTP form submission
   const handleOtpSubmit = otpForm.handleSubmit((values) => {
@@ -161,11 +199,22 @@ export default function LoginPage() {
                 </CardTitle>
 
                 <CardDescription className="max-w-[320px] font-dm-san-regular text-xs font-normal leading-5 text-zinc-500">
-                  We've sent a 6-digit verification code to{" "}
+                  We&apos;ve sent a 6-digit verification code to{" "}
                   <span className="font-semibold text-zinc-700">
                     {enteredEmail}
                   </span>
-                  . Enter the code below to log in.
+                  .{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      otpForm.setValue("code", "")
+                      setStep("email")
+                    }}
+                    className="text-primary-color hover:underline cursor-pointer font-medium ml-1 inline-block"
+                  >
+                    Change email
+                  </button>
+                  <span className="block mt-1">Enter the code below to log in.</span>
                 </CardDescription>
               </CardHeader>
 
@@ -206,14 +255,15 @@ export default function LoginPage() {
                 <div className="text-center">
                   <button
                     type="button"
-                    disabled={otpMutation.isPending}
-                    onClick={() => {
-                      otpForm.reset()
-                      setStep("email")
-                    }}
-                    className="text-sm font-semibold text-primary-color hover:underline cursor-pointer font-dm-san-regular disabled:opacity-50"
+                    disabled={loginMutation.isPending || otpMutation.isPending || resendCooldown > 0}
+                    onClick={handleResendCode}
+                    className="text-sm font-semibold text-primary-color hover:underline cursor-pointer font-dm-san-regular disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Resend Code
+                    {loginMutation.isPending
+                      ? "Resending Code..."
+                      : resendCooldown > 0
+                      ? `Resend Code in ${resendCooldown}s`
+                      : "Resend Code"}
                   </button>
                 </div>
 

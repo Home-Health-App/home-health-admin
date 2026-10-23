@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { IconLayoutGrid, IconLogout } from "@tabler/icons-react"
+import { usePathname, useRouter } from "next/navigation"
+import { IconLogout } from "@tabler/icons-react"
 import { SIDEBAR_ITEMS } from "@/libs/constants"
 import {
   Sidebar,
@@ -14,9 +14,38 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { cn } from "@/libs/utils"
+import { useSetAtom } from "jotai"
+import { authAtom } from "@/states/auth.atom"
+import { useQueryClient } from "@tanstack/react-query"
+import ConfirmationModal, { useConfirmation } from "@/components/modal/confirmation-modal"
+import { toast } from "sonner"
 
 export default function AppSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const setAuth = useSetAtom(authAtom)
+  const queryClient = useQueryClient()
+  const { state: confirmState, confirm, close: closeConfirm } = useConfirmation()
+
+  const handleLogout = () => {
+    confirm({
+      title: "Log Out",
+      description: "Are you sure you want to log out of your account?",
+      confirmText: "Log Out",
+      variant: "danger",
+      onConfirm: () => {
+        setAuth(null)
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("access_token")
+          localStorage.removeItem("auth_user")
+        }
+        queryClient.clear()
+        toast.success("Logged out successfully")
+        router.push("/")
+        closeConfirm()
+      },
+    })
+  }
 
   return (
     <Sidebar
@@ -91,11 +120,12 @@ export default function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              render={<Link href="/logout" />}
+              type="button"
+              onClick={handleLogout}
               className={cn(
-                "group/btn flex w-full items-center gap-3 rounded-lg px-4 py-2.5",
+                "group/btn flex w-full items-center gap-3 rounded-lg px-4 py-2.5 cursor-pointer",
                 "text-white bg-transparent!",
-                "hover:text-white!",
+                "hover:text-white! hover:bg-[#1B335B]/50!",
                 "active:bg-[#1B335B] active:text-white!",
                 "focus:bg-transparent focus:text-white!",
                 "focus-visible:bg-transparent focus-visible:text-white!",
@@ -117,6 +147,19 @@ export default function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+
+      <ConfirmationModal
+        open={confirmState.open}
+        onOpenChange={(open) => {
+          if (!open) closeConfirm()
+        }}
+        title={confirmState.title}
+        description={confirmState.description}
+        confirmText={confirmState.confirmText}
+        cancelText={confirmState.cancelText}
+        onConfirm={confirmState.onConfirm}
+        variant={confirmState.variant}
+      />
     </Sidebar>
   )
 }

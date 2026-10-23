@@ -1,85 +1,143 @@
 "use client"
 
 import React, { useState } from "react"
+import dynamic from "next/dynamic"
 import {
-  IconShieldCheck,
   IconCheck,
-  IconLock,
   IconDownload,
   IconPrinter,
   IconSparkles,
-  IconHeartbeat,
   IconLoader2,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useGetPaymentById } from "@/hooks/billing.hook"
+import { useGetPaymentById, useVerifyPaymentLink } from "@/hooks/billing.hook"
 import { toast } from "sonner"
-import { cn } from "@/libs/utils"
+
+const PaystackCheckoutButton = dynamic(
+  () => import("./paystack-checkout-button"),
+  {
+    ssr: false,
+    loading: () => (
+      <Button
+        disabled
+        className="w-full h-12 rounded-full bg-secondary-color text-white font-dm-san-regular font-bold text-sm shadow-md flex items-center justify-center gap-2 opacity-80"
+      >
+        <IconLoader2 className="size-4 animate-spin" />
+        <span>Loading Paystack Gateway...</span>
+      </Button>
+    ),
+  }
+)
 
 interface PaymentCheckoutViewProps {
   paymentId?: string
-  billId?: string
 }
 
-export default function PaymentCheckoutView({ paymentId, billId }: PaymentCheckoutViewProps) {
-  const resolvedId = paymentId || billId || ""
-  // Fetch payment by ID from backend via /payment-link/:id
-  const { data: paymentResponse, isPending: isPaymentPending, error } = useGetPaymentById(resolvedId)
+export default function PaymentCheckoutView({ paymentId }: PaymentCheckoutViewProps) {
+  const resolvedId = paymentId || ""
+
+  // 1. Fetch payment details by ID
+  const {
+    data: paymentResponse,
+    isPending: isPaymentPending,
+    error,
+    refetch: refetchPayment,
+  } = useGetPaymentById(resolvedId)
   const paymentData = paymentResponse?.data
 
+  // 2. Server verification mutation (POST /payment-link/verify/:id)
+  const verifyMutation = useVerifyPaymentLink()
+
+  // 3. Extract core details
   const patient = paymentData?.patient
   const selectedPlan = paymentData?.plan
   const paymentRecord = paymentData?.payment
+  const familyMember = patient?.user || paymentRecord?.user
 
-  const familyMember = patient?.user || paymentRecord?.user || {
-    id: "sponsor",
-    first_name: paymentData?.first_name || "",
-    last_name: paymentData?.last_name || "",
-    email: paymentData?.email || "",
-    phone: patient?.user?.phone || "",
-  }
+  console.log(paymentData)
 
   const patientFullName = patient
     ? `${patient.first_name || ""} ${patient.last_name || ""}`.trim()
     : "Patient"
 
   const familyFullName =
-    `${familyMember.first_name || paymentData?.first_name || ""} ${familyMember.last_name || paymentData?.last_name || ""}`.trim() ||
+    `${familyMember?.first_name || ""} ${familyMember?.last_name || ""}`.trim() ||
+    `${paymentData?.first_name || ""} ${paymentData?.last_name || ""}`.trim() ||
     "Primary Family Sponsor"
 
-  const sponsorEmail = familyMember.email || paymentData?.email || ""
-  const sponsorPhone = (familyMember as any)?.phone || patient?.user?.phone || patient?.phone || ""
+  // Comprehensive email resolution
+  const customerEmail = (
+    paymentData?.email ||
+    familyMember?.email ||
+    paymentRecord?.user?.email ||
+    ""
+  ).trim()
 
-  const finalTotalAmount = selectedPlan
-    ? Number(selectedPlan.price || 0)
-    : Number(paymentRecord?.plan_id ? 0 : 0)
+  const sponsorPhone = familyMember?.phone || patient?.phone
+
+  const finalTotalAmount = Number(selectedPlan?.price || 0)
+  const amountInKobo = Math.round(finalTotalAmount * 100)
+
+  // Payment reference strictly lies in PaymentLinkResponseData.payment.id
+  const paymentReference = paymentRecord?.id || paymentData?.payment_id || ""
 
   const isAlreadyPaid = paymentData?.status === "PAID" || paymentRecord?.status === "PAID"
 
-  // Payment Processing & Success State
-  const [paymentState, setPaymentState] = useState<"idle" | "processing" | "success">("idle")
-  const [processingStep, setProcessingStep] = useState("Initializing Paystack Secure Gateway...")
-  const [transactionRef, setTransactionRef] = useState(paymentRecord?.id || "")
+  // 4. View states
+  const [paymentState, setPaymentState] = useState<"idle" | "success">("idle")
+  const [transactionRef, setTransactionRef] = useState(paymentReference)
   const [paidAt, setPaidAt] = useState("")
 
-  // Trigger Paystack Payment
-  const handleTriggerPaystack = () => {
-    setPaymentState("processing")
-    setProcessingStep("Connecting to Paystack 256-bit SSL Gateway...")
+  // 5. Verification handler
+  const handlePaymentSuccess = (response?: any) => {
+    const targetPaymentId = paymentReference || response?.reference
+    if (!targetPaymentId) {
+      toast.error("Payment reference identifier is missing from record.")
+      return
+    }
 
-    setTimeout(() => {
-      setProcessingStep("Authorizing payment with Paystack...")
-    }, 1000)
+    if (response?.reference) {
+      setTransactionRef(response.reference)
+    }
 
-    setTimeout(() => {
-      const generatedRef = `PSTK_TX_${Date.now().toString(36).toUpperCase()}_${Math.random().toString(36).substring(2, 6).toUpperCase()}`
-      setTransactionRef(generatedRef)
-      setPaidAt(new Date().toLocaleString())
-      setPaymentState("success")
-      toast.success("Payment completed! Care plan subscription is active.")
-    }, 2400)
+    toast.loading("Verifying payment...", { id: "payment-verify" })
+
+    verifyMutation.mutate(
+      {
+        paymentRecordId: targetPaymentId,
+      },
+      {
+        onSuccess: () => {
+          setPaidAt(
+            new Date().toLocaleString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          )
+          setPaymentState("success")
+          toast.success("Payment verified successfully! Care plan subscription is active.", {
+            id: "payment-verify",
+          })
+          refetchPayment()
+        }, 
+        onError: (err: any) => {
+          const errMsg =
+            err?.response?.data?.message ||
+            err?.message ||
+            "Could not verify transaction with the server. Please try again."
+          toast.error(errMsg, { id: "payment-verify" })
+        },
+      }
+    )
+  }
+
+  const handlePaymentClose = () => {
+    toast.info("Payment window closed.")
   }
 
   const handlePrint = () => {
@@ -116,26 +174,6 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-body-text selection:bg-primary-light selection:text-primary-color flex flex-col">
-      {/* Top Secure Header Bar */}
-      {/* <header className="w-full bg-white border-b border-zinc-200/80 sticky top-0 z-30 shadow-2xs">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-xl bg-primary-color flex items-center justify-center text-white font-bold text-base shadow-sm">
-              HH
-            </div>
-            <div>
-              <span className="font-bold text-base font-dm-san-regular text-body-text tracking-tight block leading-none">
-                Home Health Care
-              </span>
-              <span className="text-2xs text-zinc-400 font-dm-san-regular">
-                Family Care Plan Checkout
-              </span>
-            </div>
-          </div>
-        </div>
-      </header> */}
-
-      {/* Main Container - Centered Content with Payment Button at Bottom */}
       <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         {paymentState === "success" || isAlreadyPaid ? (
           /* ================= SUCCESS / DIGITAL RECEIPT VIEW ================= */
@@ -187,7 +225,7 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
                 </div>
                 <div>
                   <span className="text-zinc-400 block text-2xs">Payment Date</span>
-                  <span className="font-medium text-body-text">{paidAt}</span>
+                  <span className="font-medium text-body-text">{paidAt || new Date().toLocaleDateString()}</span>
                 </div>
                 <div>
                   <span className="text-zinc-400 block text-2xs">Payment Gateway</span>
@@ -214,7 +252,7 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
                 </span>
               </div>
               <p className="text-xs font-dm-san-regular text-zinc-700 leading-relaxed">
-                Dedicated caregivers and nurses for {patientFullName} are now active. A copy of this receipt has been emailed to <span className="font-semibold">{familyMember.email || "your email"}</span>.
+                Dedicated caregivers and nurses for {patientFullName} are now active. A copy of this receipt has been emailed to <span className="font-semibold">{customerEmail || "your registered email"}</span>.
               </p>
             </div>
 
@@ -238,7 +276,7 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
             </div>
           </div>
         ) : (
-          /* ================= CENTERED PLAN & PATIENT DETAILS WITH PAYMENT BUTTON AT BOTTOM ================= */
+          /* ================= CENTERED PLAN & PATIENT DETAILS WITH PAYMENT BUTTON ================= */
           <div className="w-full max-w-xl space-y-6">
             {/* Recipient / Patient Summary Card */}
             <div className="bg-white border border-body-text/20 rounded-2xl p-6 shadow-2xs space-y-4">
@@ -252,7 +290,7 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
               </div>
 
               <div className="flex items-center gap-3.5">
-                <Avatar className="size-14 border border-body-text/20  shrink-0">
+                <Avatar className="size-14 border border-body-text/20 shrink-0">
                   {patient?.profile_picture ? (
                     <AvatarImage
                       src={patient.profile_picture}
@@ -281,11 +319,11 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
                     {familyFullName} {patient?.relationship ? `(${patient.relationship})` : ""}
                   </span>
                 </div>
-                {sponsorEmail && (
+                {customerEmail && (
                   <div className="flex justify-between items-center">
                     <span className="text-zinc-500">Sponsor Email:</span>
                     <span className="font-medium text-body-text truncate max-w-[220px]">
-                      {sponsorEmail}
+                      {customerEmail}
                     </span>
                   </div>
                 )}
@@ -300,7 +338,7 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
               </div>
             </div>
 
-            {/* Selected Plan Details, Inclusions & Payment Trigger */}
+            {/* Selected Plan Details & Payment Trigger */}
             <div className="bg-white border border-body-text/20 rounded-2xl p-6 shadow-2xs space-y-5">
               <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
                 <div>
@@ -337,10 +375,6 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
 
               {/* Price Breakdown in Naira */}
               <div className="pt-4 border-t border-border-light space-y-2.5 text-sm font-dm-san-regular">
-                {/* <div className="flex justify-between">
-                  <span className="text-body-text/80">Plan Rate:</span>
-                  <span className="font-medium text-body-text">₦{finalTotalAmount.toLocaleString()}</span>
-                </div> */}
                 <div className="pt-3 flex justify-between items-baseline">
                   <span className="text-sm font-bold text-body-text">Total Due:</span>
                   <div className="text-right">
@@ -354,46 +388,18 @@ export default function PaymentCheckoutView({ paymentId, billId }: PaymentChecko
 
               {/* PAYMENT BUTTON AT THE BOTTOM */}
               <div className="pt-4 border-t border-border-light space-y-3">
-                <Button
-                  onClick={handleTriggerPaystack}
-                  disabled={paymentState === "processing"}
-                  className="w-full h-12 rounded-full bg-secondary-color hover:bg-secondary-color/90 text-white font-dm-san-regular font-bold text-sm shadow-md cursor-pointer transition-all flex items-center justify-center gap-2"
-                >
-                  {paymentState === "processing" ? (
-                    <>
-                      <IconLoader2 className="size-4 animate-spin" />
-                      <span>{processingStep}</span>
-                    </>
-                  ) : (
-                    <>
-                      <IconLock className="size-4" />
-                      <span>Pay ₦ {finalTotalAmount.toLocaleString()}</span>
-                    </>
-                  )}
-                </Button>
-
-                {/* Footer security badges */}
-                {/* <div className="flex items-center justify-between text-3xs text-zinc-400 font-dm-san-regular px-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-semibold text-zinc-600">Secured by</span>
-                    <span className="font-black tracking-wider text-[#0BA4DB] text-xs">paystack</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>PCI-DSS Level 1</span>
-                    <span>•</span>
-                    <span>256-Bit SSL</span>
-                  </div>
-                </div> */}
+                <PaystackCheckoutButton
+                  reference={paymentReference}
+                  email={customerEmail}
+                  amountInKobo={amountInKobo}
+                  amountInNaira={finalTotalAmount}
+                  disabled={finalTotalAmount <= 0 || !customerEmail || !paymentReference || verifyMutation.isPending}
+                  isVerifying={verifyMutation.isPending}
+                  onSuccess={handlePaymentSuccess}
+                  onClose={handlePaymentClose}
+                />
               </div>
             </div>
-
-            {/* Help & Support Assistance */}
-            {/* <div className="p-4 bg-zinc-100/70 rounded-2xl border border-zinc-200/60 flex items-center gap-3 text-xs font-dm-san-regular text-zinc-600">
-              <IconHeartbeat className="size-5 text-primary-color shrink-0" />
-              <span>
-                Need assistance with your payment? Reach our care desk at <span className="font-semibold text-body-text">+234 800 555 CARE</span>
-              </span>
-            </div> */}
           </div>
         )}
       </main>
