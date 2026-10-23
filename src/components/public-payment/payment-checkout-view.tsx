@@ -104,36 +104,36 @@ export default function PaymentCheckoutView({ paymentId }: PaymentCheckoutViewPr
 
     toast.loading("Verifying payment...", { id: "payment-verify" })
 
-    verifyMutation.mutate(
-      {
-        paymentRecordId: targetPaymentId,
-      },
-      {
-        onSuccess: () => {
-          setPaidAt(
-            new Date().toLocaleString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          )
-          setPaymentState("success")
-          toast.success("Payment verified successfully! Care plan subscription is active.", {
-            id: "payment-verify",
-          })
-          refetchPayment()
-        }, 
-        onError: (err: any) => {
-          const errMsg =
-            err?.response?.data?.message ||
-            err?.message ||
-            "Could not verify transaction with the server. Please try again."
-          toast.error(errMsg, { id: "payment-verify" })
-        },
-      }
-    )
+    // verifyMutation.mutate(
+    //   {
+    //     paymentRecordId: targetPaymentId,
+    //   },
+    //   {
+    //     onSuccess: () => {
+    //       setPaidAt(
+    //         new Date().toLocaleString("en-US", {
+    //           month: "short",
+    //           day: "numeric",
+    //           year: "numeric",
+    //           hour: "2-digit",
+    //           minute: "2-digit",
+    //         })
+    //       )
+    //       setPaymentState("success")
+    //       toast.success("Payment verified successfully! Care plan subscription is active.", {
+    //         id: "payment-verify",
+    //       })
+    //       refetchPayment()
+    //     }, 
+    //     onError: (err: any) => {
+    //       const errMsg =
+    //         err?.response?.data?.message ||
+    //         err?.message ||
+    //         "Could not verify transaction with the server. Please try again."
+    //       toast.error(errMsg, { id: "payment-verify" })
+    //     },
+    //   }
+    // )
   }
 
   const handlePaymentClose = () => {
