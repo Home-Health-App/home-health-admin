@@ -216,10 +216,10 @@ export default function PatientsView({ patientsData }: PatientsListViewProps) {
       {/* Top Header Section */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight font-sans text-zinc-900">
+          <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-body-text">
             Patient Directory
           </h1>
-          <p className="text-zinc-500 font-sans mt-1 text-sm">
+          <p className="text-body-text font-dm-san-regular font-normal mt-1 text-sm">
             Manage and monitor all active and inactive patient records.
           </p>
         </div>
@@ -277,7 +277,7 @@ export default function PatientsView({ patientsData }: PatientsListViewProps) {
       {/* Directory Table component */}
       {filteredData.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-zinc-200/70 text-center">
-          <h3 className="font-dm-san-medium font-bold text-zinc-950 text-xl">
+          <h3 className="font-dm-san-medium font-bold text-heading-text text-xl">
             No patients found
           </h3>
           <p className="text-zinc-500 font-sans text-sm max-w-sm leading-relaxed mt-1">

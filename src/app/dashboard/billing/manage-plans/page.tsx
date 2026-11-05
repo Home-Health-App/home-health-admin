@@ -70,8 +70,8 @@ export default function ManagePlansPage() {
   if (isLoadingPlans) {
     return (
       <div className="w-full h-80 flex flex-col items-center justify-center space-y-3">
-        <div className="size-8 rounded-full border-4 border-zinc-200 border-t-[#0B1E3F] animate-spin" />
-        <p className="text-sm font-normal text-zinc-500 font-dm-san-regular">
+        <div className="size-8 rounded-full border-4 border-zinc-200 border-t-primary-color animate-spin" />
+        <p className="text-sm font-normal text-body-text/70 font-dm-san-regular">
           Loading subscription plans...
         </p>
       </div>

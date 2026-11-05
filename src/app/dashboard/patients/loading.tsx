@@ -1,6 +1,6 @@
 import React from "react"
-import PatientLoader from "@/components/patients/patients-list/loader"
+import PatientsListSkeleton from "@/components/patients/patients-list/patients-list-skeleton"
 
-export default function Loading() {
-  return <PatientLoader />
+export default function PatientsLoading() {
+  return <PatientsListSkeleton />
 }

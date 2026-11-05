@@ -117,7 +117,7 @@ export default function AddRoleModal({ open, onOpenChange }: AddRoleModalProps) 
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleTogglePermission(perm)}
-                        className="size-5 rounded-[4px] border border-zinc-300 accent-[#0B1E3F] cursor-pointer"
+                        className="size-5 rounded-[4px] border border-zinc-300 accent-primary-color cursor-pointer"
                       />
                     </label>
                   )
@@ -132,7 +132,7 @@ export default function AddRoleModal({ open, onOpenChange }: AddRoleModalProps) 
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
-                className="flex-1 rounded-full border border-[#648FCC] bg-white font-semibold text-xs text-[#648FCC] hover:bg-[#648FCC]/10 h-12 cursor-pointer transition-colors shadow-none"
+                className="flex-1 rounded-full border border-secondary-color bg-white font-semibold text-xs text-secondary-color hover:bg-secondary-color/10 h-12 cursor-pointer transition-colors shadow-none"
               >
                 Cancel
               </Button>
@@ -140,7 +140,7 @@ export default function AddRoleModal({ open, onOpenChange }: AddRoleModalProps) 
               <Button
                 type="submit"
                 disabled={isPending || !name.trim()}
-                className="flex-1 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:bg-[#D0DFE7] disabled:text-white disabled:opacity-100 disabled:cursor-not-allowed"
+                className="flex-1 rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:bg-primary-light disabled:text-white disabled:opacity-100 disabled:cursor-not-allowed"
               >
                 {isPending ? "Creating..." : "Create Role"}
               </Button>

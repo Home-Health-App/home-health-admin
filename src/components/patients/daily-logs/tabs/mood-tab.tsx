@@ -30,8 +30,8 @@ export default function MoodTab({ mood }: MoodTabProps) {
       {moodItems.map((item, index) => {
         const nameLower = (item.name || "").toLowerCase()
         let Icon = HiEmojiHappy
-        let cardClass = "bg-[#EBF3EF]/40 border-l-[#2E7D32] text-[#2E7D32]"
-        let iconColor = "text-[#2E7D32]"
+        let cardClass = "bg-active-btn border-l-active-border text-active-border"
+        let iconColor = "text-active-border"
 
         if (
           nameLower.includes("sad") ||
@@ -39,19 +39,19 @@ export default function MoodTab({ mood }: MoodTabProps) {
           nameLower.includes("depressed")
         ) {
           Icon = PiSmileySadFill
-          cardClass = "bg-[#FAF0F0] border-l-[#C53929] text-[#C53929]"
-          iconColor = "text-[#C53929]"
+          cardClass = "bg-warning-btn border-l-warning-border text-warning-border"
+          iconColor = "text-warning-border"
         } else if (
           nameLower.includes("neutral") ||
           nameLower.includes("confused")
         ) {
           Icon = BsEmojiNeutralFill
-          cardClass = "bg-[#F4F4F5] border-l-zinc-700 text-zinc-700"
-          iconColor = "text-zinc-700"
+          cardClass = "bg-secondary-light border-l-zinc-700 text-body-text"
+          iconColor = "text-body-text"
         } else {
           Icon = HiEmojiHappy
-          cardClass = "bg-[#EBF3EF]/40 border-l-[#2E7D32] text-[#2E7D32]"
-          iconColor = "text-[#2E7D32]"
+          cardClass = "bg-active-btn border-l-active-border text-active-border"
+          iconColor = "text-active-border"
         }
 
         return (
@@ -61,16 +61,16 @@ export default function MoodTab({ mood }: MoodTabProps) {
           >
             <div className="flex items-center gap-3">
               <Icon className={`size-8 ${iconColor}`} />
-              <h3 className="text-xl font-bold font-dm-san-regular text-zinc-900 capitalize">
+              <h3 className="text-xl font-bold font-dm-san-regular text-heading-text capitalize">
                 {item.name}
               </h3>
             </div>
             {item.note && (
               <div className="bg-white/90 border border-zinc-200/40 rounded-[8px] p-4 text-sm font-dm-san-regular leading-relaxed text-body-text flex gap-4">
-                <span className="font-semibold text-zinc-900 shrink-0 select-none">
+                <span className="font-semibold text-heading-text shrink-0 select-none">
                   Note
                 </span>
-                <p className="text-zinc-800">{item.note}</p>
+                <p className="text-body-text">{item.note}</p>
               </div>
             )}
           </div>

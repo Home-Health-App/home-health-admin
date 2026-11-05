@@ -87,7 +87,7 @@ export default function StepPatient({
       {/* Avatar Upload */}
       <div className="flex flex-col items-center justify-center gap-3 mb-6">
         <span
-          className="text-lg font-bold text-[#0B1F41] font-sans hover:underline cursor-pointer"
+          className="text-lg font-bold text-primary-color font-sans hover:underline cursor-pointer"
           onClick={handleProfilePicClick}
         >
           Add Profile Picture
@@ -96,7 +96,7 @@ export default function StepPatient({
           type="button"
           disabled={isUploadingProfilePic}
           onClick={handleProfilePicClick}
-          className="size-24 rounded-full border-2 border-[#5A84C4] flex items-center justify-center bg-white hover:bg-zinc-50 cursor-pointer overflow-hidden transition-all shadow-2xs group"
+          className="size-24 rounded-full border-2 border-secondary-color flex items-center justify-center bg-white hover:bg-zinc-50 cursor-pointer overflow-hidden transition-all shadow-2xs group"
         >
           {isUploadingProfilePic ? (
             <IconLoader2 className="size-8 text-zinc-400 animate-spin" />
@@ -107,7 +107,7 @@ export default function StepPatient({
               className="w-full h-full object-cover"
             />
           ) : (
-            <IconCamera className="size-9 text-[#1E1E1E] stroke-[1.7] group-hover:scale-105 transition-transform" />
+            <IconCamera className="size-9 text-body-text stroke-[1.7] group-hover:scale-105 transition-transform" />
           )}
         </button>
         <input
@@ -123,7 +123,7 @@ export default function StepPatient({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
         {/* First Name */}
         <Field>
-          <FieldLabel className="text-sm font-medium text-[#1E1E1E] mb-1 block">
+          <FieldLabel className="text-sm font-medium text-body-text mb-1 block">
             First name
           </FieldLabel>
           <Input
@@ -131,13 +131,13 @@ export default function StepPatient({
             placeholder="Dean"
             value={data.firstName}
             onChange={(e) => updateData({ firstName: e.target.value })}
-            className="!h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-[#1E1E1E] focus:outline-hidden focus:border-[#0B1F41]"
+            className="!h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-body-text focus:outline-hidden focus:border-primary-color"
           />
         </Field>
 
         {/* Last Name */}
         <Field>
-          <FieldLabel className="text-sm font-medium text-[#1E1E1E] mb-1 block">
+          <FieldLabel className="text-sm font-medium text-body-text mb-1 block">
             Last name
           </FieldLabel>
           <Input
@@ -145,13 +145,13 @@ export default function StepPatient({
             placeholder="Winchester"
             value={data.lastName}
             onChange={(e) => updateData({ lastName: e.target.value })}
-            className="!h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-[#1E1E1E] focus:outline-hidden focus:border-[#0B1F41]"
+            className="!h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-body-text focus:outline-hidden focus:border-primary-color"
           />
         </Field>
 
         {/* Date of Birth */}
         <Field>
-          <FieldLabel className="text-sm font-medium text-[#1E1E1E] mb-1 block">
+          <FieldLabel className="text-sm font-medium text-body-text mb-1 block">
             Date of Birth
           </FieldLabel>
           <Popover open={dobPickerOpen} onOpenChange={setDobPickerOpen}>
@@ -159,9 +159,9 @@ export default function StepPatient({
               render={
                 <button
                   type="button"
-                  className="w-full !h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light text-left font-normal flex items-center justify-between text-[#1E1E1E] font-sans text-sm cursor-pointer focus:border-[#0B1F41] focus:outline-hidden"
+                  className="w-full !h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light text-left font-normal flex items-center justify-between text-body-text font-sans text-sm cursor-pointer focus:border-primary-color focus:outline-hidden"
                 >
-                  <span className={data.dateOfBirth ? "text-[#1E1E1E]" : "text-zinc-400"}>
+                  <span className={data.dateOfBirth ? "text-body-text" : "text-zinc-400"}>
                     {data.dateOfBirth
                       ? new Date(data.dateOfBirth).toLocaleDateString("en-GB", {
                           day: "2-digit",
@@ -170,7 +170,7 @@ export default function StepPatient({
                         })
                       : "DD/MM/YYYY"}
                   </span>
-                  <IconCalendar className="size-5 text-zinc-700 stroke-[1.8]" />
+                  <IconCalendar className="size-5 text-body-text stroke-[1.8]" />
                 </button>
               }
             />
@@ -202,14 +202,14 @@ export default function StepPatient({
 
         {/* Gender */}
         <Field>
-          <FieldLabel className="text-sm font-medium text-[#1E1E1E] mb-1 block">
+          <FieldLabel className="text-sm font-medium text-body-text mb-1 block">
             Gender
           </FieldLabel>
           <Select
             value={data.gender}
             onValueChange={(val) => updateData({ gender: val ?? "Male" })}
           >
-            <SelectTrigger className="w-full !h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-[#1E1E1E] focus:ring-0 focus:border-[#0B1F41] focus:outline-hidden shadow-none">
+            <SelectTrigger className="w-full !h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-body-text focus:ring-0 focus:border-primary-color focus:outline-hidden shadow-none">
               <SelectValue placeholder="Select Gender" />
             </SelectTrigger>
             <SelectContent className="z-50 bg-white border border-zinc-200 shadow-lg rounded-lg">
@@ -225,7 +225,7 @@ export default function StepPatient({
 
         {/* Email */}
         <Field>
-          <FieldLabel className="text-sm font-medium text-[#1E1E1E] mb-1 block">
+          <FieldLabel className="text-sm font-medium text-body-text mb-1 block">
             Email
           </FieldLabel>
           <Input
@@ -233,13 +233,13 @@ export default function StepPatient({
             placeholder="deanwinchester@gmail.com"
             value={data.email}
             onChange={(e) => updateData({ email: e.target.value })}
-            className="!h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-[#1E1E1E] focus:outline-hidden focus:border-[#0B1F41]"
+            className="!h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-body-text focus:outline-hidden focus:border-primary-color"
           />
         </Field>
 
         {/* Phone Number */}
         <Field>
-          <FieldLabel className="text-sm font-medium text-[#1E1E1E] mb-1 block">
+          <FieldLabel className="text-sm font-medium text-body-text mb-1 block">
             Phone Number
           </FieldLabel>
           <Input
@@ -247,20 +247,20 @@ export default function StepPatient({
             placeholder="09063458724"
             value={data.phone}
             onChange={(e) => updateData({ phone: e.target.value })}
-            className="!h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-[#1E1E1E] focus:outline-hidden focus:border-[#0B1F41]"
+            className="!h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-body-text focus:outline-hidden focus:border-primary-color"
           />
         </Field>
 
         {/* Relationship */}
         <Field>
-          <FieldLabel className="text-sm font-medium text-[#1E1E1E] mb-1 block">
+          <FieldLabel className="text-sm font-medium text-body-text mb-1 block">
             Relationship to family member
           </FieldLabel>
           <Select
             value={data.relationship}
             onValueChange={(val) => updateData({ relationship: val ?? "Brother" })}
           >
-            <SelectTrigger className="w-full !h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-[#1E1E1E] focus:ring-0 focus:border-[#0B1F41] focus:outline-hidden shadow-none">
+            <SelectTrigger className="w-full !h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-body-text focus:ring-0 focus:border-primary-color focus:outline-hidden shadow-none">
               <SelectValue placeholder="Select relationship" />
             </SelectTrigger>
             <SelectContent className="z-50 bg-white border border-zinc-200 shadow-lg rounded-lg">
@@ -275,7 +275,7 @@ export default function StepPatient({
 
         {/* Residential Address */}
         <Field>
-          <FieldLabel className="text-sm font-medium text-[#1E1E1E] mb-1 block">
+          <FieldLabel className="text-sm font-medium text-body-text mb-1 block">
             Residential Address
           </FieldLabel>
           <Input
@@ -283,13 +283,13 @@ export default function StepPatient({
             placeholder="123 Lane Street"
             value={data.address}
             onChange={(e) => updateData({ address: e.target.value })}
-            className="!h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-[#1E1E1E] focus:outline-hidden focus:border-[#0B1F41]"
+            className="!h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-body-text focus:outline-hidden focus:border-primary-color"
           />
         </Field>
 
         {/* Country */}
         <Field>
-          <FieldLabel className="text-sm font-medium text-[#1E1E1E] mb-1 block">
+          <FieldLabel className="text-sm font-medium text-body-text mb-1 block">
             Country
           </FieldLabel>
           <Select
@@ -298,7 +298,7 @@ export default function StepPatient({
               updateData({ country: val ?? "Nigeria", state: "" })
             }}
           >
-            <SelectTrigger className="w-full !h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-[#1E1E1E] focus:ring-0 focus:border-[#0B1F41] focus:outline-hidden shadow-none">
+            <SelectTrigger className="w-full !h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-body-text focus:ring-0 focus:border-primary-color focus:outline-hidden shadow-none">
               <SelectValue placeholder="Select Country" />
             </SelectTrigger>
             <SelectContent className="z-50 bg-white border border-zinc-200 shadow-lg rounded-lg max-h-60 overflow-y-auto">
@@ -313,7 +313,7 @@ export default function StepPatient({
 
         {/* State */}
         <Field>
-          <FieldLabel className="text-sm font-medium text-[#1E1E1E] mb-1 block">
+          <FieldLabel className="text-sm font-medium text-body-text mb-1 block">
             State
           </FieldLabel>
           <Select
@@ -321,7 +321,7 @@ export default function StepPatient({
             onValueChange={(val) => updateData({ state: val ?? "" })}
             disabled={states.length === 0}
           >
-            <SelectTrigger className="w-full !h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-[#1E1E1E] focus:ring-0 focus:border-[#0B1F41] focus:outline-hidden shadow-none">
+            <SelectTrigger className="w-full !h-12 px-4 rounded-[8px] border border-zinc-300 bg-secondary-light font-sans text-sm text-body-text focus:ring-0 focus:border-primary-color focus:outline-hidden shadow-none">
               <SelectValue placeholder={states.length === 0 ? "Select country first" : "Select State"} />
             </SelectTrigger>
             <SelectContent className="z-50 bg-white border border-zinc-200 shadow-lg rounded-lg max-h-60 overflow-y-auto">
@@ -344,8 +344,8 @@ export default function StepPatient({
           className={cn(
             "w-[388px] max-w-full !h-13 rounded-full font-sans font-semibold text-base transition-all cursor-pointer border-none shadow-none outline-hidden",
             isStep1Valid
-              ? "bg-[#0B1E3F] hover:bg-[#1B335B] text-white"
-              : "bg-[#D0DFEE] text-white cursor-not-allowed opacity-100"
+              ? "bg-primary-color hover:bg-primary-color/90 text-white"
+              : "bg-primary-light text-white cursor-not-allowed opacity-100"
           )}
         >
           Continue

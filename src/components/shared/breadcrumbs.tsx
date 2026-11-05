@@ -23,7 +23,7 @@ export function Breadcrumbs() {
     if (segments.length <= 1) {
       return (
         <BreadcrumbItem>
-          <BreadcrumbPage className="font-sans font-bold text-zinc-900 text-sm">
+          <BreadcrumbPage className="font-sans font-bold text-heading-text text-sm">
             Dashboard
           </BreadcrumbPage>
         </BreadcrumbItem>
@@ -93,7 +93,7 @@ export function Breadcrumbs() {
       if (isLast) {
         items.push(
           <BreadcrumbItem key={path}>
-            <BreadcrumbPage className="font-sans font-bold text-zinc-900 text-sm">
+            <BreadcrumbPage className="font-sans font-bold text-heading-text text-sm">
               {name}
             </BreadcrumbPage>
           </BreadcrumbItem>
@@ -104,7 +104,7 @@ export function Breadcrumbs() {
             <BreadcrumbItem>
               <BreadcrumbLink
                 render={<Link href={path} />}
-                className="text-[#648FCC] hover:text-[#4f73b8] font-sans font-medium text-sm transition-colors"
+                className="text-secondary-color hover:text-secondary-color font-sans font-medium text-sm transition-colors"
               >
                 {name}
               </BreadcrumbLink>

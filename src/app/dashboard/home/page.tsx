@@ -2,7 +2,7 @@
 
 import React, { Suspense } from "react"
 import HomeView from "@/components/home/home-view"
-import HomeLoader from "@/components/home/loader"
+import HomeSkeleton from "@/components/home/home-skeleton"
 import { useSuspenseGetAdminAnalytics } from "@/hooks/analytic.hook"
 import { CONTENT_STATE_DATA } from "@/components/home/mock-data"
 
@@ -29,7 +29,7 @@ function HomeDataContainer() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<HomeLoader />}>
+    <Suspense fallback={<HomeSkeleton />}>
       <HomeDataContainer />
     </Suspense>
   )

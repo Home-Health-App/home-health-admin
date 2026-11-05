@@ -119,9 +119,9 @@ export default function AdminRolesTab() {
   if (loadingRoles) {
     return (
       <div className="space-y-6 animate-pulse font-dm-san-regular">
-        <div className="h-6 bg-zinc-200 rounded w-1/4" />
-        <div className="h-8 bg-zinc-150 rounded w-1/2" />
-        <div className="h-40 bg-zinc-100 rounded-2xl w-full" />
+        <div className="h-6 bg-zinc-200/70 rounded w-1/4" />
+        <div className="h-8 bg-zinc-100 rounded w-1/2" />
+        <div className="h-40 bg-white border border-zinc-100 rounded-2xl w-full" />
       </div>
     )
   }
@@ -143,8 +143,8 @@ export default function AdminRolesTab() {
                   onClick={() => setSelectedRoleId(role.id)}
                   className={`px-4 py-1.5 rounded-[6px] text-xs transition-all cursor-pointer select-none border border-transparent ${
                     isActive
-                      ? "bg-[#648FCC] text-white font-normal shadow-xs"
-                      : "text-body-text hover:text-zinc-800 bg-transparent"
+                      ? "bg-secondary-color text-white font-normal shadow-xs"
+                      : "text-body-text hover:text-heading-text bg-transparent"
                   }`}
                 >
                   {role.name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
@@ -156,7 +156,7 @@ export default function AdminRolesTab() {
 
         <Button
           onClick={() => setIsAddModalOpen(true)}
-          className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-semibold text-xs px-5 py-2.5 h-10 border-none shadow-none cursor-pointer outline-hidden self-start sm:self-end transition-colors"
+          className="rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-semibold text-xs px-5 py-2.5 h-10 border-none shadow-none cursor-pointer outline-hidden self-start sm:self-end transition-colors"
         >
           Add New Admin Role
         </Button>
@@ -185,7 +185,7 @@ export default function AdminRolesTab() {
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => handleTogglePermission(perm)}
-                        className="size-5 rounded-[4px] border border-zinc-300 accent-[#0B1E3F] cursor-pointer"
+                        className="size-5 rounded-[4px] border border-zinc-300 accent-primary-color cursor-pointer"
                       />
                     </div>
                   </div>
@@ -201,7 +201,7 @@ export default function AdminRolesTab() {
                 onClick={handleDeleteRole}
                 disabled={updatingRole || deletingRole}
                 variant="ghost"
-                className="text-red-500 hover:text-red-600 font-semibold text-sm cursor-pointer h-auto bg-transparent shadow-none border-none hover:bg-transparent"
+                className="text-error hover:text-error/80 font-semibold text-sm cursor-pointer h-auto bg-transparent shadow-none border-none hover:bg-transparent"
               >
                 Delete Role
               </Button>
@@ -211,7 +211,7 @@ export default function AdminRolesTab() {
             <Button
               onClick={handleUpdateRole}
               disabled={!hasChanges || updatingRole || deletingRole}
-              className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-sm text-white font-semibold px-8 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:opacity-50"
+              className="rounded-full bg-primary-color hover:bg-primary-color/90 text-sm text-white font-semibold px-8 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:opacity-50"
             >
               {updatingRole ? "Saving Changes..." : "Save Changes"}
             </Button>

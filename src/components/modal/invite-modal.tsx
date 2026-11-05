@@ -170,7 +170,7 @@ export default function InviteModal({
                   variant="outline"
                   onClick={() => onOpenChange(false)}
                   disabled={isPending}
-                  className="flex-1 rounded-full border border-[#648FCC] bg-white font-dm-san-regular font-semibold text-xs text-[#648FCC] hover:bg-[#648FCC]/10 h-12 cursor-pointer transition-colors shadow-none"
+                  className="flex-1 rounded-full border border-secondary-color bg-white font-dm-san-regular font-semibold text-xs text-secondary-color hover:bg-secondary-color/10 h-12 cursor-pointer transition-colors shadow-none"
                 >
                   Cancel
                 </Button>
@@ -178,7 +178,7 @@ export default function InviteModal({
                 <Button
                   type="submit"
                   disabled={isPending || !isValid}
-                  className="flex-1 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:bg-[#D0DFE7] disabled:text-white disabled:opacity-100 disabled:cursor-not-allowed"
+                  className="flex-1 rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:bg-primary-light disabled:text-white disabled:opacity-100 disabled:cursor-not-allowed"
                 >
                   {isPending ? "Sending..." : "Send Invitation Link"}
                 </Button>
@@ -191,7 +191,7 @@ export default function InviteModal({
         {view === "success" && (
           <div className="flex flex-col items-center text-center p-4 space-y-5 font-dm-san-regular">
             {/* Green Checkmark Icon */}
-            <div className="size-16 rounded-full bg-[#EEFDF4] flex items-center justify-center text-[#22C55E]">
+            <div className="size-16 rounded-full bg-active-btn flex items-center justify-center text-active-border">
               <IconCheck className="size-8 stroke-[3]" />
             </div>
 
@@ -207,7 +207,7 @@ export default function InviteModal({
              <Button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="w-full rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors mt-2"
+              className="w-full rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors mt-2"
             >
               Close
             </Button>
@@ -218,7 +218,7 @@ export default function InviteModal({
         {view === "failure" && (
           <div className="flex flex-col items-center text-center p-4 space-y-5 font-dm-san-regular">
             {/* Red X Icon */}
-            <div className="size-16 rounded-full bg-[#FEF2F2] flex items-center justify-center text-[#EF4444]">
+            <div className="size-16 rounded-full bg-warning-btn flex items-center justify-center text-error">
               <IconX className="size-8 stroke-[3]" />
             </div>
 
@@ -234,7 +234,7 @@ export default function InviteModal({
             <Button
               type="button"
               onClick={() => setView("form")}
-              className="w-full rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors mt-2"
+              className="w-full rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors mt-2"
             >
               Try Again
             </Button>

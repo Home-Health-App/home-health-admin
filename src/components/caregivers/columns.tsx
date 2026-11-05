@@ -87,7 +87,7 @@ export const columns: ColumnDef<CaregiverItem>[] = [
       if (val === "Active") {
         badgeClass = "bg-active-btn text-active-border border-active-border"
       } else if (val === "Suspended") {
-        badgeClass = "bg-red-50 text-red-500 border-red-200"
+        badgeClass = "bg-warning-btn text-warning-border border-warning-border"
       } else {
         badgeClass = "bg-warning-btn text-warning-border border-warning-border"
       }
@@ -170,7 +170,7 @@ export const columns: ColumnDef<CaregiverItem>[] = [
                 <Button
                   variant="ghost"
                   onClick={() => meta?.onUnassignPatient?.(caregiver.id)}
-                  className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none text-zinc-800"
+                  className="w-full text-left text-base font-normal rounded-md px-2 py-1 hover:bg-body-text/10 text-body-text cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none text-body-text"
                 >
                   Unassign Patient
                 </Button>
@@ -191,8 +191,8 @@ export const columns: ColumnDef<CaregiverItem>[] = [
                     variant="ghost"
                     onClick={() => meta?.onToggleSuspend?.(caregiver.id, isSuspended)}
                     className={isSuspended 
-                      ? "w-full text-left text-sm font-normal px-2 py-1 hover:bg-active-btn hover:text-[#0A432C] rounded-md text-emerald-600 cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none" 
-                      : "w-full text-left text-sm font-normal px-2 py-1 hover:bg-warning-btn hover:text-[#C43A3A] rounded-md text-error cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none"}
+                      ? "w-full text-left text-sm font-normal px-2 py-1 hover:bg-active-btn hover:text-active-border rounded-md text-active-border cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none" 
+                      : "w-full text-left text-sm font-normal px-2 py-1 hover:bg-warning-btn hover:text-error rounded-md text-error cursor-pointer outline-hidden font-dm-san-regular block h-auto bg-transparent border-none shadow-none"}
                   >
                     {isSuspended ? "Unsuspend Account" : "Suspend Account"}
                   </Button>

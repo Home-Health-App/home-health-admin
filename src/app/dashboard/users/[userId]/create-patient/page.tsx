@@ -2,7 +2,7 @@
 
 import React, { Suspense } from "react"
 import { useParams } from "next/navigation"
-import PatientLoader from "@/components/patients/patients-list/loader"
+import CreatePatientSkeleton from "@/components/patients/create-patient/create-patient-skeleton"
 import CreatePatientView from "@/components/patients/create-patient/create-patient-view"
 
 export default function CreatePatientPage() {
@@ -10,7 +10,7 @@ export default function CreatePatientPage() {
   const userId = params.userId as string
 
   return (
-    <Suspense fallback={<PatientLoader />}>
+    <Suspense fallback={<CreatePatientSkeleton />}>
       <CreatePatientView userId={userId} />
     </Suspense>
   )

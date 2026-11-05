@@ -52,7 +52,7 @@ export default function ConfirmationModal({
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isPending}
-              className="flex-1 rounded-full border border-[#648FCC] bg-white font-dm-san-regular font-semibold text-xs text-[#648FCC] hover:bg-[#648FCC]/10 h-12 cursor-pointer transition-colors shadow-none"
+              className="flex-1 rounded-full border border-secondary-color bg-white font-dm-san-regular font-semibold text-xs text-secondary-color hover:bg-secondary-color/10 h-12 cursor-pointer transition-colors shadow-none"
             >
               {cancelText}
             </Button>
@@ -63,8 +63,8 @@ export default function ConfirmationModal({
               disabled={isPending}
               className={
                 variant === "danger"
-                  ? "flex-1 rounded-full bg-[#EF4444] hover:bg-[#DC2626] text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors"
-                  : "flex-1 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors"
+                  ? "flex-1 rounded-full bg-error hover:bg-error/90 text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors"
+                  : "flex-1 rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors"
               }
             >
               {isPending ? "Processing..." : confirmText}

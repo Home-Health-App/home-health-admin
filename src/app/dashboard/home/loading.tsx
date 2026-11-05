@@ -1,6 +1,6 @@
 import React from "react"
-import Loader from "@/components/home/loader"
+import HomeSkeleton from "@/components/home/home-skeleton"
 
 export default function HomeLoading() {
-  return <Loader />
+  return <HomeSkeleton />
 }

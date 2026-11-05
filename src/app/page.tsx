@@ -14,6 +14,7 @@ import { useSetAtom } from "jotai"
 import { authAtom } from "@/states/auth.atom"
 import { Controller } from "react-hook-form"
 import { toast } from "sonner"
+import { getFirstAllowedRoute } from "@/hooks/use-permissions"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -99,7 +100,15 @@ export default function LoginPage() {
               localStorage.setItem("access_token", res.data.access_token)
             }
           }
-          router.push("/dashboard/home")
+          let targetRoute = "/dashboard/home"
+          if (res.data) {
+            const adminRole = res.data.admin?.role
+            const roleName = typeof adminRole === "string" ? adminRole : adminRole?.name || ""
+            const isSuper = roleName.toLowerCase().includes("super")
+            const permissions = isSuper ? undefined : (adminRole?.permissions || [])
+            targetRoute = getFirstAllowedRoute(permissions, isSuper)
+          }
+          router.push(targetRoute)
         },
       }
     )
@@ -108,7 +117,7 @@ export default function LoginPage() {
   const enteredEmail = otpForm.getValues("email")
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col justify-center items-center bg-[#F1F4F9] overflow-hidden select-none">
+    <div className="relative min-h-screen w-full flex flex-col justify-center items-center bg-secondary-light overflow-hidden select-none">
 
       {/* Background Stylized Waves */}
       <div className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center">
@@ -124,7 +133,7 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-147.5 flex flex-col items-center gap-18 px-4">
 
         {/* LOGO */}
-        <h1 className="text-2xl font-bold tracking-[0.2em] text-[#0A101D] uppercase font-dm-san-regular">
+        <h1 className="text-2xl font-bold tracking-[0.2em] text-primary-color uppercase font-dm-san-regular">
           Logo
         </h1>
 
@@ -178,7 +187,7 @@ export default function LoginPage() {
                   disabled={!emailForm.formState.isValid || loginMutation.isPending}
                   className={`w-full !h-12 rounded-full font-dm-san-regular font-semibold tracking-wide text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center gap-2 ${
                     emailForm.formState.isValid && !loginMutation.isPending
-                      ? "bg-[#0B1E3F] hover:bg-[#1B335B] text-white"
+                      ? "bg-primary-color hover:bg-primary-color/90 text-white"
                       : "bg-primary-light text-body-text pointer-events-none"
                   }`}
                 >
@@ -200,7 +209,7 @@ export default function LoginPage() {
 
                 <CardDescription className="max-w-[320px] font-dm-san-regular text-xs font-normal leading-5 text-zinc-500">
                   We&apos;ve sent a 6-digit verification code to{" "}
-                  <span className="font-semibold text-zinc-700">
+                  <span className="font-semibold text-body-text">
                     {enteredEmail}
                   </span>
                   .{" "}
@@ -273,8 +282,8 @@ export default function LoginPage() {
                   disabled={!otpForm.formState.isValid || otpMutation.isPending}
                   className={`w-full !h-12 rounded-full font-dm-san-regular font-semibold text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center gap-2 ${
                     otpForm.formState.isValid && !otpMutation.isPending
-                      ? "bg-[#0B1E3F] hover:bg-[#1B335B] text-white"
-                      : "bg-[#D1E0F3] text-[#7A98C2] opacity-70 pointer-events-none"
+                      ? "bg-primary-color hover:bg-primary-color/90 text-white"
+                      : "bg-primary-light text-secondary-color opacity-70 pointer-events-none"
                   }`}
                 >
                   {otpMutation.isPending ? (

@@ -2,7 +2,7 @@
 
 import React, { Suspense } from "react"
 import PatientsView from "@/components/patients/patients-list/patients-list-view"
-import PatientLoader from "@/components/patients/patients-list/loader"
+import PatientsListSkeleton from "@/components/patients/patients-list/patients-list-skeleton"
 import { useSuspenseGetAdminPatients } from "@/hooks/patient.hook"
 
 function PatientsDataContainer() {
@@ -15,7 +15,7 @@ function PatientsDataContainer() {
 
 export default function PatientsPage() {
   return (
-    <Suspense fallback={<PatientLoader />}>
+    <Suspense fallback={<PatientsListSkeleton />}>
       <PatientsDataContainer />
     </Suspense>
   )

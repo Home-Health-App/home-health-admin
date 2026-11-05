@@ -1,6 +1,5 @@
-import React, { Suspense } from "react"
+import React from "react"
 import AiReportsListView from "@/components/patients/ai-reports/ai-reports-list-view"
-import PatientLoader from "@/components/patients/patients-list/loader"
 
 interface PageProps {
   params: Promise<{ patientId: string }>

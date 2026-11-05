@@ -148,8 +148,8 @@ export default function HomeView({ data }: AdminAnalyticProp) {
                 >
                   <defs>
                     <linearGradient id="patientColor" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#3AC485" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#3AC485" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <XAxis
@@ -172,8 +172,8 @@ export default function HomeView({ data }: AdminAnalyticProp) {
                         const item = payload[0].payload
                         return (
                           <div className="border border-active-border bg-active-btn font-dm-san-regular p-4 rounded-[8px] shadow-lg">
-                            <p className="text-[#080807] font-normal text-sm mb-3">{item.name}</p>
-                            <p className="text-[#080807] font-normal text-base">
+                            <p className="text-body-text font-normal text-sm mb-3">{item.name}</p>
+                            <p className="text-body-text font-normal text-base">
                               Total Patients <span className="font-bold">{item.labelVal}</span>
                             </p>
                           </div>
@@ -185,11 +185,11 @@ export default function HomeView({ data }: AdminAnalyticProp) {
                   <Area
                     type="monotone"
                     dataKey="patients"
-                    stroke="#10B981"
+                    stroke="#3AC485"
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#patientColor)"
-                    activeDot={{ r: 6, fill: "#10B981", stroke: "#fff", strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: "#3AC485", stroke: "#fff", strokeWidth: 2 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -316,12 +316,14 @@ export default function HomeView({ data }: AdminAnalyticProp) {
                     radius={[4, 4, 0, 0]}
                     maxBarSize={32}
                   />
+                  {/* Temporarily hidden refunds series
                   <Bar
                     dataKey="Refunds"
                     fill="#F0C630"
                     radius={[4, 4, 0, 0]}
                     maxBarSize={32}
                   />
+                  */}
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -353,14 +355,14 @@ export default function HomeView({ data }: AdminAnalyticProp) {
               {[1, 2, 3].map((n) => (
                 <div
                   key={n}
-                  className="bg-secondary-light/60 p-4 rounded-[8px] space-y-3 animate-pulse"
+                  className="bg-zinc-50 border border-zinc-100 p-4 rounded-[8px] space-y-3 animate-pulse"
                 >
                   <div className="flex items-center gap-3">
-                    <Skeleton className="h-5 w-40 rounded" />
-                    <Skeleton className="h-5 w-20 rounded-full" />
+                    <Skeleton className="h-5 w-40 rounded bg-zinc-200/70" />
+                    <Skeleton className="h-5 w-20 rounded-full bg-zinc-200/70" />
                   </div>
-                  <Skeleton className="h-4 w-full rounded" />
-                  <Skeleton className="h-4 w-2/3 rounded" />
+                  <Skeleton className="h-4 w-full rounded bg-zinc-100" />
+                  <Skeleton className="h-4 w-2/3 rounded bg-zinc-100" />
                 </div>
               ))}
             </div>

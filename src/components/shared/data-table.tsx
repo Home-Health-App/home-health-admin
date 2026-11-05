@@ -109,7 +109,7 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   onClick={() => onRowClick?.(row.original)}
                   className={cn(
-                    "hover:bg-zinc-50/50 border-b text-[#2B2B2B] border-zinc-100 transition-colors",
+                    "hover:bg-zinc-50/50 border-b text-body-text border-zinc-100 transition-colors",
                     onRowClick && "cursor-pointer"
                   )}
                 >
@@ -176,7 +176,7 @@ export function DataTable<TData, TValue>({
                     key={idx}
                     onClick={() => table.setPageIndex(idx)}
                     className={`size-8.5 flex items-center justify-center rounded-full text-xs font-bold font-dm-san-regular cursor-pointer transition-colors outline-hidden ${pageIndex === idx
-                      ? "bg-[#4f73b8] text-white"
+                      ? "bg-secondary-color text-white"
                       : "text-body-text border border-transparent hover:bg-zinc-100"
                       }`}
                   >
@@ -214,7 +214,7 @@ export function DataTable<TData, TValue>({
                     key={`page-${page}`}
                     onClick={() => table.setPageIndex(pageIdx)}
                     className={`size-8.5 flex items-center justify-center rounded-full text-xs font-bold font-dm-san-regular cursor-pointer transition-colors outline-hidden ${pageIndex === pageIdx
-                      ? "bg-[#4f73b8] text-white"
+                      ? "bg-secondary-color text-white"
                       : "text-body-text border border-transparent hover:bg-zinc-100"
                       }`}
                   >

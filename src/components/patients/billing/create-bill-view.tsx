@@ -21,7 +21,7 @@ import { useGetPatientById } from "@/hooks/patient.hook"
 import { useGetAllPlans, useGetPlanById, useCreatePaymentLink } from "@/hooks/billing.hook"
 import { PlanType, PlanCategory } from "@/types/billing.type"
 import { CreatePaymentLinkPayload } from "@/types/billing-link.type"
-import PatientLoader from "@/components/patients/patients-list/loader"
+import CreateBillSkeleton from "./create-bill-skeleton"
 import { toast } from "sonner"
 import { cn } from "@/libs/utils"
 
@@ -38,17 +38,17 @@ const CATEGORIES_UI = [
 ] as const
 
 const TIER_COLORS: Record<string, string> = {
-  Bronze: "text-[#A16207]",
+  Bronze: "text-pending-border",
   Silver: "text-zinc-500",
   Gold: "text-yellow-600",
   Diamond: "text-cyan-600",
 }
 
 const TIER_BORDER_COLORS: Record<string, string> = {
-  Bronze: "border-[#F0C630]",
+  Bronze: "border-pending-border",
   Silver: "border-[#6F6F6F]",
-  Gold: "border-[#648FCC]",
-  Diamond: "border-[#3AC485]",
+  Gold: "border-secondary-color",
+  Diamond: "border-active-border",
 }
 
 export default function CreateBillView({ patientId }: CreateBillViewProps) {
@@ -214,7 +214,7 @@ export default function CreateBillView({ patientId }: CreateBillViewProps) {
         toast.success(
           res?.message || "Payment link has been created and sent to family member."
         )
-        router.push(`/dashboard/patients/${patientId}`)
+        // router.push(`/dashboard/patients/${patientId}`)
       },
       onError: (err) => {
         toast.error(
@@ -225,7 +225,7 @@ export default function CreateBillView({ patientId }: CreateBillViewProps) {
   }
 
   if (isPatientLoading) {
-    return <PatientLoader />
+    return <CreateBillSkeleton />
   }
 
   return (
@@ -239,7 +239,7 @@ export default function CreateBillView({ patientId }: CreateBillViewProps) {
               Create Payment Link
             </h1>
             {/* <p className="text-xs font-normal font-dm-san-regular text-zinc-500 mt-0.5">
-              Select a care plan for <span className="font-semibold text-zinc-700">{patientFullName}</span> and generate a direct payment link for the family.
+              Select a care plan for <span className="font-semibold text-body-text">{patientFullName}</span> and generate a direct payment link for the family.
             </p> */}
           </div>
         </div>
@@ -303,7 +303,7 @@ export default function CreateBillView({ patientId }: CreateBillViewProps) {
         </div>
 
         {/* Family Payer Card */}
-        <div className="p-5 sm:p-6 bg-linear-to-br from-[#0B1E3F]/5 to-[#648FCC]/10 border border-[#B3CBE6] rounded-2xl space-y-4 shadow-2xs">
+        <div className="p-5 sm:p-6 bg-linear-to-br from-primary-color/5 to-secondary-color/10 border border-primary-light rounded-2xl space-y-4 shadow-2xs">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <Avatar className="size-10 border border-secondary-color/30 shrink-0">
@@ -332,7 +332,7 @@ export default function CreateBillView({ patientId }: CreateBillViewProps) {
             </Badge>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-dm-san-regular pt-2 border-t border-[#B3CBE6]/40">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-dm-san-regular pt-2 border-t border-primary-light/40">
             <div className="flex items-center gap-1.5 text-body-text min-w-0">
               <IconMail className="size-3.5 text-zinc-400 shrink-0" />
               <span className="truncate">{sponsorEmail || "No email provided"}</span>
@@ -376,7 +376,7 @@ export default function CreateBillView({ patientId }: CreateBillViewProps) {
           {isPlansLoading ? (
             <div className="bg-white border border-zinc-200/80 rounded-[8px] p-12 flex flex-col items-center justify-center gap-3">
               <IconLoader className="size-6 text-primary-color animate-spin" />
-              <span className="text-xs font-dm-san-regular text-zinc-500">
+              <span className="text-xs font-dm-san-regular text-body-text/70">
                 Loading plans from server...
               </span>
             </div>
@@ -436,7 +436,7 @@ export default function CreateBillView({ patientId }: CreateBillViewProps) {
                                 className="flex items-start text-xs font-normal font-dm-san-regular text-body-text leading-relaxed"
                               >
                                 <svg
-                                  className="size-4 shrink-0 stroke-[2.5] stroke-zinc-800 mr-2 mt-0.5"
+                                  className="size-4 shrink-0 stroke-[2.5] stroke-body-text mr-2 mt-0.5"
                                   fill="none"
                                   viewBox="0 0 24 24"
                                 >
@@ -533,8 +533,8 @@ export default function CreateBillView({ patientId }: CreateBillViewProps) {
             </div>
 
             {/* Recipient Notice */}
-            <div className="p-3 bg-secondary-light/60 rounded-xl border border-border-light text-xs font-dm-san-regular text-zinc-700 space-y-1">
-              <span className="font-semibold text-zinc-800 block text-2xs uppercase tracking-wider">
+            <div className="p-3 bg-secondary-light/60 rounded-xl border border-border-light text-xs font-dm-san-regular text-body-text space-y-1">
+              <span className="font-semibold text-body-text block text-2xs uppercase tracking-wider">
                 Billed To (Family):
               </span>
               <p className="font-medium truncate">{familyFullName}</p>

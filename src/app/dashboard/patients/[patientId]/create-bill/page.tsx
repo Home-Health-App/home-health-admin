@@ -3,14 +3,14 @@
 import React, { Suspense } from "react"
 import { useParams } from "next/navigation"
 import CreateBillView from "@/components/patients/billing/create-bill-view"
-import PatientLoader from "@/components/patients/patients-list/loader"
+import CreateBillSkeleton from "@/components/patients/billing/create-bill-skeleton"
 
 export default function CreateBillPage() {
   const params = useParams()
   const patientId = params.patientId as string
 
   return (
-    <Suspense fallback={<PatientLoader />}>
+    <Suspense fallback={<CreateBillSkeleton />}>
       <CreateBillView patientId={patientId} />
     </Suspense>
   )

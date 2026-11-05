@@ -1,5 +1,6 @@
 "use client"
 
+import React, { useMemo } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { IconLogout } from "@tabler/icons-react"
@@ -19,6 +20,7 @@ import { authAtom } from "@/states/auth.atom"
 import { useQueryClient } from "@tanstack/react-query"
 import ConfirmationModal, { useConfirmation } from "@/components/modal/confirmation-modal"
 import { toast } from "sonner"
+import { usePermissions } from "@/hooks/use-permissions"
 
 export default function AppSidebar() {
   const pathname = usePathname()
@@ -26,6 +28,11 @@ export default function AppSidebar() {
   const setAuth = useSetAtom(authAtom)
   const queryClient = useQueryClient()
   const { state: confirmState, confirm, close: closeConfirm } = useConfirmation()
+  const { canAccessRoute } = usePermissions()
+
+  const visibleMenuItems = useMemo(() => {
+    return SIDEBAR_ITEMS.filter((item) => canAccessRoute(item.href))
+  }, [canAccessRoute])
 
   const handleLogout = () => {
     confirm({
@@ -49,7 +56,7 @@ export default function AppSidebar() {
 
   return (
     <Sidebar
-      className="bg-[#0B1E3F] text-white border-none **:data-[sidebar=sidebar]:bg-[#0B1E3F] **:data-[sidebar=sidebar]:text-white **:data-[sidebar=sidebar]:border-none"
+      className="bg-primary-color text-white border-none **:data-[sidebar=sidebar]:bg-primary-color **:data-[sidebar=sidebar]:text-white **:data-[sidebar=sidebar]:border-none"
     >
       {/* Sidebar Header with Logo */}
       <SidebarHeader className="py-6 pl-12">
@@ -63,7 +70,7 @@ export default function AppSidebar() {
       {/* Sidebar Navigation Items */}
       <SidebarContent className="flex-1 px-6 py-2 flex flex-col justify-between">
         <SidebarMenu className="space-y-1">
-          {SIDEBAR_ITEMS.map((item) => {
+          {visibleMenuItems.map((item) => {
             const isActive = pathname.startsWith(item.href)
             const Icon = item.icon
 
@@ -79,15 +86,15 @@ export default function AppSidebar() {
 
                     isActive
                       ? [
-                        "bg-[#1B335B]! text-white!",
-                        "hover:bg-[#1B335B]! hover:text-white!",
-                        "active:bg-[#1B335B]! active:text-white!",
+                        "bg-primary-color! text-white!",
+                        "hover:bg-primary-color/90! hover:text-white!",
+                        "active:bg-primary-color! active:text-white!",
                         "[&_a]:text-white!",
                       ]
                       : [
                         "text-white!",
-                        "hover:bg-[#1B335B]/50 hover:text-white!",
-                        "active:bg-[#1B335B]/50 active:text-white!",
+                        "hover:bg-primary-color/90/50 hover:text-white!",
+                        "active:bg-primary-color/50 active:text-white!",
                         "[&_a]:text-white!",
                         "[&_a:hover]:text-white!",
                       ]
@@ -116,7 +123,7 @@ export default function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       {/* Sidebar Footer with Logout */}
-      <SidebarFooter className="p-4 border-t border-[#1E2E4C]/30">
+      <SidebarFooter className="p-4 border-t border-primary-color/30">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -125,8 +132,8 @@ export default function AppSidebar() {
               className={cn(
                 "group/btn flex w-full items-center gap-3 rounded-lg px-4 py-2.5 cursor-pointer",
                 "text-white bg-transparent!",
-                "hover:text-white! hover:bg-[#1B335B]/50!",
-                "active:bg-[#1B335B] active:text-white!",
+                "hover:text-white! hover:bg-primary-color/90/50!",
+                "active:bg-primary-color active:text-white!",
                 "focus:bg-transparent focus:text-white!",
                 "focus-visible:bg-transparent focus-visible:text-white!",
                 "focus-visible:ring-0",

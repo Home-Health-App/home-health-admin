@@ -25,3 +25,14 @@ export const suspendCaregiver = async (
 ): Promise<GeneralResponse<any>> => {
   return api.patch<GeneralResponse<any>>(URLs.users["suspend-caregiver"](id), payload)
 }
+
+export interface SuspendUserPayload {
+  isSuspended: boolean
+}
+
+export const suspendUser = async (
+  id: string,
+  payload: SuspendUserPayload
+): Promise<GeneralResponse<any>> => {
+  return api.patch<GeneralResponse<any>>(URLs.users["suspend-user"](id), payload)
+}
