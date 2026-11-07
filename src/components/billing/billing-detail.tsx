@@ -105,17 +105,17 @@ export default function BillingDetail({
     "PENDING"
   ).toUpperCase()
 
-  let statusBadgeClasses = "border-[#F0C630] bg-[#FBF7EA] text-[#4D4000]"
+  let statusBadgeClasses = "border-pending-border bg-pending-btn text-pending-border"
   let statusBadgeLabel = "Pending"
 
   if (["PAID", "SUCCESS", "ACTIVE"].includes(paymentStatus)) {
-    statusBadgeClasses = "border-[#3AC485] bg-[#EEF7F3] text-[#0A432C]"
+    statusBadgeClasses = "border-active-border bg-active-btn text-active-border"
     statusBadgeLabel = "Active"
   } else if (["FAILED", "EXPIRED"].includes(paymentStatus)) {
-    statusBadgeClasses = "border-[#C43A3A] bg-[#F7EEEE] text-[#430D0A]"
+    statusBadgeClasses = "border-warning-border bg-warning-btn text-warning-border"
     statusBadgeLabel = paymentStatus === "EXPIRED" ? "Expired" : "Failed"
   } else if (paymentStatus === "REFUNDED") {
-    statusBadgeClasses = "border-[#9CA3AF] bg-[#F3F4F6] text-[#4B5563]"
+    statusBadgeClasses = "border-[#9CA3AF] bg-secondary-light text-[#4B5563]"
     statusBadgeLabel = "Refunded"
   }
 
@@ -206,11 +206,12 @@ export default function BillingDetail({
     []
   )
 
+  
   if (isLoading) {
     return (
       <div className="w-full min-h-[50vh] flex flex-col items-center justify-center gap-3">
         <IconLoader2 className="size-8 text-primary-color animate-spin" />
-        <span className="text-xs font-dm-san-regular text-zinc-500">
+        <span className="text-xs font-dm-san-regular text-body-text/70">
           Loading billing details...
         </span>
       </div>
@@ -240,7 +241,7 @@ export default function BillingDetail({
           </p>
           <Button
             onClick={onBack || (() => router.push("/dashboard/billing"))}
-            className="mt-2 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white text-xs px-5"
+            className="mt-2 rounded-full bg-primary-color hover:bg-primary-color/90 text-white text-xs px-5"
           >
             Return to Billing Overview
           </Button>
@@ -291,7 +292,7 @@ export default function BillingDetail({
 
         <Button
           onClick={handleOverrideSubscription}
-          className="rounded-full bg-[#C93B3B] hover:bg-[#b03030] text-white font-dm-san-regular font-semibold text-xs px-5 py-2.5 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors self-start sm:self-center"
+          className="rounded-full bg-error hover:bg-error/90 text-white font-dm-san-regular font-semibold text-xs px-5 py-2.5 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors self-start sm:self-center"
         >
           Override Subscription
         </Button>

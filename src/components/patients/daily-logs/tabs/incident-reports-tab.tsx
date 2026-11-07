@@ -37,13 +37,13 @@ export default function IncidentReportsTab({ reports }: IncidentReportsTabProps)
         const sevLower = (item.severity || "").toLowerCase()
         let badgeClass = "bg-active-btn text-active-border border-active-border"
         if (sevLower.includes("medium") || sevLower.includes("mid") || sevLower.includes("mod")) {
-          badgeClass = "bg-[#FDF6E2] text-[#4D4000] border-pending-border"
+          badgeClass = "bg-pending-btn text-pending-border border-pending-border"
         } else if (
           sevLower.includes("high") ||
           sevLower.includes("serious") ||
           sevLower.includes("critical")
         ) {
-          badgeClass = "text-[#430D0A] bg-warning-btn text-warning-border border-warning-border"
+          badgeClass = "text-warning-border bg-warning-btn text-warning-border border-warning-border"
         }
 
         return (
@@ -75,28 +75,28 @@ export default function IncidentReportsTab({ reports }: IncidentReportsTabProps)
             <div className="space-y-3 font-dm-san-regular text-sm text-body-text leading-relaxed">
               {item.location && (
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-zinc-800">Location:</span>
+                  <span className="font-semibold text-body-text">Location:</span>
                   <span>{item.location}</span>
                 </div>
               )}
 
               {(item.description || item.notes) && (
                 <div className="flex items-start gap-2">
-                  <span className="font-semibold text-zinc-800 shrink-0">Details:</span>
+                  <span className="font-semibold text-body-text shrink-0">Details:</span>
                   <span>{item.description || item.notes}</span>
                 </div>
               )}
 
               {item.action_taken && (
                 <div className="flex items-start gap-2">
-                  <span className="font-semibold text-zinc-800 shrink-0">Action Taken:</span>
+                  <span className="font-semibold text-body-text shrink-0">Action Taken:</span>
                   <span>{item.action_taken}</span>
                 </div>
               )}
 
               {item.reported_to_family && (
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-zinc-800">Reported to Family:</span>
+                  <span className="font-semibold text-body-text">Reported to Family:</span>
                   <span className="text-active-border font-medium">
                     Yes{" "}
                     {item.reported_to_family_time
@@ -108,7 +108,7 @@ export default function IncidentReportsTab({ reports }: IncidentReportsTabProps)
 
               {item.reported_to_professional && (
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-zinc-800">Reported to Professional:</span>
+                  <span className="font-semibold text-body-text">Reported to Professional:</span>
                   <span className="text-active-border font-medium">
                     Yes{" "}
                     {item.reported_to_professional_time
@@ -120,7 +120,7 @@ export default function IncidentReportsTab({ reports }: IncidentReportsTabProps)
 
               {item.next_follow_up_date && (
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-zinc-800">Next Follow-up:</span>
+                  <span className="font-semibold text-body-text">Next Follow-up:</span>
                   <span>{formatDate(item.next_follow_up_date, "MMM dd, yyyy")}</span>
                 </div>
               )}

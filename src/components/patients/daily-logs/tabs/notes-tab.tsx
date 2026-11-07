@@ -27,7 +27,7 @@ export default function NotesTab({ notes }: NotesTabProps) {
           className="p-6 flex flex-col items-start justify-start bg-secondary-light rounded-[8px] font-dm-san-regular text-sm leading-relaxed text-body-text gap-3 shadow-2xs"
         >
           <div className="flex items-center justify-between w-full">
-            <span className="font-bold text-zinc-800 text-sm uppercase tracking-wider block shrink-0">
+            <span className="font-bold text-body-text text-sm uppercase tracking-wider block shrink-0">
               Caregiver Note
             </span>
             {note.time && (

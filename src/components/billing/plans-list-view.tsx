@@ -1,10 +1,9 @@
 "use client"
 
 import React, { useState, useMemo } from "react"
-import { IconPlus, IconTrash, IconMessageOff, IconLoader } from "@tabler/icons-react"
+import { IconTrash, IconMessageOff, IconLoader } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { PlanType, PlanCategory } from "@/types/billing.type"
 import { cn } from "@/libs/utils"
 
@@ -25,17 +24,17 @@ const CATEGORIES_UI = [
 ] as const
 
 const TIER_COLORS = {
-  Bronze: "text-[#A16207]",
+  Bronze: "text-pending-border",
   Silver: "text-zinc-500",
   Gold: "text-yellow-600",
   Diamond: "text-cyan-600",
 }
 
 const TIER_BORDER_COLORS = {
-  Bronze: "border-[#F0C630]",
+  Bronze: "border-pending-border",
   Silver: "border-[#6F6F6F]",
-  Gold: "border-[#648FCC]",
-  Diamond: "border-[#3AC485]",
+  Gold: "border-secondary-color",
+  Diamond: "border-active-border",
 }
 
 export default function PlansListView({
@@ -46,7 +45,6 @@ export default function PlansListView({
   isDeleting
 }: PlansListViewProps) {
   const [activeCategory, setActiveCategory] = useState<PlanCategory>("Elderly_Care")
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly")
 
   // Filter plans based on the active tab category
   const filteredPlans = useMemo(() => {
@@ -68,7 +66,7 @@ export default function PlansListView({
 
         <Button
           onClick={onCreatePlan}
-          className="flex h-9.5 items-center gap-1.5 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] px-5 text-xs font-semibold font-dm-san-regular text-white transition-colors cursor-pointer border-none shadow-none outline-hidden self-start sm:self-center"
+          className="flex h-9.5 items-center gap-1.5 rounded-full bg-primary-color hover:bg-primary-color/90 px-5 text-xs font-semibold font-dm-san-regular text-white transition-colors cursor-pointer border-none shadow-none outline-hidden self-start sm:self-center"
         >
           Create New Plan
         </Button>
@@ -94,18 +92,6 @@ export default function PlansListView({
             ))}
           </TabsList>
         </Tabs>
-
-        <div>
-          <Select value={billingCycle} onValueChange={(val) => setBillingCycle(val as "monthly" | "yearly")}>
-            <SelectTrigger className="w-27.5 h-8! px-2.5 rounded-[6px] border border-primary-color bg-white capitalize font-dm-san-regular text-xs text-body-text focus:ring-0 focus:border-primary-color outline-hidden shadow-none cursor-pointer">
-              <SelectValue placeholder="Billing Cycle" />
-            </SelectTrigger>
-            <SelectContent className="bg-white border border-zinc-200 shadow-sm rounded-md p-1 min-w-27.5">
-              <SelectItem value="monthly" className="font-dm-san-regular text-xs rounded-sm cursor-pointer">Monthly</SelectItem>
-              <SelectItem value="yearly" className="font-dm-san-regular text-xs rounded-sm cursor-pointer">Yearly</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
       </div>
 
       {/* Main Content Area */}
@@ -115,8 +101,7 @@ export default function PlansListView({
             {filteredPlans.map((plan) => {
               const tierColor = TIER_COLORS[plan.tier] || "text-body-text"
               const tierBorderColor = TIER_BORDER_COLORS[plan.tier] || "border-zinc-200"
-              const displayPrice = billingCycle === "yearly" ? Number(plan.price || 0) * 12 : Number(plan.price || 0)
-              const cycleLabel = billingCycle === "yearly" ? "/year" : "/month"
+              const displayPrice = Number(plan.price || 0)
 
               return (
                 <div key={plan.id} className={cn("p-6 flex flex-col justify-between min-h-125 bg-white rounded-[8px] border-l-2", tierBorderColor)}>
@@ -132,7 +117,7 @@ export default function PlansListView({
                             ₦{displayPrice.toLocaleString()}
                           </span>
                           <span className="text-base font-normal font-dm-san-regular text-body-text ml-1">
-                            {cycleLabel}
+                            /month
                           </span>
                         </div>
                       </div>
@@ -146,7 +131,7 @@ export default function PlansListView({
                       {plan.coverage.map((benefit, idx) => (
                         <li key={idx} className="flex items-start text-xs font-normal font-dm-san-regular text-body-text leading-relaxed">
                           <svg
-                            className="size-4 shrink-0 stroke-[2.5] stroke-zinc-800 mr-2 mt-0.5"
+                            className="size-4 shrink-0 stroke-[2.5] stroke-body-text mr-2 mt-0.5"
                             fill="none"
                             viewBox="0 0 24 24"
                           >
@@ -166,7 +151,7 @@ export default function PlansListView({
                   <div className="flex items-center justify-between pt-5 mt-6">
                     <button
                       onClick={() => onDeletePlan(plan.id)}
-                      className="p-1.5 flex items-center gap-1 hover:bg-red-50 rounded-[6px] outline-hidden cursor-pointer text-[#C43A3A] transition-colors"
+                      className="p-1.5 flex items-center gap-1 hover:bg-warning-btn rounded-[6px] outline-hidden cursor-pointer text-error transition-colors"
                     >
                       {isDeleting && <IconLoader className="animate-spin" />}
                       <IconTrash className="size-5" />

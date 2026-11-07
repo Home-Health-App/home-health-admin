@@ -14,3 +14,14 @@ export const getActivityLogs = async (
     { params }
   )
 }
+
+export const getUserActivityLogs = async (
+  userId: string,
+  params?: GetActivityLogsQueryParams
+): Promise<PaginatedResponse<ActivityLogItem[]>> => {
+  return api.get<PaginatedResponse<ActivityLogItem[]>>(
+    URLs.activityLogs["get-user-activity-logs"](userId),
+    { params }
+  )
+}
+

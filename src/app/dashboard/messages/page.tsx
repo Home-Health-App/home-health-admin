@@ -29,8 +29,41 @@ import { toast } from "sonner"
 import { useAtomValue } from "jotai"
 import { authAtom } from "@/states/auth.atom"
 import { useChatSocket } from "@/hooks/use-chat-socket"
-import { uploadMultipleFiles, uploadFile } from "@/services/upload.service"
+import {
+  uploadMultipleFiles,
+  uploadFile,
+  extractUploadedUrls,
+} from "@/services/upload.service"
 import { cn } from "@/libs/utils"
+
+interface StagedAttachment {
+  id: string
+  file: File
+  previewUrl?: string
+  isImage: boolean
+}
+
+const getMessageFiles = (files: any): string[] => {
+  if (!files) return []
+  if (Array.isArray(files)) {
+    return files
+      .map((f) => (typeof f === "string" ? f : f?.url || f?.location))
+      .filter((url): url is string => typeof url === "string" && url.length > 0)
+  }
+  if (typeof files === "string") {
+    try {
+      const parsed = JSON.parse(files)
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map((f) => (typeof f === "string" ? f : f?.url || f?.location))
+          .filter((url): url is string => typeof url === "string" && url.length > 0)
+      }
+    } catch {
+      return [files]
+    }
+  }
+  return []
+}
 
 function MessagesContent() {
   const router = useRouter()
@@ -45,8 +78,20 @@ function MessagesContent() {
   const [search, setSearch] = useState("")
   const [activeTab, setActiveTab] = useState<"read" | "unread">("read")
   const [newMessageText, setNewMessageText] = useState("")
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [stagedAttachments, setStagedAttachments] = useState<StagedAttachment[]>([])
   const [isUploadingFiles, setIsUploadingFiles] = useState(false)
+
+  const stagedAttachmentsRef = useRef<StagedAttachment[]>([])
+  stagedAttachmentsRef.current = stagedAttachments
+
+  // Revoke preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      stagedAttachmentsRef.current.forEach((att) => {
+        if (att.previewUrl) URL.revokeObjectURL(att.previewUrl)
+      })
+    }
+  }, [])
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -117,20 +162,47 @@ function MessagesContent() {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files)
-      // Limit to 10 files max as per doc
-      setSelectedFiles((prev) => [...prev, ...newFiles].slice(0, 10))
+      const incomingFiles = Array.from(e.target.files)
+      if (stagedAttachments.length + incomingFiles.length > 10) {
+        toast.error("You can attach up to 10 files per message.")
+        e.target.value = ""
+        return
+      }
+
+      const newAttachments: StagedAttachment[] = []
+      for (const file of incomingFiles) {
+        if (file.size > 15 * 1024 * 1024) {
+          toast.error(`"${file.name}" exceeds the 15MB file size limit.`)
+          continue
+        }
+        const isImage = file.type.startsWith("image/")
+        const previewUrl = isImage ? URL.createObjectURL(file) : undefined
+        newAttachments.push({
+          id: `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          file,
+          previewUrl,
+          isImage,
+        })
+      }
+
+      setStagedAttachments((prev) => [...prev, ...newAttachments])
       e.target.value = ""
     }
   }
 
-  const handleRemoveFile = (index: number) => {
-    setSelectedFiles((prev) => prev.filter((_, idx) => idx !== index))
+  const handleRemoveAttachment = (id: string) => {
+    setStagedAttachments((prev) => {
+      const target = prev.find((item) => item.id === id)
+      if (target?.previewUrl) {
+        URL.revokeObjectURL(target.previewUrl)
+      }
+      return prev.filter((item) => item.id !== id)
+    })
   }
 
   const handleSendMessage = async () => {
     if (
-      (!newMessageText.trim() && selectedFiles.length === 0) ||
+      (!newMessageText.trim() && stagedAttachments.length === 0) ||
       !selectedChatId ||
       isSending
     ) {
@@ -138,38 +210,47 @@ function MessagesContent() {
     }
 
     const textToSend = newMessageText.trim()
-    const filesToSend = [...selectedFiles]
+    const attachmentsToSend = [...stagedAttachments]
 
     setNewMessageText("")
-    setSelectedFiles([])
+    setStagedAttachments([])
 
     let uploadedUrls: string[] = []
 
-    if (filesToSend.length > 0) {
+    if (attachmentsToSend.length > 0) {
       setIsUploadingFiles(true)
       try {
-        if (filesToSend.length === 1) {
-          const res = await uploadFile(filesToSend[0])
-          const singleUrl = typeof res?.data === "string" ? res.data : (res?.data as any)?.url
-          if (singleUrl) uploadedUrls.push(singleUrl)
+        const filesOnly = attachmentsToSend.map((a) => a.file)
+        if (filesOnly.length === 1) {
+          const res = await uploadFile(filesOnly[0])
+          uploadedUrls = extractUploadedUrls(res)
         } else {
-          const res = await uploadMultipleFiles(filesToSend)
-          const dataList = Array.isArray(res?.data) ? res.data : []
-          dataList.forEach((item: any) => {
-            const url = typeof item === "string" ? item : item?.url
-            if (url) uploadedUrls.push(url)
-          })
+          const res = await uploadMultipleFiles(filesOnly)
+          uploadedUrls = extractUploadedUrls(res)
+        }
+
+        if (uploadedUrls.length === 0) {
+          toast.error("Failed to upload attachments. Please try again.")
+          setStagedAttachments(attachmentsToSend)
+          setNewMessageText(textToSend)
+          setIsUploadingFiles(false)
+          return
         }
       } catch (err: any) {
         console.error("File upload failed:", err)
         toast.error("Failed to upload attachments.")
-        setSelectedFiles(filesToSend)
+        setStagedAttachments(attachmentsToSend)
         setNewMessageText(textToSend)
         setIsUploadingFiles(false)
         return
       } finally {
         setIsUploadingFiles(false)
       }
+
+      // Cleanup preview object URLs on successful upload
+      attachmentsToSend.forEach((att) => {
+        if (att.previewUrl) URL.revokeObjectURL(att.previewUrl)
+      })
     }
 
     // Attempt sending via real-time WebSocket first
@@ -180,14 +261,13 @@ function MessagesContent() {
       sendRestMessage(
         {
           chat_id: selectedChatId,
-          message: textToSend,
+          message: textToSend || undefined,
           files: uploadedUrls,
         },
         {
           onError: () => {
             toast.error("Failed to send message")
             setNewMessageText(textToSend)
-            setSelectedFiles(filesToSend)
           },
         }
       )
@@ -249,7 +329,7 @@ function MessagesContent() {
 
               <Button
                 onClick={() => setIsStartChatOpen(true)}
-                className="flex h-9.5 items-center gap-1.5 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] px-5 text-xs font-semibold font-dm-san-regular text-white transition-colors cursor-pointer border-none shadow-none outline-hidden"
+                className="flex h-9.5 items-center gap-1.5 rounded-full bg-primary-color hover:bg-primary-color/90 px-5 text-xs font-semibold font-dm-san-regular text-white transition-colors cursor-pointer border-none shadow-none outline-hidden"
               >
                 <IconPlus className="size-4" />
                 New Message
@@ -308,15 +388,31 @@ function MessagesContent() {
                   c.updated_at || c.created_at
                 )
 
+                // Compute last message snippet
+                let snippet = rec?.email || "No messages yet"
+                const lastMsg = c.last_message || (c.messages && c.messages[c.messages.length - 1])
+                if (lastMsg) {
+                  if (lastMsg.message && lastMsg.message.trim().length > 0) {
+                    snippet = lastMsg.message
+                  } else {
+                    const lmFiles = getMessageFiles(lastMsg.files)
+                    if (lmFiles.length > 0) {
+                      const hasImage = lmFiles.some((f) => /\.(jpg|jpeg|png|webp|gif|svg)($|\?)/i.test(f))
+                      snippet = hasImage ? "📷 Photo" : "📎 Attachment"
+                    }
+                  }
+                }
+
                 return (
                   <button
                     key={c.id}
                     type="button"
                     onClick={() => handleSelectChat(c.id)}
-                    className={`w-full text-left p-4 rounded-[8px] border transition-all cursor-pointer relative ${isSelected
+                    className={`w-full text-left p-4 rounded-[8px] border transition-all cursor-pointer relative ${
+                      isSelected
                         ? "border-l-2 border-l-secondary-color border-border-light bg-white shadow-2xs"
                         : "border-zinc-200 bg-white"
-                      }`}
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-2.5">
                       <div className="min-w-0 flex-1">
@@ -325,13 +421,13 @@ function MessagesContent() {
                             {name}
                           </span>
                           {/* {typeLabel && (
-                            <span className="shrink-0 rounded-full border border-secondary-color bg-[#F4F7FC] px-2 py-0.5 text-3xs font-medium font-dm-san-regular text-[#1B335B] select-none">
+                            <span className="shrink-0 rounded-full border border-secondary-color bg-secondary-light px-2 py-0.5 text-3xs font-medium font-dm-san-regular text-primary-color select-none">
                               {typeLabel}
                             </span>
                           )} */}
                         </div>
                         <p className="mt-2.5 truncate font-dm-san-regular text-xs font-normal text-body-text">
-                          {rec?.email || "No messages yet"}
+                          {snippet}
                         </p>
                       </div>
 
@@ -364,7 +460,7 @@ function MessagesContent() {
                       {activeReceiverName}
                     </h2>
                     {activeReceiverType && (
-                      <span className="rounded-full border border-secondary-color bg-[#F4F7FC] px-2.5 py-0.5 text-3xs font-medium font-dm-san-regular text-[#1B335B] select-none">
+                      <span className="rounded-full border border-secondary-color bg-secondary-light px-2.5 py-0.5 text-3xs font-medium font-dm-san-regular text-primary-color select-none">
                         {activeReceiverType}
                       </span>
                     )}
@@ -401,67 +497,144 @@ function MessagesContent() {
                           )}
 
                           <div
-                            className={`flex flex-col ${isAdmin ? "items-end" : "items-start"
-                              }`}
+                            className={`flex flex-col ${
+                              isAdmin ? "items-end" : "items-start"
+                            }`}
                           >
-                            <div
-                              className={`max-w-[70%] px-4 py-3 text-sm leading-relaxed font-dm-san-regular font-normal rounded-[8px] ${isAdmin
-                                  ? "bg-[#0B1E3F] text-white"
-                                  : "bg-[#D4E1F1] text-body-text"
-                                }`}
-                            >
-                              {m.files && m.files.length > 0 && (
-                                <div className="space-y-2 mb-2">
-                                  {m.files.map((fileUrl, fIdx) => {
-                                    const isImage = /\.(jpg|jpeg|png|webp|gif|svg)($|\?)/i.test(fileUrl)
-                                    const fileName =
-                                      fileUrl.split("/").pop()?.split("?")[0] ||
-                                      `Attachment ${fIdx + 1}`
+                            {(() => {
+                              const messageFiles = getMessageFiles(m.files)
+                              const imageFiles = messageFiles.filter((f) =>
+                                /\.(jpg|jpeg|png|webp|gif|svg)($|\?)/i.test(f)
+                              )
+                              const docFiles = messageFiles.filter(
+                                (f) => !/\.(jpg|jpeg|png|webp|gif|svg)($|\?)/i.test(f)
+                              )
+                              const hasText = Boolean(m.message && m.message.trim().length > 0)
 
-                                    if (isImage) {
-                                      return (
+                              return (
+                                <div
+                                  className={cn(
+                                    "max-w-[75%] flex flex-col gap-1.5",
+                                    isAdmin ? "items-end" : "items-start"
+                                  )}
+                                >
+                                  {/* Image Attachments in their own padded, shadowed container (no #0B1F41 background) */}
+                                  {imageFiles.length > 0 && (
+                                    <div className="p-2 rounded-[8px] bg-white shadow-sm border border-zinc-200/70 w-fit max-w-full overflow-hidden">
+                                      {imageFiles.length === 1 ? (
                                         <a
-                                          key={fIdx}
-                                          href={fileUrl}
+                                          href={imageFiles[0]}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="block overflow-hidden rounded-md border border-black/10 hover:opacity-95 transition-opacity"
+                                          className="group flex w-fit h-fit max-w-full overflow-hidden rounded-[6px] border border-zinc-200/70 bg-zinc-50/50 hover:opacity-95 transition-opacity"
                                         >
                                           <img
-                                            src={fileUrl}
-                                            alt={fileName}
-                                            className="max-h-56 max-w-full rounded-md object-cover"
+                                            src={imageFiles[0]}
+                                            alt="Attachment 1"
+                                            className="block w-auto h-auto max-w-[260px] max-h-[240px] object-contain rounded-[6px] transition-transform duration-200 group-hover:scale-[1.01]"
+                                            loading="lazy"
                                           />
                                         </a>
-                                      )
-                                    }
+                                      ) : (
+                                        <div className="flex flex-col gap-2 w-fit max-w-full">
+                                          {Array.from(
+                                            { length: Math.ceil(imageFiles.length / 2) },
+                                            (_, rowIdx) =>
+                                              imageFiles.slice(rowIdx * 2, rowIdx * 2 + 2)
+                                          ).map((rowImages, rowIdx) => (
+                                            <div
+                                              key={rowIdx}
+                                              className="flex items-center gap-2 w-fit max-w-full"
+                                            >
+                                              {rowImages.map((fileUrl, fIdx) => (
+                                                <a
+                                                  key={fIdx}
+                                                  href={fileUrl}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="group flex min-w-0 w-fit h-fit max-w-full overflow-hidden rounded-[6px] border border-zinc-200/80 bg-zinc-50/50 shadow-2xs hover:opacity-95 transition-opacity"
+                                                >
+                                                  <img
+                                                    src={fileUrl}
+                                                    alt={`Attachment ${rowIdx * 2 + fIdx + 1}`}
+                                                    className="block w-auto h-auto max-w-[260px] max-h-[240px] object-contain rounded-[6px] transition-transform duration-200 group-hover:scale-[1.01]"
+                                                    loading="lazy"
+                                                  />
+                                                </a>
+                                              ))}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
 
-                                    return (
-                                      <a
-                                        key={fIdx}
-                                        href={fileUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        download
+                                  {/* Document / File Attachments in their own padded, shadowed container (no #0B1F41 background, max 2 per row) */}
+                                  {docFiles.length > 0 && (
+                                    <div className="p-2 rounded-[8px] bg-white shadow-sm border border-zinc-200/70 w-fit max-w-full">
+                                      <div
                                         className={cn(
-                                          "flex items-center gap-2 p-2 rounded-md border transition-colors text-xs font-dm-san-regular",
-                                          isAdmin
-                                            ? "bg-white/10 hover:bg-white/20 text-white border-white/20"
-                                            : "bg-white hover:bg-zinc-50 text-body-text border-zinc-200"
+                                          "grid gap-1.5",
+                                          docFiles.length === 1
+                                            ? "grid-cols-1"
+                                            : "grid-cols-1 sm:grid-cols-2"
                                         )}
                                       >
-                                        <IconFileText className="size-4 shrink-0 opacity-80" />
-                                        <span className="truncate max-w-[200px] underline font-medium">
-                                          {fileName}
-                                        </span>
-                                        <IconDownload className="size-3.5 shrink-0 ml-auto opacity-70" />
-                                      </a>
-                                    )
-                                  })}
+                                        {docFiles.map((fileUrl, fIdx) => {
+                                          const fileName = decodeURIComponent(
+                                            fileUrl.split("/").pop()?.split("?")[0] ||
+                                              `Attachment ${fIdx + 1}`
+                                          )
+                                          const ext = fileName.includes(".")
+                                            ? fileName.split(".").pop()?.toUpperCase()
+                                            : "FILE"
+
+                                          return (
+                                            <a
+                                              key={fIdx}
+                                              href={fileUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              download
+                                              className="flex items-center gap-3 p-2.5 rounded-[6px] border border-zinc-200/80 bg-secondary-light/60 hover:bg-secondary-light text-body-text transition-colors text-xs font-dm-san-regular min-w-[200px] max-w-[250px]"
+                                            >
+                                              <div className="size-8 rounded-md bg-white border border-zinc-200/80 flex items-center justify-center shrink-0 text-secondary-color">
+                                                <IconFileText className="size-4.5" />
+                                              </div>
+                                              <div className="min-w-0 flex-1">
+                                                <p className="truncate font-semibold text-heading-text">
+                                                  {fileName}
+                                                </p>
+                                                <p className="text-[10px] text-zinc-400 uppercase mt-0.5">
+                                                  {ext} Document
+                                                </p>
+                                              </div>
+                                              <div className="size-7 rounded-full bg-white border border-zinc-200/80 flex items-center justify-center shrink-0 text-body-text hover:text-primary-color transition-colors">
+                                                <IconDownload className="size-3.5" />
+                                              </div>
+                                            </a>
+                                          )
+                                        })}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Text Message Bubble (only rendered when text is present) */}
+                                  {hasText && (
+                                    <div
+                                      className={cn(
+                                        "px-4 py-3 text-sm leading-relaxed font-dm-san-regular font-normal rounded-[8px]",
+                                        isAdmin
+                                          ? "bg-primary-color text-white"
+                                          : "bg-primary-light text-body-text"
+                                      )}
+                                    >
+                                      {m.message}
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                              {m.message && <div>{m.message}</div>}
-                            </div>
+                              )
+                            })()}
                             <span className="mt-1 text-[10px] font-dm-san-regular font-normal text-zinc-400 block px-1 select-none">
                               {formatMessageTime(m.created_at)}
                             </span>
@@ -476,29 +649,54 @@ function MessagesContent() {
 
                 {/* Bottom Input Composer */}
                 <div className="shrink-0 border-t border-zinc-100 bg-white px-7 py-4">
-                  {/* Selected files preview tray */}
-                  {selectedFiles.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-2 p-2.5 bg-zinc-50 rounded-[8px] border border-zinc-200">
-                      {selectedFiles.map((f, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-1.5 bg-white border border-zinc-200 px-2.5 py-1 rounded-md text-xs font-dm-san-regular text-body-text shadow-2xs"
-                        >
-                          <IconFileText className="size-3.5 text-zinc-500" />
-                          <span className="truncate max-w-[140px] font-medium">{f.name}</span>
-                          <span className="text-[10px] text-zinc-400 font-mono">
-                            ({(f.size / 1024).toFixed(0)}KB)
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveFile(idx)}
-                            className="text-zinc-400 hover:text-rose-500 ml-1 cursor-pointer"
-                            title="Remove attachment"
+                  {/* Staged attachments preview tray */}
+                  {stagedAttachments.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-2.5 mb-2.5 p-2.5 bg-zinc-50 rounded-[8px] border border-zinc-200 max-h-48 overflow-y-auto">
+                      {stagedAttachments.map((att) =>
+                        att.isImage && att.previewUrl ? (
+                          <div
+                            key={att.id}
+                            className="relative group size-16 shrink-0 rounded-lg overflow-hidden border border-zinc-200 bg-zinc-100 shadow-2xs"
                           >
-                            <IconX className="size-3.5" />
-                          </button>
-                        </div>
-                      ))}
+                            <img
+                              src={att.previewUrl}
+                              alt={att.file.name}
+                              className="size-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveAttachment(att.id)}
+                              disabled={isSending}
+                              title="Remove image"
+                              className="absolute top-1 right-1 size-5 rounded-full bg-black/70 hover:bg-error text-white flex items-center justify-center transition-colors cursor-pointer"
+                            >
+                              <IconX className="size-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div
+                            key={att.id}
+                            className="flex items-center gap-2 bg-white border border-zinc-200 px-2.5 py-1.5 rounded-lg text-xs font-dm-san-regular text-body-text shadow-2xs"
+                          >
+                            <IconFileText className="size-4 text-zinc-500 shrink-0" />
+                            <div className="min-w-0 max-w-[140px]">
+                              <p className="truncate font-medium">{att.file.name}</p>
+                              <p className="text-[10px] text-zinc-400">
+                                {(att.file.size / 1024).toFixed(0)} KB
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveAttachment(att.id)}
+                              disabled={isSending}
+                              className="text-zinc-400 hover:text-error ml-1 cursor-pointer transition-colors"
+                              title="Remove attachment"
+                            >
+                              <IconX className="size-3.5" />
+                            </button>
+                          </div>
+                        )
+                      )}
                     </div>
                   )}
 
@@ -538,8 +736,8 @@ function MessagesContent() {
                     <button
                       type="button"
                       onClick={handleSendMessage}
-                      disabled={(!newMessageText.trim() && selectedFiles.length === 0) || isSending}
-                      className="flex size-9.5 shrink-0 items-center justify-center rounded-full bg-pending-border hover:bg-#F0C630 text-body-text transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 border-none shadow-none outline-hidden"
+                      disabled={(!newMessageText.trim() && stagedAttachments.length === 0) || isSending}
+                      className="flex size-9.5 shrink-0 items-center justify-center rounded-full bg-pending-border hover:bg-pending-border/90 text-body-text transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 border-none shadow-none outline-hidden"
                     >
                       {isSending ? (
                         <IconLoader2 className="size-4.5 animate-spin" />
@@ -552,7 +750,7 @@ function MessagesContent() {
               </>
             ) : (
               /* Right Empty State Pane (Image 1 style) */
-              <div className="flex min-h-0 flex-1 items-center justify-center bg-[#FAFBFC] p-8">
+              <div className="flex min-h-0 flex-1 items-center justify-center bg-secondary-light p-8">
                 <div className="w-full max-w-md text-center font-dm-san-regular">
                   <div className="mx-auto flex size-15 items-center justify-center rounded-full bg-secondary-light text-body-text mb-5">
                     <IconMessageOff className="size-7 stroke-[1.5]" />
@@ -565,7 +763,7 @@ function MessagesContent() {
                   </p>
                   <Button
                     onClick={() => setIsStartChatOpen(true)}
-                    className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs px-6 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors"
+                    className="rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-dm-san-regular font-semibold text-xs px-6 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors"
                   >
                     Start a New Conversation
                   </Button>

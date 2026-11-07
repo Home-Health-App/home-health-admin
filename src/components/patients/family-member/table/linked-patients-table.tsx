@@ -3,41 +3,31 @@
 import React from "react"
 import { DataTable } from "@/components/shared/data-table"
 import { columns, LinkedPatient } from "./columns"
-
-export const LINKED_PATIENTS: LinkedPatient[] = [
-  {
-    id: "1",
-    name: "Dean Winchester",
-    relationship: "Brother",
-    caregiver: "Angel Castiel",
-    subscription: "Active",
-  },
-  {
-    id: "2",
-    name: "John Winchester",
-    relationship: "Father",
-    caregiver: "Bobby Singer",
-    subscription: "Grace Period",
-  },
-  {
-    id: "3",
-    name: "Mary Winchester",
-    relationship: "Mother",
-    caregiver: "Unassigned",
-    subscription: "Expired",
-  },
-]
+import { IconLoader2 } from "@tabler/icons-react"
 
 interface LinkedPatientsTableProps {
   data?: LinkedPatient[]
+  isLoading?: boolean
 }
 
-export default function LinkedPatientsTable({ data }: LinkedPatientsTableProps) {
+export default function LinkedPatientsTable({
+  data,
+  isLoading = false,
+}: LinkedPatientsTableProps) {
+  if (isLoading) {
+    return (
+      <div className="w-full bg-white rounded-lg border border-zinc-200/60 p-8 flex items-center justify-center gap-2 text-body-text/70 text-sm font-dm-san-regular">
+        <IconLoader2 className="size-4 animate-spin text-primary-color" />
+        <span>Loading linked patients...</span>
+      </div>
+    )
+  }
+
   return (
     <DataTable
       columns={columns}
-      data={data && data.length > 0 ? data : LINKED_PATIENTS}
-      pageSize={3}
+      data={data || []}
+      pageSize={10}
       isPaginated={false}
     />
   )

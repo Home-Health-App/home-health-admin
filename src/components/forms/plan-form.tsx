@@ -229,7 +229,7 @@ export default function PlanForm({
                         className="flex items-center gap-2 cursor-pointer outline-hidden select-none"
                       >
                         {isSelected ? (
-                          <div className="size-5 rounded-full bg-[#0B1E3F] flex items-center justify-center text-white border border-transparent shadow-xs">
+                          <div className="size-5 rounded-full bg-primary-color flex items-center justify-center text-white border border-transparent shadow-xs">
                             <svg
                               className="size-3.5 stroke-[3.5] stroke-current"
                               fill="none"
@@ -313,7 +313,7 @@ export default function PlanForm({
                   <button
                     type="button"
                     onClick={handleAddCoverageItem}
-                    className="rounded-full border border-[#648FCC] bg-white font-dm-san-regular font-semibold text-xs text-[#648FCC] hover:bg-[#648FCC]/10 px-8 !h-12 cursor-pointer transition-colors outline-hidden shadow-none flex items-center justify-center"
+                    className="rounded-full border border-secondary-color bg-white font-dm-san-regular font-semibold text-xs text-secondary-color hover:bg-secondary-color/10 px-8 !h-12 cursor-pointer transition-colors outline-hidden shadow-none flex items-center justify-center"
                   >
                     Add
                   </button>
@@ -330,7 +330,7 @@ export default function PlanForm({
                   >
                     <div className="flex items-start leading-relaxed pr-4">
                       <svg
-                        className="size-4 shrink-0 stroke-[2.5] stroke-zinc-800 mr-2 mt-0.5"
+                        className="size-4 shrink-0 stroke-[2.5] stroke-body-text mr-2 mt-0.5"
                         fill="none"
                         viewBox="0 0 24 24"
                       >
@@ -346,7 +346,7 @@ export default function PlanForm({
                     <button
                       type="button"
                       onClick={() => handleRemoveCoverageItem(idx)}
-                      className="text-red-500 hover:text-red-600 font-normal text-xs transition-colors cursor-pointer"
+                      className="text-error hover:text-error font-normal text-xs transition-colors cursor-pointer"
                     >
                       Remove
                     </button>
@@ -367,7 +367,7 @@ export default function PlanForm({
             <Button
               type="submit"
               disabled={!isValid || coverage.length === 0}
-              className="ml-auto  rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs px-8 h-12! border-none shadow-none cursor-pointer outline-hidden transition-colors"
+              className="ml-auto  rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-dm-san-regular font-semibold text-xs px-8 h-12! border-none shadow-none cursor-pointer outline-hidden transition-colors"
             >
               {isLoading && <IconLoader2 className="animate-spin" />}
               {planToEdit ? "Save Changes" : "Create Plan"}

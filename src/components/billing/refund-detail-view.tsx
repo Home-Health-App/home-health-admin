@@ -137,7 +137,7 @@ export default function RefundDetailView({
           <div className="space-y-2.5 pt-2">
             <Button
               onClick={handleApprove}
-              className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold h-13 text-sm p-4 w-full border-none shadow-none cursor-pointer outline-hidden transition-colors"
+              className="rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-dm-san-regular font-semibold h-13 text-sm p-4 w-full border-none shadow-none cursor-pointer outline-hidden transition-colors"
             >
               Approve Refund
             </Button>

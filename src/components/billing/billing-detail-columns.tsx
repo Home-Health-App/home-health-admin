@@ -81,17 +81,17 @@ export const getBillingDetailColumns = ({
     meta: { align: "left" },
     cell: ({ getValue }) => {
       const status = ((getValue() as string) || "PENDING").toUpperCase()
-      let classes = "border-[#F0C630] bg-[#FBF7EA] text-[#4D4000]"
+      let classes = "border-pending-border bg-pending-btn text-pending-border"
       let label = status
 
       if (status === "PAID" || status === "SUCCESS" || status === "ACTIVE") {
-        classes = "border-[#3AC485] bg-[#EEF7F3] text-[#0A432C]"
+        classes = "border-active-border bg-active-btn text-active-border"
         label = "Paid"
       } else if (status === "FAILED" || status === "EXPIRED") {
-        classes = "border-[#C43A3A] bg-[#F7EEEE] text-[#430D0A]"
+        classes = "border-warning-border bg-warning-btn text-warning-border"
         label = status === "EXPIRED" ? "Expired" : "Failed"
       } else if (status === "REFUNDED") {
-        classes = "border-[#9CA3AF] bg-[#F3F4F6] text-[#4B5563]"
+        classes = "border-[#9CA3AF] bg-secondary-light text-[#4B5563]"
         label = "Refunded"
       } else if (status === "PENDING") {
         label = "Pending"
@@ -132,12 +132,14 @@ export const getBillingDetailColumns = ({
               sideOffset={4}
               className="w-fit min-w-44 bg-white border border-zinc-200 rounded-[8px] shadow-lg py-1.5 px-0 z-50 flex flex-col font-dm-san-regular text-xs font-normal select-none gap-0"
             >
+              {/* Temporarily hidden refund action
               <button
                 onClick={() => onRefund(payment)}
                 className="px-4 py-2 text-left hover:bg-zinc-50 text-body-text w-full cursor-pointer outline-hidden"
               >
                 Refund Transaction
               </button>
+              */}
               {userId && (
                 <button
                   onClick={() => onMessage(userId)}

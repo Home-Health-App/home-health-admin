@@ -76,7 +76,7 @@ export default function PaymentLinkModal({
                 Payment Link Ready
               </DialogTitle>
               <DialogDescription className="text-sm text-zinc-500 font-dm-san-regular">
-                Care plan bill generated for <span className="font-semibold text-zinc-700">{patientName}</span>
+                Care plan bill generated for <span className="font-semibold text-body-text">{patientName}</span>
               </DialogDescription>
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function PaymentLinkModal({
               readOnly
               value={billData.payment_link}
               onClick={(e) => (e.target as HTMLInputElement).select()}
-              className="flex-1 h-11 bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 text-xs font-mono text-zinc-700 select-all outline-hidden focus:border-secondary-color transition-colors"
+              className="flex-1 h-11 bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 text-xs font-mono text-body-text select-all outline-hidden focus:border-secondary-color transition-colors"
             />
             <Button
               onClick={handleCopy}
@@ -145,7 +145,7 @@ export default function PaymentLinkModal({
             className="w-full sm:flex-1 h-11 rounded-xl border-zinc-200 hover:bg-zinc-50 text-xs font-dm-san-regular text-body-text flex items-center justify-center gap-1.5 cursor-pointer shadow-none"
           >
             {emailSent ? (
-              <IconCheck className="size-4 text-emerald-600" />
+              <IconCheck className="size-4 text-active-border" />
             ) : (
               <IconMail className="size-4 text-primary-color" />
             )}

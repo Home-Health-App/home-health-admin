@@ -161,7 +161,7 @@ export default function StepPlan({
                           className="flex items-start text-xs font-normal font-dm-san-regular text-body-text leading-relaxed"
                         >
                           <svg
-                            className="size-4 shrink-0 stroke-[2.5] stroke-zinc-800 mr-2 mt-0.5"
+                            className="size-4 shrink-0 stroke-[2.5] stroke-body-text mr-2 mt-0.5"
                             fill="none"
                             viewBox="0 0 24 24"
                           >
@@ -238,8 +238,8 @@ export default function StepPlan({
           className={cn(
             "w-[388px] max-w-full !h-13 rounded-full font-dm-san-regular font-semibold text-sm transition-colors cursor-pointer border-none shadow-none outline-hidden flex items-center justify-center gap-2",
             data.selectedPlanId && !isSubmitting
-              ? "bg-[#0B1E3F] hover:bg-[#1B335B] text-white"
-              : "bg-[#D0DFEE] text-white cursor-not-allowed opacity-100"
+              ? "bg-primary-color hover:bg-primary-color/90 text-white"
+              : "bg-primary-light text-white cursor-not-allowed opacity-100"
           )}
         >
           {isSubmitting ? (

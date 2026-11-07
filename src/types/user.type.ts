@@ -48,6 +48,7 @@ export interface UserType {
   isSuspended: boolean
   emergencyContacts?: any[]
   patients?: PatientType[]
+  caregiver_patient?: PatientType | null
   assignments?: UserAssignment[]
   payments?: any[]
   _count?: UserCount

@@ -47,3 +47,27 @@ export const uploadMultipleFiles = async (
   })
 }
 
+/**
+ * Safely extracts uploaded S3 URLs from a single or multiple upload response
+ */
+export const extractUploadedUrls = (res: any): string[] => {
+  if (!res) return []
+  const data = res.data ?? res
+  if (Array.isArray(data)) {
+    return data
+      .map((item) => (typeof item === "string" ? item : item?.url || item?.location))
+      .filter((url): url is string => typeof url === "string" && url.length > 0)
+  }
+  if (typeof data === "string" && data.length > 0) {
+    return [data]
+  }
+  if (typeof data?.url === "string" && data.url.length > 0) {
+    return [data.url]
+  }
+  if (typeof data?.location === "string" && data.location.length > 0) {
+    return [data.location]
+  }
+  return []
+}
+
+

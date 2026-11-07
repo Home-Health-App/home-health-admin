@@ -95,10 +95,10 @@ export default function NotificationsTab() {
   return (
     <div className="space-y-6 w-full font-dm-san-regular">
       <div className="space-y-1">
-        <h2 className="text-[22px] font-medium text-body-text">
+        <h2 className="text-[22px] font-medium text-heading-text">
           Notification Preferences
         </h2>
-        <p className="text-sm font-normal text-zinc-500">
+        <p className="text-sm font-normal text-body-text/70">
           Control how and when you receive alerts from the Admin system.
         </p>
       </div>
@@ -106,12 +106,12 @@ export default function NotificationsTab() {
       {loadingPreferences ? (
         <div className="space-y-6 pt-4 max-w-full animate-pulse">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="flex items-center justify-between py-1.5 border-b border-zinc-50 pb-3">
+            <div key={i} className="flex items-center justify-between py-1.5 border-b border-zinc-100 pb-3">
               <div className="space-y-1 flex-1">
-                <div className="h-4 bg-zinc-200 rounded w-1/3" />
+                <div className="h-4 bg-zinc-200/70 rounded w-1/3" />
                 <div className="h-3 bg-zinc-100 rounded w-1/2" />
               </div>
-              <div className="h-6 w-11 bg-zinc-200 rounded-full" />
+              <div className="h-6 w-11 bg-zinc-200/70 rounded-full" />
             </div>
           ))}
         </div>
@@ -120,7 +120,7 @@ export default function NotificationsTab() {
           {preferenceFields.map(({ key, label, desc }) => (
             <div key={key} className="flex items-start justify-between py-1.5 border-b border-zinc-100/50 pb-4">
               <div className="space-y-0.5 flex-1 pr-4">
-                <span className="font-semibold text-zinc-900 text-sm block">
+                <span className="font-semibold text-heading-text text-sm block">
                   {label}
                 </span>
                 <span className="text-xs text-zinc-400 font-normal block leading-relaxed">
@@ -139,7 +139,7 @@ export default function NotificationsTab() {
             <Button
               onClick={handleSave}
               disabled={updatingPreferences}
-              className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-sm text-white font-semibold px-8 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:opacity-50"
+              className="rounded-full bg-primary-color hover:bg-primary-color/90 text-sm text-white font-semibold px-8 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:opacity-50"
             >
               {updatingPreferences ? "Saving Changes..." : "Update Changes"}
             </Button>

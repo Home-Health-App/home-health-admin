@@ -1,6 +1,6 @@
 import React, { Suspense } from "react"
 import DailyLogTabsView from "@/components/patients/daily-logs/daily-log-tabs-view"
-import PatientLoader from "@/components/patients/patients-list/loader"
+import DailyLogTabsSkeleton from "@/components/patients/daily-logs/daily-log-tabs-skeleton"
 
 interface PageProps {
   params: Promise<{ patientId: string; logId: string }>

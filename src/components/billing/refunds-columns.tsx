@@ -57,11 +57,11 @@ export const getRefundsColumns = ({
     meta: { align: "left" },
     cell: ({ getValue }) => {
       const status = getValue() as string
-      let classes = "border-[#22C55E] bg-[#DCFCE7] text-[#15803D]"
+      let classes = "border-active-border bg-active-btn text-active-border"
       if (status === "Pending") {
-        classes = "border-[#EAB308] bg-[#FEF9C3] text-[#A16207]"
+        classes = "border-pending-border bg-pending-btn text-pending-border"
       } else if (status === "Denied") {
-        classes = "border-[#EF4444] bg-[#FEE2E2] text-[#B91C1C]"
+        classes = "border-warning-border bg-warning-btn text-warning-border"
       }
       return (
         <span className={`inline-block border px-2.5 py-0.5 text-2xs font-normal rounded-full font-dm-san-regular ${classes} select-none`}>

@@ -13,8 +13,11 @@ import { UserType } from "@/types/user.type"
 import { InvitationType } from "@/types/invitation.type"
 import { IconUser, IconMail, IconPhone, IconMapPin, IconCalendar, IconUserCheck } from "@tabler/icons-react"
 
-import { useGetUserById } from "@/hooks/user.hook"
+import { useGetUserById, useSuspendUser } from "@/hooks/user.hook"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import ConfirmationModal, { useConfirmation } from "@/components/modal/confirmation-modal"
+import { cn } from "@/libs/utils"
 
 interface UserDetailsModalProps {
   open: boolean
@@ -33,6 +36,41 @@ export default function UserDetailsModal({
   // Query user by id dynamically when modal is open and userId is present
   const { data: userResponse, isPending } = useGetUserById(userId || "", open && !!userId)
   const user = userResponse?.data || null
+
+  const { mutate: suspendMutate, isPending: isSuspendPending } = useSuspendUser()
+  const { state: confirmState, confirm, close: closeConfirm } = useConfirmation()
+
+  const handleToggleSuspend = () => {
+    if (!user) return
+    const isCurrentlySuspended = !!user.isSuspended
+    const actionText = isCurrentlySuspended ? "unsuspend" : "suspend"
+    const fullName = `${user.first_name || ""} ${user.last_name || ""}`.trim() || "this user"
+
+    confirm({
+      title: `${isCurrentlySuspended ? "Unsuspend" : "Suspend"} User`,
+      description: `Are you sure you want to ${actionText} ${fullName}'s account?`,
+      confirmText: isCurrentlySuspended ? "Unsuspend" : "Suspend",
+      variant: isCurrentlySuspended ? "primary" : "danger",
+      onConfirm: () => {
+        suspendMutate(
+          {
+            id: user.id,
+            payload: { isSuspended: !isCurrentlySuspended },
+          },
+          {
+            onSuccess: () => {
+              toast.success(`User ${isCurrentlySuspended ? "unsuspended" : "suspended"} successfully!`)
+              closeConfirm()
+            },
+            onError: (error) => {
+              const msg = error.response?.data?.message || `Failed to ${actionText} user.`
+              toast.error(msg)
+            },
+          }
+        )
+      },
+    })
+  }
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "-"
@@ -60,40 +98,58 @@ export default function UserDetailsModal({
 
         {isPending ? (
           <div className="py-12 flex flex-col items-center justify-center space-y-3">
-            <div className="size-8 rounded-full border-4 border-zinc-200 border-t-[#0B1E3F] animate-spin" />
-            <p className="text-sm font-normal text-zinc-500 font-dm-san-regular">
+            <div className="size-8 rounded-full border-4 border-zinc-200 border-t-primary-color animate-spin" />
+            <p className="text-sm font-normal text-body-text/70 font-dm-san-regular">
               Loading profile details...
             </p>
           </div>
         ) : isRegistered && user ? (
           <div className="pt-6 space-y-6">
             {/* Top summary row */}
-            <div className="flex items-center gap-4">
-              <div className="size-16 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-600 shrink-0">
-                <IconUser className="size-8" />
-              </div>
-              <div className="space-y-1.5">
-                <h3 className="text-xl font-semibold leading-none">
-                  {user.first_name} {user.last_name}
-                </h3>
-                <div className="flex items-center gap-2">
-                  {user.isSuspended ? (
-                    <Badge
-                      variant="outline"
-                      className="bg-red-50 text-red-500 border-red-200 text-xs font-semibold px-2 py-0.5 rounded-full shadow-none"
-                    >
-                      Suspended
-                    </Badge>
-                  ) : (
-                    <Badge
-                      variant="outline"
-                      className="bg-active-btn text-active-border border-active-border text-xs font-semibold px-2 py-0.5 rounded-full shadow-none"
-                    >
-                      Active
-                    </Badge>
-                  )}
+            <div className="flex items-center justify-between">
+
+              <div className="flex items-center gap-4">
+                <div className="size-16 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-600 shrink-0">
+                  <IconUser className="size-8" />
                 </div>
+                <div className="space-y-1.5">
+                  <h3 className="text-xl font-semibold leading-none">
+                    {user.first_name} {user.last_name}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    {user.isSuspended ? (
+                      <Badge
+                        variant="outline"
+                        className="bg-warning-btn text-warning-border border-warning-border text-xs font-semibold px-2 py-0.5 rounded-full shadow-none"
+                      >
+                        Suspended
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="outline"
+                        className="bg-active-btn text-active-border border-active-border text-xs font-semibold px-2 py-0.5 rounded-full shadow-none"
+                      >
+                        Active
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
               </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleToggleSuspend}
+                disabled={isSuspendPending}
+                className={cn(
+                  "rounded-full font-dm-san-regular font-semibold text-xs h-12! px-5 cursor-pointer outline-hidden transition-colors shadow-none",
+                  user.isSuspended
+                    ? "border-active-border text-active-border hover:text-active-border"
+                    : "border-warning-border text-warning-border hover:text-warning-border"
+                )}
+              >
+                {user.isSuspended ? "Unsuspend User" : "Suspend User"}
+              </Button>
             </div>
 
             {/* Info lists */}
@@ -202,7 +258,7 @@ export default function UserDetailsModal({
                   </div>
                   <div className="flex justify-between items-center text-xs pb-1">
                     <span className="text-zinc-500">Link Expiry Date</span>
-                    <span className="font-medium text-red-500">{formatDate(invitation.expiresAt)}</span>
+                    <span className="font-medium text-error">{formatDate(invitation.expiresAt)}</span>
                   </div>
                 </div>
               </div>
@@ -223,7 +279,7 @@ export default function UserDetailsModal({
                   onOpenChange(false)
                   router.push(`/dashboard/users/${user.id}/create-patient`)
                 }}
-                className="flex-1 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors flex items-center justify-center gap-1.5"
+                className="flex-1 rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-dm-san-regular font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors flex items-center justify-center gap-1.5"
               >
                 <span>+ Add Patient</span>
               </Button>
@@ -231,6 +287,20 @@ export default function UserDetailsModal({
           )}
         </div>
       </DialogContent>
+
+      <ConfirmationModal
+        open={confirmState.open}
+        onOpenChange={(open) => {
+          if (!open) closeConfirm()
+        }}
+        title={confirmState.title}
+        description={confirmState.description}
+        confirmText={confirmState.confirmText}
+        cancelText={confirmState.cancelText}
+        onConfirm={confirmState.onConfirm}
+        variant={confirmState.variant}
+        isPending={isSuspendPending}
+      />
     </Dialog>
   )
 }

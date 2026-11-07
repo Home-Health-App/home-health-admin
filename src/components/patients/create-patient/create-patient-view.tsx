@@ -181,7 +181,7 @@ export default function CreatePatientView({ userId }: CreatePatientViewProps) {
     <div className="w-full max-w-5xl mx-auto pb-24 font-sans select-none">
       {/* Title */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold font-sans text-[#1E1E1E]">
+        <h1 className="text-3xl font-bold font-sans text-body-text">
           Add New Patient
         </h1>
       </div>

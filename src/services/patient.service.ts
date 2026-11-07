@@ -96,3 +96,13 @@ export const getDailyLogById = async (
     URLs.patient["get-daily-log-by-id"](logId)
   )
 }
+
+export const getUserCreatedPatients = async (
+  userId: string,
+  params?: { page?: number; limit?: number }
+): Promise<PaginatedResponse<PatientType[]>> => {
+  return api.get<PaginatedResponse<PatientType[]>>(
+    URLs.patient["get-user-patients"](userId),
+    { params }
+  )
+}

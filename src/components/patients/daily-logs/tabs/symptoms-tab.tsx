@@ -26,13 +26,13 @@ export default function SymptomsTab({ symptoms }: SymptomsTabProps) {
         const sevLower = (sym.severity || "").toLowerCase()
         let badgeClass = "bg-active-btn text-active-border border-active-border"
         if (sevLower.includes("medium") || sevLower.includes("mid")) {
-          badgeClass = "bg-[#FDF6E2] text-[#4D4000] border-pending-border"
+          badgeClass = "bg-pending-btn text-pending-border border-pending-border"
         } else if (
           sevLower.includes("high") ||
           sevLower.includes("serious") ||
           sevLower.includes("critical")
         ) {
-          badgeClass = "text-[#430D0A] bg-warning-btn text-warning-border border-warning-border"
+          badgeClass = "text-warning-border bg-warning-btn text-warning-border border-warning-border"
         }
         return (
           <div
@@ -52,7 +52,7 @@ export default function SymptomsTab({ symptoms }: SymptomsTabProps) {
             </div>
             {sym.note && (
               <div className="flex gap-4 text-sm text-body-text leading-relaxed font-dm-san-regular flex-1">
-                <span className="font-semibold text-zinc-800 block mb-0.5 shrink-0">Note</span>
+                <span className="font-semibold text-body-text block mb-0.5 shrink-0">Note</span>
                 <span>
                   {sym.note}
                 </span>

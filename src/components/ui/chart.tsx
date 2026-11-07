@@ -107,7 +107,7 @@ export function ChartTooltipContent({
   return (
     <div
       className={cn(
-        "rounded-lg border border-zinc-200 bg-white p-2 shadow-xs text-xs font-sans text-zinc-950 font-medium space-y-1.5 min-w-[120px]",
+        "rounded-lg border border-zinc-200 bg-white p-2 shadow-xs text-xs font-sans text-heading-text font-medium space-y-1.5 min-w-[120px]",
         className
       )}
     >
@@ -125,7 +125,7 @@ export function ChartTooltipContent({
                 />
                 <span className="text-zinc-500 font-sans">{configItem?.label || item.name}</span>
               </div>
-              <span className="font-bold font-sans text-zinc-950">{item.value}</span>
+              <span className="font-bold font-sans text-heading-text">{item.value}</span>
             </div>
           )
         })}

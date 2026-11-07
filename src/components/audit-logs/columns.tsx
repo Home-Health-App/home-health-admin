@@ -44,8 +44,8 @@ export const columns: ColumnDef<ActivityLogItem>[] = [
         return (
           <div className="flex items-center gap-1.5 whitespace-nowrap text-sm font-dm-san-regular text-body-text">
             <span>{formattedDate}</span>
-            <span className="text-zinc-300">•</span>
-            <span className="text-zinc-500 font-sans text-xs">{formattedTime}</span>
+            {/* <span className="text-zinc-300">•</span> */}
+            {/* <span className="text-zinc-500 font-sans text-xs">{formattedTime}</span> */}
           </div>
         )
       } catch {
@@ -65,7 +65,7 @@ export const columns: ColumnDef<ActivityLogItem>[] = [
       const action = (getValue() as string) || "Activity"
       const lower = action.toLowerCase()
 
-      let classes = "border-[#EAB308] bg-[#FEF9C3] text-[#A16207]"
+      let classes = "border-pending-border bg-pending-btn text-pending-border"
       if (
         lower.includes("reactivated") ||
         lower.includes("added") ||
@@ -73,16 +73,16 @@ export const columns: ColumnDef<ActivityLogItem>[] = [
         lower.includes("payment") ||
         lower.includes("assigned")
       ) {
-        classes = "border-[#22C55E] bg-[#DCFCE7] text-[#15803D]"
+        classes = "border-active-border bg-active-btn text-active-border"
       } else if (
         lower.includes("suspended") ||
         lower.includes("deleted") ||
         lower.includes("removed") ||
         lower.includes("deactivated")
       ) {
-        classes = "border-[#EF4444] bg-[#FEE2E2] text-[#B91C1C]"
+        classes = "border-warning-border bg-warning-btn text-warning-border"
       } else if (lower.includes("report") || lower.includes("override")) {
-        classes = "border-[#3B82F6] bg-[#DBEAFE] text-[#1D4ED8]"
+        classes = "border-secondary-color bg-primary-light text-primary-color"
       }
 
       return (

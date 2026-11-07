@@ -30,16 +30,16 @@ interface AiReportDetailsViewProps {
 
 const heartRateConfig = {
   stable: { label: "Stable", color: "#648FCC" },
-  unstable: { label: "Unstable", color: "#0B1E3F" },
+  unstable: { label: "Unstable", color: "#0B1F41" },
 }
 
 const painLevelConfig = {
   stable: { label: "Stable", color: "#648FCC" },
-  unstable: { label: "Unstable", color: "#0B1E3F" },
+  unstable: { label: "Unstable", color: "#0B1F41" },
 }
 
 const pieConfig = {
-  adhered: { label: "Adhered", color: "#2A7E5C" },
+  adhered: { label: "Adhered", color: "#3AC485" },
   temp: { label: "Temp", color: "#648FCC" },
   fixed: { label: "Fixed", color: "#EEF2F6" },
 }
@@ -163,7 +163,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
     return (
       <div className="w-full py-24 flex flex-col items-center justify-center gap-3">
         <IconLoader2 className="size-8 text-primary-color animate-spin" />
-        <p className="text-sm font-dm-san-regular text-zinc-500">Loading AI Health Report...</p>
+        <p className="text-sm font-dm-san-regular text-body-text/70">Loading AI Health Report...</p>
       </div>
     )
   }
@@ -173,7 +173,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
       <div className="w-full py-16 flex flex-col items-center justify-center gap-4 bg-white rounded-2xl border border-zinc-200/70 text-center">
         <IconActivity className="size-12 text-zinc-300" />
         <div>
-          <h3 className="text-xl font-bold font-dm-san-regular text-zinc-900">Report Not Found</h3>
+          <h3 className="text-xl font-bold font-dm-san-regular text-heading-text">Report Not Found</h3>
           <p className="text-sm text-zinc-500 font-dm-san-regular mt-1">
             Could not locate the requested AI health report for this patient.
           </p>
@@ -214,7 +214,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
       <div>
         <Link
           href={`/dashboard/patients/${patientId}/ai-report`}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-500 hover:text-zinc-900 mb-3 transition-colors"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-500 hover:text-heading-text mb-3 transition-colors"
         >
           <IconChevronLeft className="size-4" />
           <span>Back to AI Reports</span>
@@ -225,7 +225,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
             <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-body-text">
               AI Health Report
             </h1>
-            <div className="flex flex-wrap items-center gap-2 text-[#2B2B2B] font-dm-san-regular text-sm mt-1">
+            <div className="flex flex-wrap items-center gap-2 text-body-text font-dm-san-regular text-sm mt-1">
               <span className="font-semibold">{patientName}</span>
               <span className="text-zinc-300">•</span>
               <span>
@@ -252,7 +252,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
 
             {/* <Button
               onClick={handleSendToCaregivers}
-              className="rounded-lg bg-[#1B335B] hover:bg-[#2B4673] text-white font-dm-san-regular font-semibold text-xs px-4 h-9.5 cursor-pointer outline-hidden border-none shadow-none transition-colors"
+              className="rounded-lg bg-primary-color hover:bg-primary-color/90 text-white font-dm-san-regular font-semibold text-xs px-4 h-9.5 cursor-pointer outline-hidden border-none shadow-none transition-colors"
             >
               Send to caregivers
             </Button>
@@ -272,7 +272,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Executive Summary (Grid span 2) */}
         <div className="lg:col-span-2 bg-white border border-zinc-200/60 rounded-[8px] p-6 shadow-2xs space-y-4">
-          <h2 className="text-[22px] font-dm-san-regular text-zinc-900 border-b border-zinc-100 pb-2">
+          <h2 className="text-[22px] font-dm-san-regular text-heading-text border-b border-zinc-100 pb-2">
             Executive Summary
           </h2>
           <div className="text-sm font-dm-san-regular leading-relaxed text-body-text space-y-4">
@@ -284,7 +284,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
 
         {/* AI Recommendations (Grid span 1) */}
         <div className="bg-white border border-zinc-200/60 rounded-[8px] p-6 shadow-2xs space-y-4">
-          <h2 className="text-[22px] font-dm-san-regular text-zinc-900 border-b border-zinc-100 pb-2">
+          <h2 className="text-[22px] font-dm-san-regular text-heading-text border-b border-zinc-100 pb-2">
             AI Recommendations
           </h2>
           <div className="space-y-3">
@@ -320,7 +320,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
                 Average Heart Rate
               </span>
               <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-2xl font-bold font-dm-san-regular text-zinc-950">
+                <span className="text-2xl font-bold font-dm-san-regular text-heading-text">
                   {report.key_metrics?.avgHeartRate ?? 72}
                 </span>
                 <span className="text-2xs text-zinc-500 font-dm-san-regular font-semibold">bpm</span>
@@ -330,11 +330,11 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
             {/* Legend */}
             <div className="flex items-center gap-3 text-3xs font-bold font-dm-san-regular text-zinc-400">
               <div className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-[#648FCC]/50" />
+                <span className="size-2 rounded-full bg-secondary-color/50" />
                 <span>Stable</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-[#0B1E3F]" />
+                <span className="size-2 rounded-full bg-primary-color" />
                 <span>Unstable</span>
               </div>
             </div>
@@ -354,7 +354,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
                   {heartRateData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={entry.status === "unstable" ? "#0B1E3F" : "#648FCC"}
+                      fill={entry.status === "unstable" ? "#0B1F41" : "#648FCC"}
                       fillOpacity={entry.status === "unstable" ? 1 : 0.3}
                     />
                   ))}
@@ -370,7 +370,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
                 Average Pain Level
               </span>
               <div className="flex items-baseline gap-0.5 mt-1">
-                <span className="text-2xl font-bold font-dm-san-regular text-zinc-950">
+                <span className="text-2xl font-bold font-dm-san-regular text-heading-text">
                   {report.key_metrics?.avgPainLevel ?? 2}
                 </span>
                 <span className="text-2xs text-zinc-400 font-dm-san-regular font-semibold">/10</span>
@@ -380,11 +380,11 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
             {/* Legend */}
             <div className="flex items-center gap-3 text-3xs font-bold font-dm-san-regular text-zinc-400">
               <div className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-[#648FCC]/50" />
+                <span className="size-2 rounded-full bg-secondary-color/50" />
                 <span>Stable</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-[#0B1E3F]" />
+                <span className="size-2 rounded-full bg-primary-color" />
                 <span>Unstable</span>
               </div>
             </div>
@@ -404,7 +404,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
                   {painLevelData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={entry.status === "unstable" ? "#0B1E3F" : "#648FCC"}
+                      fill={entry.status === "unstable" ? "#0B1F41" : "#648FCC"}
                       fillOpacity={entry.status === "unstable" ? 1 : 0.3}
                     />
                   ))}
@@ -420,12 +420,12 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
                 Mood
               </span>
               <div className="flex items-center gap-1.5">
-                <span className="text-2xl font-bold font-dm-san-regular text-zinc-950 flex items-center gap-1.5">
+                <span className="text-2xl font-bold font-dm-san-regular text-heading-text flex items-center gap-1.5">
                   {moodInfo.emoji} {moodInfo.label}
                 </span>
               </div>
               {report.key_metrics?.moodChange && (
-                <span className="text-2xs text-[#2A7E5C] font-bold font-dm-san-regular block">
+                <span className="text-2xs text-active-border font-bold font-dm-san-regular block">
                   {report.key_metrics.moodChange.includes("vs")
                     ? report.key_metrics.moodChange
                     : `${report.key_metrics.moodChange} vs last week`}
@@ -450,10 +450,10 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
           <div className="p-6 bg-secondary-light/40 border border-dashed border-zinc-200 rounded-[8px] flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="size-8 rounded-full bg-active-btn flex items-center justify-center">
-                <IconCheck className="size-4 text-[#2A7E5C]" />
+                <IconCheck className="size-4 text-active-border" />
               </div>
               <div>
-                <p className="text-sm font-medium font-dm-san-regular text-zinc-800">
+                <p className="text-sm font-medium font-dm-san-regular text-body-text">
                   No Acute Symptoms Detected
                 </p>
                 <p className="text-xs font-dm-san-regular text-zinc-500">
@@ -463,7 +463,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
             </div>
             <Badge
               variant="outline"
-              className="bg-inherit text-[#2A7E5C] border-active-border font-dm-san-regular font-normal px-3 py-1 rounded-full text-xs"
+              className="bg-inherit text-active-border border-active-border font-dm-san-regular font-normal px-3 py-1 rounded-full text-xs"
             >
               Normal
             </Badge>
@@ -496,7 +496,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
                       </span>
                       <Badge
                         variant="outline"
-                        className="bg-inherit text-[#4D4000] border-zinc-300 font-dm-san-regular font-normal px-3 py-1 rounded-full shadow-none text-xs tracking-wider"
+                        className="bg-inherit text-pending-border border-zinc-300 font-dm-san-regular font-normal px-3 py-1 rounded-full shadow-none text-xs tracking-wider"
                       >
                         {severity}
                       </Badge>
@@ -531,7 +531,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
                 />
               </PieChart>
             </ChartContainer>
-            <span className="absolute text-3xl font-bold font-dm-san-regular text-zinc-950">
+            <span className="absolute text-3xl font-bold font-dm-san-regular text-heading-text">
               {adherencePercentage}%
             </span>
           </div>
@@ -543,7 +543,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
                 <span className="font-normal font-dm-san-regular text-body-text">
                   Scheduled Medication Plan
                 </span>
-                <span className="font-bold font-dm-san-regular text-[#2A7E5C]">
+                <span className="font-bold font-dm-san-regular text-active-border">
                   {adherencePercentage}% Overall Adherence
                 </span>
               </div>
@@ -556,7 +556,7 @@ export default function AiReportDetailsView({ patientId, reportId }: AiReportDet
                   <span className="font-normal font-dm-san-regular text-body-text">
                     {med.name} {med.dosage ? `(${med.dosage})` : ""}
                   </span>
-                  <span className="font-bold font-dm-san-regular text-[#2A7E5C]">
+                  <span className="font-bold font-dm-san-regular text-active-border">
                     {med.adherencePercentage ?? 100}% Adherence
                   </span>
                 </div>

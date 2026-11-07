@@ -138,7 +138,7 @@ export default function UsersListView({
         {/* Invite User button */}
         <Button
           onClick={() => setIsInviteOpen(true)}
-          className="rounded-full bg-primary-color hover:bg-primary-color text-white font-dm-san-regular font-semibold text-sm px-6 h-9.5 cursor-pointer outline-hidden border-none shadow-none self-start sm:self-auto"
+          className="rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-dm-san-regular font-semibold text-xs px-5 h-9.5 cursor-pointer outline-hidden border-none shadow-none transition-colors self-start sm:self-auto"
         >
           Invite User
         </Button>
@@ -157,7 +157,7 @@ export default function UsersListView({
         </div>
 
         {/* Pending Invitations */}
-        <div className="p-6 bg-primary-light border rounded-[8px] shadow-2xs space-y-2.5">
+        <div className="p-6 bg-primary-light rounded-[8px] shadow-2xs space-y-2.5">
           <span className="text-base font-semibold text-body-text font-dm-san-regular block">
             Pending Invitations
           </span>
@@ -184,7 +184,7 @@ export default function UsersListView({
           <IconSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 size-6 text-body-text opacity-40" />
           <Input
             type="text"
-            placeholder="Search Patients"
+            placeholder="Search Users"
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
             className="pl-12 pr-4 h-full rounded-full border border-[#A1A1A1] shadow-none font-sans text-sm focus-visible:border-[#999999] focus-visible:ring-0 outline-hidden text-body-text bg-white w-full placeholder:text-zinc-400"
@@ -223,11 +223,11 @@ export default function UsersListView({
       {/* Listing Content: Empty State vs populated DataTable */}
       {isEmpty ? (
         <div className="border border-zinc-200/60 rounded-2xl bg-white p-16 flex flex-col items-center justify-center text-center gap-6 shadow-2xs">
-          <div className="p-4 bg-zinc-50 border border-zinc-100 rounded-full text-zinc-800">
+          <div className="p-4 bg-zinc-50 border border-zinc-100 rounded-full text-body-text">
             <IconUsers className="size-10 opacity-70" />
           </div>
           <div className="space-y-1.5">
-            <h3 className="font-dm-san-medium font-bold text-zinc-950 text-xl">
+            <h3 className="font-dm-san-medium font-bold text-heading-text text-xl">
               No Users invited yet
             </h3>
             <p className="text-zinc-500 font-sans text-sm max-w-sm leading-relaxed">
@@ -236,7 +236,7 @@ export default function UsersListView({
           </div>
           <Button
             onClick={() => setIsInviteOpen(true)}
-            className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-sans font-semibold text-sm px-6 h-9.5 border-none shadow-none cursor-pointer outline-hidden"
+            className="rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-sans font-semibold text-sm px-6 h-9.5 border-none shadow-none cursor-pointer outline-hidden"
           >
             Invite User
           </Button>
