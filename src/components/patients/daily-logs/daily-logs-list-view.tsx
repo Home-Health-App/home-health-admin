@@ -7,7 +7,7 @@ import { DataTable } from "@/components/shared/data-table"
 import { useGetPatientById, useGetPatientDailyLogs } from "@/hooks/patient.hook"
 import { DailyLogType } from "@/types/daily-log.type"
 import { formatDate } from "@/libs/helper"
-import PatientLoader from "@/components/patients/patients-list/loader"
+import DailyLogsListSkeleton from "./daily-logs-list-skeleton"
 
 interface DailyLogsListViewProps {
   patientId: string
@@ -78,7 +78,7 @@ export default function DailyLogsListView({ patientId }: DailyLogsListViewProps)
   ]
 
   if (isPatientLoading && isLogsLoading) {
-    return <PatientLoader />
+    return <DailyLogsListSkeleton />
   }
 
   return (
@@ -88,7 +88,7 @@ export default function DailyLogsListView({ patientId }: DailyLogsListViewProps)
         <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-body-text">
           Daily Logs
         </h1>
-        <div className="flex flex-wrap items-center gap-2 text-[#2B2B2B] font-dm-san-regular text-sm mt-1">
+        <div className="flex flex-wrap items-center gap-2 text-body-text font-dm-san-regular text-sm mt-1">
           <span>{patientFullName}</span>
           {/* <span className="text-zinc-300">•</span>
           <span>ID: {patient?.id || patientId}</span> */}

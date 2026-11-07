@@ -53,11 +53,10 @@ export default function AssignPatientModal({
   const [endPickerOpen, setEndPickerOpen] = useState(false)
 
   const { data: caregiversData, isLoading: loadingCaregivers } = useGetUsers({
-    type: "CARE_GIVER",
-    limit: 100,
+    type: "CARE_GIVER"
   })
 
-  const { mutate: assignMutate, isPending } = useAssignPatient()
+  const { mutate: assignMutate, isPending, error } = useAssignPatient()
 
   const caregivers = caregiversData?.data || []
 
@@ -105,8 +104,8 @@ export default function AssignPatientModal({
           toast.success("Caregiver assigned to patient successfully!")
           onOpenChange(false)
         },
-        onError: () => {
-          toast.error("Failed to assign caregiver.")
+        onError: (error) => {
+          toast.error(error?.response?.data.message)
         },
       }
     )
@@ -123,7 +122,7 @@ export default function AssignPatientModal({
             {patient && (
               <DialogDescription className="text-xs text-zinc-500 font-normal">
                 Assign a dedicated caregiver to{" "}
-                <span className="font-semibold text-zinc-800">
+                <span className="font-semibold text-body-text">
                   {patient.name}
                 </span>
               </DialogDescription>
@@ -315,7 +314,7 @@ export default function AssignPatientModal({
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={isPending}
-                className="flex-1 rounded-full border border-[#648FCC] bg-white font-semibold text-xs text-[#648FCC] hover:bg-[#648FCC]/10 h-12 cursor-pointer transition-colors shadow-none"
+                className="flex-1 rounded-full border border-secondary-color bg-white font-semibold text-xs text-secondary-color hover:bg-secondary-color/10 h-12 cursor-pointer transition-colors shadow-none"
               >
                 Cancel
               </Button>
@@ -323,7 +322,7 @@ export default function AssignPatientModal({
               <Button
                 type="submit"
                 disabled={isPending || !selectedCaregiverId}
-                className="flex-1 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:bg-[#D0DFE7] disabled:text-white disabled:opacity-100 disabled:cursor-not-allowed"
+                className="flex-1 rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-semibold text-xs h-12 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:bg-primary-light disabled:text-white disabled:opacity-100 disabled:cursor-not-allowed"
               >
                 {isPending ? "Assigning..." : "Assign Caregiver"}
               </Button>

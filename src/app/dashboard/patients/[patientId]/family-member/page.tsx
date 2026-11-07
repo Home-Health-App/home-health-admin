@@ -1,6 +1,6 @@
 import React, { Suspense } from "react"
 import FamilyMemberView from "@/components/patients/family-member/family-member-view"
-import PatientLoader from "@/components/patients/patients-list/loader"
+import FamilyMemberSkeleton from "@/components/patients/family-member/family-member-skeleton"
 
 interface PageProps {
   params: Promise<{ patientId: string }>

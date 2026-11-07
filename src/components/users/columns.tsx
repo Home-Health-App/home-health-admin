@@ -87,7 +87,7 @@ export const columns: ColumnDef<UserItem>[] = [
       if (val === "Active") {
         badgeClass = "bg-active-btn text-active-border border-active-border"
       } else if (val === "Suspended") {
-        badgeClass = "bg-red-50 text-red-500 border-red-200"
+        badgeClass = "bg-warning-btn text-warning-border border-warning-border"
       } else {
         badgeClass = "bg-warning-btn text-warning-border border-warning-border"
       }

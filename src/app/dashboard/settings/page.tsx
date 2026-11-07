@@ -1,13 +1,25 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect } from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import AccountProfileForm from "@/components/forms/account-profile-form"
 import NotificationsTab from "@/components/settings/notifications-tab"
 import AdminUsersTab from "@/components/settings/admin-users-tab"
 import AdminRolesTab from "@/components/settings/admin-roles-tab"
+import { usePermissions } from "@/hooks/use-permissions"
 
 export default function SettingsPage() {
+  const [activeTab, setActiveTab] = useState("profile")
+  const { hasPermission } = usePermissions()
+  const canManageAdmins = hasPermission("Admins")
+
+  // If resting on admin tabs and role changes to unauthorized, auto-revert to profile
+  useEffect(() => {
+    if (!canManageAdmins && (activeTab === "users" || activeTab === "roles")) {
+      setActiveTab("profile")
+    }
+  }, [canManageAdmins, activeTab])
+
   return (
     <div className="w-full space-y-6 pb-12 select-none">
       {/* Page Header */}
@@ -21,34 +33,42 @@ export default function SettingsPage() {
       </div>
 
       {/* Vertical Tabs Workspace */}
-      <Tabs defaultValue="profile" orientation="vertical" className="w-full flex flex-col md:flex-row gap-8 items-start">
-        
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        orientation="vertical"
+        className="w-full flex flex-col md:flex-row gap-8 items-start"
+      >
         {/* Left Column Tabs Sidebar */}
         <TabsList className="flex flex-col gap-1 w-full md:w-80 bg-transparent p-0 border-none justify-start shrink-0 h-auto">
           <TabsTrigger
             value="profile"
-            className="w-full justify-start text-sm font-normal font-dm-san-regular py-3.5 px-4.5 rounded-[8px] border-none data-active:bg-primary-light text-[#2B2B2B] hover:text-zinc-900 transition-all text-left flex items-center shadow-none bg-transparent outline-hidden cursor-pointer"
+            className="w-full justify-start text-sm font-normal font-dm-san-regular py-3.5 px-4.5 rounded-[8px] border-none data-active:bg-primary-light text-body-text hover:text-heading-text transition-all text-left flex items-center shadow-none bg-transparent outline-hidden cursor-pointer"
           >
             Account Profile
           </TabsTrigger>
           <TabsTrigger
             value="notifications"
-            className="w-full justify-start text-sm font-normal font-dm-san-regular py-3.5 px-4.5 rounded-[8px] border-none data-active:bg-primary-light data-[state=active]:text-[#0B1E3F] text-[#2B2B2B] hover:text-zinc-900 transition-all text-left flex items-center shadow-none bg-transparent outline-hidden cursor-pointer"
+            className="w-full justify-start text-sm font-normal font-dm-san-regular py-3.5 px-4.5 rounded-[8px] border-none data-active:bg-primary-light data-[state=active]:text-primary-color text-body-text hover:text-heading-text transition-all text-left flex items-center shadow-none bg-transparent outline-hidden cursor-pointer"
           >
             Notifications
           </TabsTrigger>
-          <TabsTrigger
-            value="users"
-            className="w-full justify-start text-sm font-normal font-dm-san-regular py-3.5 px-4.5 rounded-[8px] border-none data-active:bg-primary-light data-[state=active]:text-[#0B1E3F] text-[#2B2B2B] hover:text-zinc-900 transition-all text-left flex items-center shadow-none bg-transparent outline-hidden cursor-pointer"
-          >
-            Admin Users
-          </TabsTrigger>
-          <TabsTrigger
-            value="roles"
-            className="w-full justify-start text-sm font-normal font-dm-san-regular py-3.5 px-4.5 rounded-[8px] border-none data-active:bg-primary-light data-[state=active]:text-[#0B1E3F] text-[#2B2B2B] hover:text-zinc-900 transition-all text-left flex items-center shadow-none bg-transparent outline-hidden cursor-pointer"
-          >
-            Admin Roles and Permissions
-          </TabsTrigger>
+          {canManageAdmins && (
+            <>
+              <TabsTrigger
+                value="users"
+                className="w-full justify-start text-sm font-normal font-dm-san-regular py-3.5 px-4.5 rounded-[8px] border-none data-active:bg-primary-light data-[state=active]:text-primary-color text-body-text hover:text-heading-text transition-all text-left flex items-center shadow-none bg-transparent outline-hidden cursor-pointer"
+              >
+                Admin Users
+              </TabsTrigger>
+              <TabsTrigger
+                value="roles"
+                className="w-full justify-start text-sm font-normal font-dm-san-regular py-3.5 px-4.5 rounded-[8px] border-none data-active:bg-primary-light data-[state=active]:text-primary-color text-body-text hover:text-heading-text transition-all text-left flex items-center shadow-none bg-transparent outline-hidden cursor-pointer"
+              >
+                Admin Roles and Permissions
+              </TabsTrigger>
+            </>
+          )}
         </TabsList>
 
         {/* Right Column Content Panel */}
@@ -63,15 +83,19 @@ export default function SettingsPage() {
             <NotificationsTab />
           </TabsContent>
 
-          {/* Admin Users Content */}
-          <TabsContent value="users" className="mt-0 outline-hidden">
-            <AdminUsersTab />
-          </TabsContent>
+          {/* Admin Users Content (Requires Admins Permission) */}
+          {canManageAdmins && (
+            <>
+              <TabsContent value="users" className="mt-0 outline-hidden">
+                <AdminUsersTab />
+              </TabsContent>
 
-          {/* Admin Roles Content */}
-          <TabsContent value="roles" className="mt-0 outline-hidden">
-            <AdminRolesTab />
-          </TabsContent>
+              {/* Admin Roles Content (Requires Admins Permission) */}
+              <TabsContent value="roles" className="mt-0 outline-hidden">
+                <AdminRolesTab />
+              </TabsContent>
+            </>
+          )}
         </div>
       </Tabs>
     </div>

@@ -93,7 +93,7 @@ export default function RefundsListView({
         <div className="flex items-center gap-3">
           {/* Timeframe */}
           <Select value={timeframe} onValueChange={(val) => setTimeframe(val!)}>
-            <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
+            <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-body-text rounded-[8px] bg-white shadow-none focus:ring-0">
               <SelectValue placeholder="Period" />
             </SelectTrigger>
             <SelectContent>
@@ -104,7 +104,7 @@ export default function RefundsListView({
 
           {/* Status */}
           <Select value={status} onValueChange={(val) => setStatus(val!)}>
-            <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
+            <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-body-text rounded-[8px] bg-white shadow-none focus:ring-0">
               <SelectValue placeholder="Statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -117,7 +117,7 @@ export default function RefundsListView({
 
           {/* Refund Type */}
           <Select value={refundType} onValueChange={(val) => setRefundType(val!)}>
-            <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
+            <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-body-text rounded-[8px] bg-white shadow-none focus:ring-0">
               <SelectValue placeholder="Refund Types" />
             </SelectTrigger>
             <SelectContent>

@@ -29,7 +29,7 @@ export default function PaystackCheckoutButton({
   onSuccess,
   onClose,
 }: PaystackCheckoutButtonProps) {
-  const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || ""
+  const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!
 
   const initializePayment = usePaystackPayment({
     publicKey,
@@ -38,6 +38,13 @@ export default function PaystackCheckoutButton({
     reference,
     currency: "NGN",
   })
+
+  const config = {
+    reference,
+    email,
+    amount: amountInKobo,
+    currency: "NGN" as const
+  }
 
   const handlePayClick = () => {
     if (!publicKey) {
@@ -66,12 +73,7 @@ export default function PaystackCheckoutButton({
         onClose: () => {
           if (onClose) onClose()
         },
-        config: {
-          reference,
-          email: email.trim(),
-          amount: amountInKobo,
-          currency: "NGN",
-        },
+        config
       })
     } catch (err: any) {
       console.error("Paystack initialization error:", err)

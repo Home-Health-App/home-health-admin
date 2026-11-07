@@ -300,7 +300,7 @@ export default function AccountProfileForm() {
               onClick={() => fileInputRef.current?.click()}
               title={profilePicUrl ? "Change Photo" : "Upload Photo"}
               aria-label="Upload or change photo"
-              className="size-8.5 rounded-full border-zinc-200 bg-white text-[#0B1E3F] hover:bg-zinc-100 shadow-2xs cursor-pointer flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+              className="size-8.5 rounded-full border-zinc-200 bg-white text-primary-color hover:bg-zinc-100 shadow-2xs cursor-pointer flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
             >
               {isUploadingFile ? (
                 <IconLoader2 className="size-4 animate-spin" />
@@ -318,7 +318,7 @@ export default function AccountProfileForm() {
                 onClick={handleRemovePhoto}
                 title="Remove Photo"
                 aria-label="Remove photo"
-                className="size-8.5 rounded-full border-zinc-200 bg-white text-red-600 hover:text-red-700 hover:bg-red-50 shadow-2xs cursor-pointer flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                className="size-8.5 rounded-full border-zinc-200 bg-white text-red-600 hover:text-red-700 hover:bg-warning-btn shadow-2xs cursor-pointer flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
               >
                 <IconMinus className="size-4 stroke-[2.5]" />
               </Button>
@@ -456,7 +456,7 @@ export default function AccountProfileForm() {
           <Button
             type="submit"
             disabled={isUpdatingAdmin || isUploadingFile || !isFormValid}
-            className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs px-8 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:bg-[#D0DFE7] disabled:text-white disabled:opacity-100 disabled:cursor-not-allowed"
+            className="rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-dm-san-regular font-semibold text-xs px-8 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors disabled:bg-primary-light disabled:text-white disabled:opacity-100 disabled:cursor-not-allowed"
           >
             {isUpdatingAdmin ? (
               <span className="flex items-center gap-2">

@@ -265,7 +265,7 @@ export default function RegisterForm() {
   if (regStatus === "success") {
     return (
       <Card className="w-full bg-white border border-zinc-200/60 rounded-[8px] p-6 shadow-2xs font-dm-san-regular flex flex-col items-center text-center space-y-6">
-        <div className="size-16 rounded-full bg-[#EEFDF4] flex items-center justify-center text-[#22C55E]">
+        <div className="size-16 rounded-full bg-active-btn flex items-center justify-center text-active-border">
           <IconCheck className="size-8 stroke-3" />
         </div>
         <div className="space-y-2">
@@ -281,7 +281,7 @@ export default function RegisterForm() {
         <Button
           type="button"
           // onClick={() => router.push("/")}
-          className="w-full h-12! rounded-full font-dm-san-regular font-semibold tracking-wide text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center bg-[#0B1E3F] hover:bg-[#1B335B] text-white"
+          className="w-full h-12! rounded-full font-dm-san-regular font-semibold tracking-wide text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center bg-primary-color hover:bg-primary-color/90 text-white"
         >
           Continue to the App
         </Button>
@@ -293,21 +293,21 @@ export default function RegisterForm() {
   if (regStatus === "failure") {
     return (
       <Card className="w-full bg-white border border-zinc-200/60 rounded-[8px] p-6 shadow-2xs font-dm-san-regular flex flex-col items-center text-center space-y-6">
-        <div className="size-16 rounded-full bg-[#FEF2F2] flex items-center justify-center text-[#EF4444]">
+        <div className="size-16 rounded-full bg-warning-btn flex items-center justify-center text-error">
           <IconX className="size-8 stroke-3" />
         </div>
         <div className="space-y-2">
           <CardTitle className="text-2xl font-bold tracking-tight text-body-text">
             Registration Failed
           </CardTitle>
-          <p className="text-xs text-red-500 font-normal max-w-xs leading-relaxed">
+          <p className="text-xs text-error font-normal max-w-xs leading-relaxed">
             {errorMessage}
           </p>
         </div>
         <Button
           type="button"
           onClick={() => setRegStatus("idle")}
-          className="w-full h-11! rounded-full font-dm-san-regular font-semibold tracking-wide text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center bg-[#0B1E3F] hover:bg-[#1B335B] text-white"
+          className="w-full h-11! rounded-full font-dm-san-regular font-semibold tracking-wide text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center bg-primary-color hover:bg-primary-color/90 text-white"
         >
           Try Again
         </Button>
@@ -328,7 +328,7 @@ export default function RegisterForm() {
         {/* Profile Pic Upload */}
         <div className="flex flex-col items-center justify-center gap-2 mb-2">
           <span
-            className="text-xs font-semibold text-[#0B1E3F] hover:underline cursor-pointer font-dm-san-regular"
+            className="text-xs font-semibold text-primary-color hover:underline cursor-pointer font-dm-san-regular"
             onClick={handleProfilePicClick}
           >
             Add Profile Picture
@@ -608,7 +608,7 @@ export default function RegisterForm() {
                         <button
                           type="button"
                           onClick={() => handleRemoveCert(index)}
-                          className="p-1 hover:bg-zinc-200/60 rounded-full transition-colors text-zinc-500 hover:text-red-500 cursor-pointer outline-hidden shrink-0 ml-2"
+                          className="p-1 hover:bg-zinc-200/60 rounded-full transition-colors text-zinc-500 hover:text-error cursor-pointer outline-hidden shrink-0 ml-2"
                           title="Remove certificate"
                         >
                           <IconX className="size-4" />
@@ -625,7 +625,7 @@ export default function RegisterForm() {
                     )}
                   >
                     <IconLoader2 className="size-6 mb-2 text-secondary-color animate-spin" />
-                    <span className="font-bold text-sm block text-[#0B1E3F]">
+                    <span className="font-bold text-sm block text-primary-color">
                       Uploading Certificate(s)...
                     </span>
                   </div>
@@ -637,8 +637,8 @@ export default function RegisterForm() {
                       errors.certification && certificates.length === 0 ? "border-red-500 bg-red-50/10" : "border-secondary-color"
                     )}
                   >
-                    <IconUpload className={cn("size-6 mb-2", errors.certification && certificates.length === 0 ? "text-red-500" : "text-secondary-color")} />
-                    <span className={cn("font-bold text-sm block", errors.certification && certificates.length === 0 ? "text-red-500" : "text-[#0B1E3F]")}>
+                    <IconUpload className={cn("size-6 mb-2", errors.certification && certificates.length === 0 ? "text-error" : "text-secondary-color")} />
+                    <span className={cn("font-bold text-sm block", errors.certification && certificates.length === 0 ? "text-error" : "text-primary-color")}>
                       {certificates.length > 0 ? "+ Upload More Certificates" : "+ Upload Your Certificate(s)"}
                     </span>
                     <span className="text-xs text-zinc-500 font-normal mt-1 block">
@@ -665,7 +665,7 @@ export default function RegisterForm() {
             type="submit"
             disabled={!isValid || isPending || isUploadingProfilePic || isUploadingCert}
             className={`w-full h-12! rounded-full font-dm-san-regular font-semibold tracking-wide text-sm transition-all border-none outline-hidden cursor-pointer shadow-none flex items-center justify-center gap-2 ${isValid && !isPending && !isUploadingProfilePic && !isUploadingCert
-              ? "bg-[#0B1E3F] hover:bg-[#1B335B] text-white"
+              ? "bg-primary-color hover:bg-primary-color/90 text-white"
               : "bg-primary-light text-body-text pointer-events-none"
               }`}
           >

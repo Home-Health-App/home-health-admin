@@ -91,7 +91,7 @@ export default function AiReportsListView({ patientId }: AiReportsListViewProps)
     return (
       <div className="w-full py-20 flex flex-col items-center justify-center gap-3">
         <IconLoader2 className="size-8 text-primary-color animate-spin" />
-        <p className="text-sm font-dm-san-regular text-zinc-500">Loading AI Health Reports...</p>
+        <p className="text-sm font-dm-san-regular text-body-text/70">Loading AI Health Reports...</p>
       </div>
     )
   }
@@ -101,10 +101,10 @@ export default function AiReportsListView({ patientId }: AiReportsListViewProps)
       {/* Top Header Section */}
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-start">
         <div>
-          <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-[#2B2B2B]">
+          <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-body-text">
             AI Reports
           </h1>
-          <div className="flex flex-wrap items-center gap-2 text-[#2B2B2B] font-dm-san-regular text-sm mt-1">
+          <div className="flex flex-wrap items-center gap-2 text-body-text font-dm-san-regular text-sm mt-1">
             <span>{patientName}</span>
             {/* <span className="text-zinc-300">•</span> */}
             {/* <span>ID: {patient?.id || patientId}</span> */}
@@ -128,7 +128,7 @@ export default function AiReportsListView({ patientId }: AiReportsListViewProps)
       {reports.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-zinc-200/70 text-center space-y-2">
           <IconActivity className="size-12 text-zinc-300 mb-2" />
-          <h3 className="font-dm-san-medium font-bold text-zinc-950 text-xl">
+          <h3 className="font-dm-san-medium font-bold text-heading-text text-xl">
             No AI Health Reports Found
           </h3>
           <p className="text-zinc-500 font-sans text-sm max-w-sm leading-relaxed">
@@ -163,7 +163,7 @@ export default function AiReportsListView({ patientId }: AiReportsListViewProps)
                     {report.key_metrics.moodSummary && (
                       <Badge
                         variant="outline"
-                        className="bg-active-btn text-[#0A432C] border-active-border font-dm-san-regular font-medium px-2.5 py-0.5 rounded-full text-xs capitalize"
+                        className="bg-active-btn text-active-border border-active-border font-dm-san-regular font-medium px-2.5 py-0.5 rounded-full text-xs capitalize"
                       >
                         Mood: {report.key_metrics.moodSummary.toLowerCase().replace(/_/g, " ")}
                       </Badge>
@@ -219,7 +219,7 @@ export default function AiReportsListView({ patientId }: AiReportsListViewProps)
                     </Button>
                     <Button
                       onClick={handleSendToCaregivers}
-                      className="rounded-full bg-[#1B335B] hover:bg-[#2B4673] text-white font-dm-san-regular font-semibold text-xs px-4 h-9 cursor-pointer outline-hidden border-none shadow-none transition-colors"
+                      className="rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-dm-san-regular font-semibold text-xs px-4 h-9 cursor-pointer outline-hidden border-none shadow-none transition-colors"
                     >
                       Send to caregivers
                     </Button>

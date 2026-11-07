@@ -24,13 +24,13 @@ export default function DeleteNotificationModal({
       >
         <div className="flex flex-col items-center text-center space-y-6 font-dm-san-regular">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-zinc-950 font-sans tracking-tight">
+            <h2 className="text-2xl font-bold text-heading-text font-sans tracking-tight">
               Delete Notification
             </h2>
             <p className="text-sm text-zinc-600 font-normal leading-relaxed">
               Are you sure you want to delete this notification?
             </p>
-            <p className="text-xs text-[#C43A3A] font-normal pt-1">
+            <p className="text-xs text-error font-normal pt-1">
               This cannot be undone
             </p>
           </div>
@@ -40,7 +40,7 @@ export default function DeleteNotificationModal({
               type="button"
               onClick={onConfirm}
               disabled={isPending}
-              className="flex-1 rounded-full bg-warning-border hover:bg-[#B02F2F] text-white font-dm-san-regular font-semibold text-sm py-3 cursor-pointer border-none shadow-none outline-hidden transition-colors disabled:opacity-50"
+              className="flex-1 rounded-full bg-warning-border hover:bg-warning-border/90 text-white font-dm-san-regular font-semibold text-sm py-3 cursor-pointer border-none shadow-none outline-hidden transition-colors disabled:opacity-50"
             >
               {isPending ? "Deleting..." : "Delete"}
             </button>
@@ -49,7 +49,7 @@ export default function DeleteNotificationModal({
               type="button"
               onClick={() => onOpenChange(false)}
               disabled={isPending}
-              className="flex-1 rounded-full border border-[#4F73B8] bg-white font-dm-san-regular font-semibold text-sm text-[#4F73B8] hover:bg-[#EEF2F6] py-3 cursor-pointer transition-colors shadow-none outline-hidden disabled:opacity-50"
+              className="flex-1 rounded-full border border-secondary-color bg-white font-dm-san-regular font-semibold text-sm text-secondary-color hover:bg-secondary-light py-3 cursor-pointer transition-colors shadow-none outline-hidden disabled:opacity-50"
             >
               Cancel
             </button>

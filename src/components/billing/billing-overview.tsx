@@ -94,7 +94,7 @@ export default function BillingOverview({
         <div className="flex items-center gap-3 self-start sm:self-center">
           <Button
             onClick={() => router.push("/dashboard/billing/manage-plans")}
-            className="flex h-9.5 items-center gap-1.5 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] px-5 text-xs font-semibold font-dm-san-regular text-white transition-colors cursor-pointer border-none shadow-none outline-hidden"
+            className="flex h-9.5 items-center gap-1.5 rounded-full bg-primary-color hover:bg-primary-color/90 px-5 text-xs font-semibold font-dm-san-regular text-white transition-colors cursor-pointer border-none shadow-none outline-hidden"
           >
             Manage Subscription Plans
           </Button>
@@ -102,15 +102,15 @@ export default function BillingOverview({
       </div>
 
       {/* Overview Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Card 1: Revenue */}
-        <div className="bg-primary-light border border-zinc-200/50 rounded-[8px] p-4 shadow-3xs flex flex-col justify-between min-h-30">
+        <div className="p-6 bg-primary-light rounded-[8px] shadow-2xs space-y-2.5 flex flex-col justify-between min-h-32">
           <div className="flex items-center justify-between">
             <span className="text-base font-semibold font-dm-san-regular text-body-text">
               Revenue
             </span>
             <Select value={timeframe} onValueChange={(val) => setTimeframe(val!)}>
-              <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
+              <SelectTrigger className="h-9.5 px-3 rounded-lg border border-zinc-200 bg-white font-dm-san-regular font-semibold text-xs text-body-text flex items-center justify-between shadow-none cursor-pointer focus:ring-0 focus:border-zinc-300">
                 <SelectValue placeholder="Period" />
               </SelectTrigger>
               <SelectContent>
@@ -124,14 +124,14 @@ export default function BillingOverview({
           </div>
         </div>
 
-        {/* Card 2: Refunds */}
-        <div className="bg-primary-light border border-border-light rounded-[8px] p-4 shadow-3xs flex flex-col justify-between min-h-30">
+        {/* Card 2: Refunds (Temporarily hidden)
+        <div className="p-6 bg-primary-light rounded-[8px] shadow-2xs space-y-2.5 flex flex-col justify-between min-h-32">
           <div className="flex items-center justify-between">
             <span className="text-base font-semibold font-dm-san-regular text-body-text">
               Refunds
             </span>
             <Select value={timeframe} onValueChange={(val) => setTimeframe(val!)}>
-              <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
+              <SelectTrigger className="h-9.5 px-3 rounded-lg border border-zinc-200 bg-white font-dm-san-regular font-semibold text-xs text-body-text flex items-center justify-between shadow-none cursor-pointer focus:ring-0 focus:border-zinc-300">
                 <SelectValue placeholder="Period" />
               </SelectTrigger>
               <SelectContent>
@@ -149,9 +149,10 @@ export default function BillingOverview({
             </Link>
           </div>
         </div>
+        */}
 
         {/* Card 3: Billing Health */}
-        <div className="bg-primary-light border border-border-light rounded-[8px] p-4 shadow-3xs flex flex-col justify-between min-h-30">
+        <div className="p-6 bg-primary-light rounded-[8px] shadow-2xs space-y-2.5 flex flex-col justify-between min-h-32">
           <div className="flex items-center justify-between">
             <span className="text-base font-semibold font-dm-san-regular text-body-text">
               Billing Health
@@ -190,7 +191,7 @@ export default function BillingOverview({
       {isPaymentsPending ? (
         <div className="bg-white border border-zinc-200/80 rounded-[8px] p-16 flex flex-col items-center justify-center gap-3">
           <IconLoader2 className="size-8 text-primary-color animate-spin" />
-          <span className="text-xs font-dm-san-regular text-zinc-500">
+          <span className="text-xs font-dm-san-regular text-body-text/70">
             Loading billing records...
           </span>
         </div>
@@ -198,21 +199,21 @@ export default function BillingOverview({
         <div className="space-y-4">
           {/* Filters Bar */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 pt-3">
-            <div className="relative w-full lg:w-72">
-              <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
+            <div className="relative h-14 w-full sm:w-110">
+              <IconSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 size-6 text-body-text opacity-40" />
               <Input
                 type="text"
-                placeholder="Search patient, family member..."
+                placeholder="Search Billing"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 text-xs font-dm-san-regular bg-white border-zinc-200 rounded-lg shadow-none focus-visible:ring-0"
+                className="pl-12 pr-4 h-full rounded-full border border-[#A1A1A1] shadow-none font-sans text-sm focus-visible:border-[#999999] focus-visible:ring-0 outline-hidden text-body-text bg-white w-full placeholder:text-zinc-400"
               />
             </div>
 
             <div className="flex items-center gap-2.5 flex-wrap self-end lg:self-auto">
               {/* Tiers Select */}
               <Select value={selectedTier} onValueChange={(val) => setSelectedTier(val!)}>
-                <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
+                <SelectTrigger className="h-9.5 px-3 rounded-lg border border-zinc-200 bg-white font-dm-san-regular font-semibold text-xs text-body-text flex items-center justify-between shadow-none cursor-pointer focus:ring-0 focus:border-zinc-300">
                   <SelectValue placeholder="Tiers" />
                 </SelectTrigger>
                 <SelectContent>
@@ -226,7 +227,7 @@ export default function BillingOverview({
 
               {/* Categories Select */}
               <Select value={selectedCategory} onValueChange={(val) => setSelectedCategory(val!)}>
-                <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
+                <SelectTrigger className="h-9.5 px-3 rounded-lg border border-zinc-200 bg-white font-dm-san-regular font-semibold text-xs text-body-text flex items-center justify-between shadow-none cursor-pointer focus:ring-0 focus:border-zinc-300">
                   <SelectValue placeholder="Categories" />
                 </SelectTrigger>
                 <SelectContent>
@@ -241,7 +242,7 @@ export default function BillingOverview({
 
               {/* Status Select */}
               <Select value={selectedStatus} onValueChange={(val) => setSelectedStatus(val!)}>
-                <SelectTrigger className="h-8 text-2xs font-normal font-dm-san-regular text-body-text w-fit border border-[#2B2B2B] rounded-[8px] bg-white shadow-none focus:ring-0">
+                <SelectTrigger className="h-9.5 px-3 rounded-lg border border-zinc-200 bg-white font-dm-san-regular font-semibold text-xs text-body-text flex items-center justify-between shadow-none cursor-pointer focus:ring-0 focus:border-zinc-300">
                   <SelectValue placeholder="Statuses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -277,7 +278,7 @@ export default function BillingOverview({
           </p>
           <Button
             onClick={handleInviteFamily}
-            className="rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-dm-san-regular font-semibold text-xs px-6.5 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors"
+            className="rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-dm-san-regular font-semibold text-xs px-6.5 h-10 border-none shadow-none cursor-pointer outline-hidden transition-colors"
           >
             Invite Family Member
           </Button>

@@ -1,5 +1,8 @@
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
-import { getActivityLogs } from "@/services/activity-log.service"
+import {
+  getActivityLogs,
+  getUserActivityLogs,
+} from "@/services/activity-log.service"
 import {
   ActivityLogItem,
   GetActivityLogsQueryParams,
@@ -12,6 +15,8 @@ export const activityLogKeys = {
   lists: () => [...activityLogKeys.all, "list"] as const,
   list: (params?: GetActivityLogsQueryParams) =>
     [...activityLogKeys.lists(), params || {}] as const,
+  userLogs: (userId: string, params?: GetActivityLogsQueryParams) =>
+    [...activityLogKeys.all, "user-logs", userId, params || {}] as const,
 }
 
 export const useGetActivityLogs = (
@@ -28,6 +33,21 @@ export const useGetActivityLogs = (
   })
 }
 
+export const useGetUserActivityLogs = (
+  userId: string,
+  params?: GetActivityLogsQueryParams,
+  options?: { enabled?: boolean }
+) => {
+  return useQuery<
+    PaginatedResponse<ActivityLogItem[]>,
+    AxiosError<GeneralResponse>
+  >({
+    queryKey: activityLogKeys.userLogs(userId, params),
+    queryFn: () => getUserActivityLogs(userId, params),
+    enabled: (options?.enabled ?? true) && !!userId,
+  })
+}
+
 export const useSuspenseGetActivityLogs = (
   params?: GetActivityLogsQueryParams
 ) => {
@@ -39,3 +59,4 @@ export const useSuspenseGetActivityLogs = (
     queryFn: () => getActivityLogs(params),
   })
 }
+

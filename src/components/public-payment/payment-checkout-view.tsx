@@ -15,6 +15,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useGetPaymentById, useVerifyPaymentLink } from "@/hooks/billing.hook"
 import { toast } from "sonner"
 
+type PaystackSuccessResponse = {
+  reference: string;
+  status?: string;
+};
+
 const PaystackCheckoutButton = dynamic(
   () => import("./paystack-checkout-button"),
   {
@@ -45,6 +50,7 @@ export default function PaymentCheckoutView({ paymentId }: PaymentCheckoutViewPr
     error,
     refetch: refetchPayment,
   } = useGetPaymentById(resolvedId)
+
   const paymentData = paymentResponse?.data
 
   // 2. Server verification mutation (POST /payment-link/verify/:id)
@@ -68,12 +74,11 @@ export default function PaymentCheckoutView({ paymentId }: PaymentCheckoutViewPr
     "Primary Family Sponsor"
 
   // Comprehensive email resolution
-  const customerEmail = (
-    paymentData?.email ||
-    familyMember?.email ||
-    paymentRecord?.user?.email ||
+  const customerEmail =
+    paymentData?.email ??
+    familyMember?.email ??
+    paymentRecord?.user?.email ??
     ""
-  ).trim()
 
   const sponsorPhone = familyMember?.phone || patient?.phone
 
@@ -90,51 +95,49 @@ export default function PaymentCheckoutView({ paymentId }: PaymentCheckoutViewPr
   const [transactionRef, setTransactionRef] = useState(paymentReference)
   const [paidAt, setPaidAt] = useState("")
 
-  // 5. Verification handler
-  const handlePaymentSuccess = (response?: any) => {
-    const targetPaymentId = paymentReference || response?.reference
-    if (!targetPaymentId) {
-      toast.error("Payment reference identifier is missing from record.")
-      return
+  // 5. Verification handle
+  const handlePaymentSuccess = (
+    response: PaystackSuccessResponse,
+  ) => {
+    if (!paymentReference || !response.reference) {
+      toast.error("Payment reference is missing.");
+      return;
     }
 
-    if (response?.reference) {
-      setTransactionRef(response.reference)
-    }
+    setTransactionRef(response.reference);
 
-    toast.loading("Verifying payment...", { id: "payment-verify" })
+    toast.loading("Verifying payment...", {
+      id: "payment-verify",
+    });
 
-    // verifyMutation.mutate(
-    //   {
-    //     paymentRecordId: targetPaymentId,
-    //   },
-    //   {
-    //     onSuccess: () => {
-    //       setPaidAt(
-    //         new Date().toLocaleString("en-US", {
-    //           month: "short",
-    //           day: "numeric",
-    //           year: "numeric",
-    //           hour: "2-digit",
-    //           minute: "2-digit",
-    //         })
-    //       )
-    //       setPaymentState("success")
-    //       toast.success("Payment verified successfully! Care plan subscription is active.", {
-    //         id: "payment-verify",
-    //       })
-    //       refetchPayment()
-    //     }, 
-    //     onError: (err: any) => {
-    //       const errMsg =
-    //         err?.response?.data?.message ||
-    //         err?.message ||
-    //         "Could not verify transaction with the server. Please try again."
-    //       toast.error(errMsg, { id: "payment-verify" })
-    //     },
-    //   }
-    // )
-  }
+    verifyMutation.mutate(
+      { paymentRecordId: paymentReference },
+      {
+        onSuccess: () => {
+          setPaidAt(
+            new Date().toLocaleString("en-NG", {
+              dateStyle: "medium",
+              timeStyle: "short",
+            }),
+          );
+
+          setPaymentState("success");
+
+          toast.success("Payment verified successfully.", {
+            id: "payment-verify",
+          });
+
+          void refetchPayment();
+        },
+
+        onError: () => {
+          toast.error("Payment verification failed.", {
+            id: "payment-verify",
+          });
+        },
+      },
+    );
+  };
 
   const handlePaymentClose = () => {
     toast.info("Payment window closed.")
@@ -148,9 +151,9 @@ export default function PaymentCheckoutView({ paymentId }: PaymentCheckoutViewPr
 
   if (isPaymentPending) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center gap-3">
+      <div className="min-h-screen bg-secondary-light flex flex-col items-center justify-center gap-3">
         <IconLoader2 className="size-8 text-primary-color animate-spin" />
-        <p className="text-xs font-dm-san-regular text-zinc-500">
+        <p className="text-xs font-dm-san-regular text-body-text/70">
           Loading payment details...
         </p>
       </div>
@@ -159,12 +162,12 @@ export default function PaymentCheckoutView({ paymentId }: PaymentCheckoutViewPr
 
   if (error || (!isPaymentPending && !paymentData)) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-secondary-light flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-white border border-zinc-200 rounded-2xl p-8 max-w-md w-full shadow-sm space-y-3">
           <h2 className="text-lg font-bold font-dm-san-regular text-body-text">
             Payment Not Found
           </h2>
-          <p className="text-xs font-dm-san-regular text-zinc-500">
+          <p className="text-xs font-dm-san-regular text-body-text/70">
             We couldn&apos;t retrieve the details for this payment. It may have expired or the link is invalid.
           </p>
         </div>
@@ -173,17 +176,17 @@ export default function PaymentCheckoutView({ paymentId }: PaymentCheckoutViewPr
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-body-text selection:bg-primary-light selection:text-primary-color flex flex-col">
+    <div className="min-h-screen bg-secondary-light text-body-text selection:bg-primary-light selection:text-primary-color flex flex-col">
       <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         {paymentState === "success" || isAlreadyPaid ? (
           /* ================= SUCCESS / DIGITAL RECEIPT VIEW ================= */
           <div className="w-full max-w-xl bg-white border border-zinc-200/90 rounded-3xl p-6 sm:p-8 shadow-lg space-y-6 animate-in fade-in zoom-in-95 duration-300">
             {/* Header Celebration */}
             <div className="text-center space-y-2.5">
-              <div className="size-16 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center shadow-inner">
+              <div className="size-16 rounded-full bg-active-btn text-active-border mx-auto flex items-center justify-center shadow-inner">
                 <IconCheck className="size-8 stroke-[3]" />
               </div>
-              <Badge className="bg-emerald-600 text-white font-dm-san-regular px-3 py-0.5 text-2xs">
+              <Badge className="bg-active-border text-white font-dm-san-regular px-3 py-0.5 text-2xs">
                 {isAlreadyPaid ? "Subscription Active" : "Payment Completed & Verified"}
               </Badge>
               <h1 className="text-2xl font-extrabold font-dm-san-regular text-body-text">
@@ -201,7 +204,7 @@ export default function PaymentCheckoutView({ paymentId }: PaymentCheckoutViewPr
                 <span className="text-2xs font-bold font-dm-san-regular uppercase tracking-wider text-zinc-500">
                   Paystack Official Receipt
                 </span>
-                <span className="text-xs font-mono font-bold text-zinc-700 truncate max-w-[180px]">
+                <span className="text-xs font-mono font-bold text-body-text truncate max-w-[180px]">
                   {transactionRef || paymentRecord?.id || paymentData?.id || "N/A"}
                 </span>
               </div>
@@ -237,21 +240,21 @@ export default function PaymentCheckoutView({ paymentId }: PaymentCheckoutViewPr
 
               <div className="pt-2.5 border-t border-zinc-200 flex justify-between items-baseline">
                 <span className="text-xs font-bold font-dm-san-regular text-body-text">Amount Paid:</span>
-                <span className="text-xl font-black font-dm-san-regular text-emerald-600">
+                <span className="text-xl font-black font-dm-san-regular text-active-border">
                   ₦{finalTotalAmount.toLocaleString()} NGN
                 </span>
               </div>
             </div>
 
             {/* Coverage Confirmation */}
-            <div className="p-4 rounded-xl bg-primary-light/40 border border-[#B3CBE6] space-y-2">
+            <div className="p-4 rounded-xl bg-primary-light/40 border border-primary-light space-y-2">
               <div className="flex items-center gap-2">
                 <IconSparkles className="size-4 text-primary-color shrink-0" />
                 <span className="text-xs font-bold font-dm-san-regular text-primary-color">
                   Care Plan Activated
                 </span>
               </div>
-              <p className="text-xs font-dm-san-regular text-zinc-700 leading-relaxed">
+              <p className="text-xs font-dm-san-regular text-body-text leading-relaxed">
                 Dedicated caregivers and nurses for {patientFullName} are now active. A copy of this receipt has been emailed to <span className="font-semibold">{customerEmail || "your registered email"}</span>.
               </p>
             </div>
@@ -363,7 +366,7 @@ export default function PaymentCheckoutView({ paymentId }: PaymentCheckoutViewPr
                   <ul className="space-y-2.5 text-xs text-body-text font-dm-san-regular">
                     {selectedPlan.coverage.map((item: string, idx: number) => (
                       <li key={idx} className="flex items-start gap-2.5">
-                        <div className="size-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                        <div className="size-4 rounded-full bg-active-btn text-active-border flex items-center justify-center shrink-0 mt-0.5">
                           <IconCheck className="size-3 stroke-[3]" />
                         </div>
                         <span className="leading-tight">{item}</span>
@@ -393,10 +396,10 @@ export default function PaymentCheckoutView({ paymentId }: PaymentCheckoutViewPr
                   email={customerEmail}
                   amountInKobo={amountInKobo}
                   amountInNaira={finalTotalAmount}
-                  disabled={finalTotalAmount <= 0 || !customerEmail || !paymentReference || verifyMutation.isPending}
                   isVerifying={verifyMutation.isPending}
                   onSuccess={handlePaymentSuccess}
-                  onClose={handlePaymentClose}
+                  onClose={() => toast.info("Payment window closed")}
+                  disabled={!paymentReference || !customerEmail || amountInKobo <= 0 || verifyMutation.isPending}
                 />
               </div>
             </div>

@@ -1,11 +1,12 @@
 "use client"
 
-import React, { useMemo } from "react"
+import React, { useMemo, useState } from "react"
 import {
   IconPhone,
   IconMail,
   IconMapPin,
   IconCalendar,
+  IconLoader2,
 } from "@tabler/icons-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -15,10 +16,25 @@ import { useRouter } from "next/navigation"
 import { useSuspenseGetUserById, useSuspendCaregiver } from "@/hooks/user.hook"
 import { useUnassignPatient } from "@/hooks/patient.hook"
 import { useCreateAdminChat } from "@/hooks/chat.hook"
+import { useGetUserActivityLogs } from "@/hooks/activity-log.hook"
 import { toast } from "sonner"
 import ConfirmationModal, { useConfirmation } from "@/components/modal/confirmation-modal"
 import { calculateAge, cn } from "@/libs/utils"
 import { PatientType } from "@/types/patient.type"
+
+function formatActivityTime(dateStr?: string) {
+  if (!dateStr) return "-"
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return dateStr
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  })
+}
 
 interface CaregiverDetailsViewProps {
   caregiverId: string
@@ -109,64 +125,40 @@ export default function CaregiverDetailsView({ caregiverId }: CaregiverDetailsVi
     )
   }
 
-  // Extract assigned patients
+  const [showAllLogs, setShowAllLogs] = useState(false)
+
+  // Fetch live activity logs
+  const { data: activityLogsResponse, isLoading: isLoadingLogs } =
+    useGetUserActivityLogs(caregiverId, { limit: 50 }, { enabled: !!caregiverId })
+  const activityLogs = activityLogsResponse?.data || []
+  const displayedLogs = showAllLogs ? activityLogs : activityLogs.slice(0, 4)
+
+  // Extract assigned patients (from caregiver_patient, assignments, and patients)
   const assignedPatients = useMemo<PatientType[]>(() => {
     if (!caregiver) return []
-    return caregiver.patients || []
-  }, [caregiver])
+    const patientMap = new Map<string, PatientType>()
 
-  // Build dynamic timeline items
-  const timelineItems = useMemo(() => {
-    if (!caregiver) return []
-    const items: { title: string; date: string; description: string; isLatest?: boolean }[] = []
+    if (caregiver.caregiver_patient && caregiver.caregiver_patient.id) {
+      patientMap.set(caregiver.caregiver_patient.id, caregiver.caregiver_patient)
+    }
 
-    if (caregiver.patients && caregiver.patients.length > 0) {
+    if (caregiver.assignments && Array.isArray(caregiver.assignments)) {
+      caregiver.assignments.forEach((assignment) => {
+        if (assignment.patient && assignment.patient.id) {
+          patientMap.set(assignment.patient.id, assignment.patient)
+        }
+      })
+    }
+
+    if (caregiver.patients && Array.isArray(caregiver.patients)) {
       caregiver.patients.forEach((pat) => {
-        const patName =
-          `${pat.first_name || ""} ${pat.last_name || ""}`.trim() || "patient"
-        const formattedDate = pat.created_at
-          ? new Date(pat.created_at).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })
-          : "Recent"
-        items.push({
-          title: "Patient Assigned",
-          date: formattedDate,
-          description: `Assigned to ${patName}.`,
-        })
+        if (pat && pat.id) {
+          patientMap.set(pat.id, pat)
+        }
       })
     }
 
-    if (caregiver.created_at) {
-      const joinedDate = new Date(caregiver.created_at).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-      items.push({
-        title: "Account Activated",
-        date: joinedDate,
-        description: "User completed onboarding flow.",
-      })
-      items.push({
-        title: "Invitation Sent",
-        date: joinedDate,
-        description: "System generated welcome email.",
-      })
-    }
-
-    if (items.length === 0) {
-      items.push({
-        title: "Account Created",
-        date: "Recent",
-        description: "Caregiver registered on platform.",
-      })
-    }
-
-    items[0].isLatest = true
-    return items
+    return Array.from(patientMap.values())
   }, [caregiver])
 
   if (!caregiver) return null
@@ -181,7 +173,7 @@ export default function CaregiverDetailsView({ caregiverId }: CaregiverDetailsVi
     <div className="w-full space-y-8 pb-12">
       {/* Header title */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight font-sans text-zinc-900">
+        <h1 className="text-3xl font-bold tracking-tight font-sans text-heading-text">
           Caregiver Information
         </h1>
       </div>
@@ -212,7 +204,7 @@ export default function CaregiverDetailsView({ caregiverId }: CaregiverDetailsVi
                   ) : (
                     <Badge
                       variant="outline"
-                      className="bg-active-btn text-[#0A432C] border-active-border font-dm-san-regular font-medium px-3.5 py-0.5 rounded-full shadow-none text-xs"
+                      className="bg-active-btn text-active-border border-active-border font-dm-san-regular font-medium px-3.5 py-0.5 rounded-full shadow-none text-xs"
                     >
                       Active
                     </Badge>
@@ -294,7 +286,7 @@ export default function CaregiverDetailsView({ caregiverId }: CaregiverDetailsVi
                             variant="outline"
                             onClick={() => handleUnassignPatient(pat)}
                             disabled={isUnassignPending}
-                            className="rounded-full border border-[#EF4444] text-[#EF4444] hover:bg-red-50 font-dm-san-regular font-semibold text-xs px-4 h-8.5 cursor-pointer outline-hidden shadow-none disabled:opacity-50"
+                            className="rounded-full border border-error text-error hover:bg-warning-btn font-dm-san-regular font-semibold text-xs px-4 h-8.5 cursor-pointer outline-hidden shadow-none disabled:opacity-50"
                           >
                             Unassign
                           </Button>
@@ -313,40 +305,71 @@ export default function CaregiverDetailsView({ caregiverId }: CaregiverDetailsVi
 
           {/* Activity Timeline */}
           <div className="space-y-6 bg-white p-6 rounded-[8px]">
-            <h2 className="text-[22px] font-medium text-[#2B2B2B] font-dm-san-regular">
+            <h2 className="text-[22px] font-medium text-body-text font-dm-san-regular">
               Activity Timeline
             </h2>
 
-            <div className="relative ml-3.5 space-y-8">
-              {/* Single continuous line */}
-              <div className="absolute left-1.5 top-2 bottom-2 border-l border-[#888888]" />
+            {isLoadingLogs ? (
+              <div className="flex items-center justify-center py-6 text-body-text/70">
+                <IconLoader2 className="size-5 text-primary-color animate-spin mr-2" />
+                <span className="text-xs font-dm-san-regular">Loading activity logs...</span>
+              </div>
+            ) : activityLogs.length > 0 ? (
+              <div className="relative ml-3.5 space-y-8">
+                {/* Single continuous line */}
+                <div className="absolute left-1.5 top-2 bottom-2 border-l border-[#888888]" />
 
-              {timelineItems.map((item, idx) => (
-                <div key={idx} className="relative flex gap-4">
-                  <div className="flex flex-col items-center pt-1">
-                    <div
-                      className={cn(
-                        "size-3.5 rounded-full ring-4 ring-white shrink-0",
-                        item.isLatest ? "bg-secondary-color" : "bg-[#888888]"
-                      )}
-                    />
-                  </div>
-                  <div className="flex-1 space-y-1 -ml-px">
-                    <div className="flex justify-between items-start gap-4">
-                      <h4 className="font-semibold text-zinc-900 text-sm font-dm-san-regular">
-                        {item.title}
-                      </h4>
-                      <span className="text-xs text-zinc-500 font-dm-san-regular whitespace-nowrap">
-                        {item.date}
-                      </span>
+                {displayedLogs.map((item, index) => {
+                  const isLatest = index === 0
+                  return (
+                    <div key={item._id || index} className="relative flex gap-4">
+                      <div className="flex flex-col items-center pt-1">
+                        <div
+                          className={cn(
+                            "size-3.5 rounded-full ring-4 shrink-0",
+                            isLatest
+                              ? "bg-secondary-color ring-white"
+                              : "bg-[#888888] ring-white"
+                          )}
+                        />
+                      </div>
+                      <div className="flex-1 space-y-1 -ml-px">
+                        <div className="flex justify-between items-start gap-4">
+                          <h4 className="font-semibold text-heading-text text-sm font-dm-san-regular">
+                            {item.log_type || item.action || "Activity Log"}
+                          </h4>
+                          <span className="text-xs text-zinc-500 font-dm-san-regular whitespace-nowrap">
+                            {formatActivityTime(item.created_at)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-zinc-600 font-dm-san-regular leading-relaxed">
+                          {item.message}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-xs text-zinc-600 font-dm-san-regular">
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="p-5 bg-secondary-light rounded-[8px] text-zinc-400 italic text-sm font-dm-san-regular">
+                No activity logs found for this caregiver.
+              </div>
+            )}
+
+            {/* View Full History Toggle Button */}
+            {activityLogs.length > 4 && (
+              <div className="flex justify-end pt-2">
+                <Button
+                  onClick={() => setShowAllLogs((prev) => !prev)}
+                  variant="outline"
+                  className="rounded-full border bg-white border-secondary-color font-dm-san-regular font-semibold text-xs text-secondary-color px-6 py-2 h-9 hover:bg-zinc-50 cursor-pointer outline-hidden shadow-none"
+                >
+                  {showAllLogs
+                    ? "Show Less"
+                    : `View Full History (${activityLogs.length})`}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 

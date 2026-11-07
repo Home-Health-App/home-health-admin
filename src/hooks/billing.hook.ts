@@ -221,8 +221,10 @@ export const useVerifyPaymentLink = () => {
     mutationFn: ({ paymentRecordId }) =>
       verifyPaymentLink(paymentRecordId),
     mutationKey: ["verify_payment_link"],
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: paymentKeys.all })
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: paymentKeys.all
+      })
     },
   })
 

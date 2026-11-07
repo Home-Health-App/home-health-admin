@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { useGetDailyLogById, useGetPatientById } from "@/hooks/patient.hook"
 import { formatDate, formatTime } from "@/libs/helper"
 import { calculateAge } from "@/libs/utils"
-import PatientLoader from "@/components/patients/patients-list/loader"
+import DailyLogTabsSkeleton from "./daily-log-tabs-skeleton"
 
 // Import Tab Components
 import VitalsTab, { VitalDisplayItem } from "./tabs/vitals-tab"
@@ -85,8 +85,8 @@ export default function DailyLogTabsView({ patientId, logId }: DailyLogTabsViewP
   const tabTriggerClass = (tab: string) =>
     `text-sm font-normal font-dm-san-regular px-3.5 py-2 rounded-[6px] border border-transparent transition-all cursor-pointer shadow-none ${
       activeTab === tab
-        ? "bg-[#648FCC] text-white"
-        : "bg-transparent text-[#2B2B2B] hover:bg-zinc-50/60"
+        ? "bg-secondary-color text-white"
+        : "bg-transparent text-body-text hover:bg-zinc-50/60"
     }`
 
   // Helper to match an item's timestamp against the resolvedTime slot
@@ -333,7 +333,7 @@ export default function DailyLogTabsView({ patientId, logId }: DailyLogTabsViewP
   }, [log, resolvedTime, times])
 
   if (isLogLoading || isPatientLoading) {
-    return <PatientLoader />
+    return <DailyLogTabsSkeleton />
   }
 
   if (isLogError || !log) {
@@ -370,7 +370,7 @@ export default function DailyLogTabsView({ patientId, logId }: DailyLogTabsViewP
         <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-body-text">
           Daily Logs
         </h1>
-        <div className="flex flex-wrap items-center gap-2 text-[#2B2B2B] font-dm-san-regular text-sm mt-1">
+        <div className="flex flex-wrap items-center gap-2 text-body-text font-dm-san-regular text-sm mt-1">
           <span>{patientFullName}</span>
           {/* <span className="text-zinc-300">•</span>
           <span>ID: {patient?.id || patientId}</span> */}
@@ -481,7 +481,7 @@ export default function DailyLogTabsView({ patientId, logId }: DailyLogTabsViewP
           {/* Columns Grid Layout */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
             {/* Left Side: Time logs Selector */}
-            <div className="md:col-span-1 border border-[#B3CBE6] rounded-[8px] p-2 flex flex-col gap-1.5 bg-white shadow-2xs">
+            <div className="md:col-span-1 border border-primary-light rounded-[8px] p-2 flex flex-col gap-1.5 bg-white shadow-2xs">
               {times.map((t) => {
                 const isActive = resolvedTime === t
                 return (

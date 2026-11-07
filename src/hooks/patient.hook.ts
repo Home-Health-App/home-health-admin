@@ -14,6 +14,7 @@ import {
   unassignPatient,
   getPatientDailyLogs,
   getDailyLogById,
+  getUserCreatedPatients,
 } from "@/services/patient.service"
 import {
   PatientType,
@@ -38,6 +39,8 @@ export const patientKeys = {
     [...patientKeys.lists(), params || {}] as const,
   details: () => [...patientKeys.all, "detail"] as const,
   detail: (id: string) => [...patientKeys.details(), id] as const,
+  userPatients: (userId: string, params?: { page?: number; limit?: number }) =>
+    [...patientKeys.all, "user-patients", userId, params || {}] as const,
 }
 
 export const useGetAdminPatients = (params?: GetPatientsQueryParams) => {
@@ -64,6 +67,21 @@ export const useGetPatientById = (id: string, enabled = true) => {
     queryKey: patientKeys.detail(id),
     queryFn: () => getPatientById(id),
     enabled: enabled && !!id,
+  })
+}
+
+export const useGetUserCreatedPatients = (
+  userId: string,
+  params?: { page?: number; limit?: number },
+  options?: { enabled?: boolean }
+) => {
+  return useQuery<
+    PaginatedResponse<PatientType[]>,
+    AxiosError<GeneralResponse>
+  >({
+    queryKey: patientKeys.userPatients(userId, params),
+    queryFn: () => getUserCreatedPatients(userId, params),
+    enabled: (options?.enabled ?? true) && !!userId,
   })
 }
 

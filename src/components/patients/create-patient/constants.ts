@@ -9,17 +9,17 @@ export const CATEGORIES_UI = [
 ] as const
 
 export const TIER_COLORS: Record<string, string> = {
-  Bronze: "text-[#A16207]",
+  Bronze: "text-pending-border",
   Silver: "text-zinc-500",
   Gold: "text-yellow-600",
   Diamond: "text-cyan-600",
 }
 
 export const TIER_BORDER_COLORS: Record<string, string> = {
-  Bronze: "border-[#F0C630]",
+  Bronze: "border-pending-border",
   Silver: "border-[#6F6F6F]",
-  Gold: "border-[#648FCC]",
-  Diamond: "border-[#3AC485]",
+  Gold: "border-secondary-color",
+  Diamond: "border-active-border",
 }
 
 export const DEFAULT_COVERAGE_ITEMS = [

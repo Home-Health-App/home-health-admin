@@ -9,10 +9,10 @@ interface ColumnsProps {
 }
 
 const TIER_STYLES: Record<string, string> = {
-  Bronze: "border-[#F0C630] bg-[#FDF9ED] text-[#A16207]",
-  Silver: "border-[#9CA3AF] bg-[#F3F4F6] text-[#4B5563]",
-  Gold: "border-[#648FCC] bg-primary-light text-primary-color font-semibold",
-  Diamond: "border-[#3AC485] bg-emerald-50 text-emerald-700 font-semibold",
+  Bronze: "border-pending-border bg-pending-btn text-pending-border",
+  Silver: "border-[#9CA3AF] bg-secondary-light text-[#4B5563]",
+  Gold: "border-secondary-color bg-primary-light text-primary-color font-semibold",
+  Diamond: "border-active-border bg-active-btn text-active-border font-semibold",
 }
 
 const isSafeImageUrl = (url?: string | null) => {
@@ -122,7 +122,7 @@ export const getBillingColumns = (
     cell: ({ row }) => {
       const tier = row.original.plan?.tier || "Bronze"
       const style =
-        TIER_STYLES[tier] || "border-zinc-200 bg-zinc-50 text-zinc-700"
+        TIER_STYLES[tier] || "border-zinc-200 bg-zinc-50 text-body-text"
 
       return (
         <span
@@ -160,7 +160,7 @@ export const getBillingColumns = (
       const status = (getValue() as string) || "PENDING"
       const normalized = status.toUpperCase()
 
-      let badgeClasses = "border-[#F0C630] bg-[#FBF7EA] text-[#4D4000]" // default pending
+      let badgeClasses = "border-pending-border bg-pending-btn text-pending-border" // default pending
       let label = status
 
       if (
@@ -168,14 +168,14 @@ export const getBillingColumns = (
         normalized === "SUCCESS" ||
         normalized === "ACTIVE"
       ) {
-        badgeClasses = "border-[#3AC485] bg-[#EEF7F3] text-[#0A432C]"
+        badgeClasses = "border-active-border bg-active-btn text-active-border"
         label = "Paid"
       } else if (
         normalized === "EXPIRED" ||
         normalized === "FAILED" ||
         normalized === "CANCELLED"
       ) {
-        badgeClasses = "border-[#C43A3A] bg-[#F7EEEE] text-[#430D0A]"
+        badgeClasses = "border-warning-border bg-warning-btn text-warning-border"
         label = normalized === "EXPIRED" ? "Expired" : "Failed"
       } else if (normalized === "PENDING") {
         label = "Pending"

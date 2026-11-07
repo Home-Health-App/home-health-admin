@@ -51,13 +51,13 @@ export default function PatientStepper({
                 className={cn(
                   "size-7 rounded-full flex items-center justify-center text-xs font-bold transition-all",
                   isCurrentOrPassed
-                    ? "bg-[#0B1F41] text-white"
+                    ? "bg-primary-color text-white"
                     : "bg-zinc-200 text-zinc-500"
                 )}
               >
                 {step.number}
               </div>
-              <span className="text-xs font-semibold text-[#1E1E1E] mt-1.5 font-sans">
+              <span className="text-xs font-semibold text-body-text mt-1.5 font-sans">
                 {step.label}
               </span>
             </div>
@@ -67,7 +67,7 @@ export default function PatientStepper({
               <div
                 className={cn(
                   "flex-1 h-0.5 mx-4 -mt-4 transition-colors",
-                  currentStep > step.number ? "bg-[#0B1F41]" : "bg-zinc-300"
+                  currentStep > step.number ? "bg-primary-color" : "bg-zinc-300"
                 )}
               />
             )}

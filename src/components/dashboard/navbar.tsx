@@ -99,7 +99,7 @@ export default function Navbar() {
             </span>
             <Badge
               variant="outline"
-              className="border-secondary-color bg-[#EEF2F6] text-primary-color font-sans font-medium px-2.5 py-0.5 text-2xs rounded-full shadow-none select-none capitalize"
+              className="border-secondary-color bg-secondary-light text-primary-color font-sans font-medium px-2.5 py-0.5 text-2xs rounded-full shadow-none select-none capitalize"
             >
               {adminRole}
             </Badge>

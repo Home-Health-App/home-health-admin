@@ -45,7 +45,7 @@ export default function AdlsTab({ adls }: AdlsTabProps) {
 
               {cat.note && (
                 <div className="pt-2 border-t border-zinc-200/40 text-xs font-dm-san-regular text-body-text leading-relaxed">
-                  <span className="font-semibold text-zinc-800 mr-1.5">Note:</span>
+                  <span className="font-semibold text-body-text mr-1.5">Note:</span>
                   <span>{cat.note}</span>
                 </div>
               )}

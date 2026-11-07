@@ -38,6 +38,8 @@ export interface AdminChatData {
   admin_creator: AdminChatCreator | null
   reciever?: ChatUser | null
   receiver?: ChatUser | null
+  last_message?: ChatMessageData | null
+  messages?: ChatMessageData[]
 }
 
 export interface ChatSender {
@@ -54,7 +56,7 @@ export interface ChatMessageData {
   sender_id: string | null
   is_admin: boolean
   admin_sender_id: string | null
-  message: string
+  message: string | null
   files: string[]
   created_at: string
   updated_at: string
@@ -66,7 +68,7 @@ export interface ChatMessageData {
 
 export interface SendAdminMessagePayload {
   chat_id: string
-  message: string
+  message?: string
   files?: string[]
 }
 

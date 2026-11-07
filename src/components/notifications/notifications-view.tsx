@@ -19,6 +19,7 @@ import {
   GetAdminNotificationsQueryParams,
 } from "@/types/notification.type"
 import NotificationCard from "./notification-card"
+import { NotificationCardsSkeleton } from "./notifications-skeleton"
 import DeleteNotificationModal from "@/components/modal/delete-notification-modal"
 import { toast } from "sonner"
 
@@ -250,19 +251,7 @@ export default function NotificationsView() {
           {/* All Notifications List */}
           <TabsContent value="all" className="mt-0 outline-hidden pt-8 space-y-4">
             {isLoading ? (
-              <div className="space-y-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="bg-white rounded-[12px] p-6 shadow-2xs border border-border-light space-y-3">
-                    <div className="flex justify-between items-center">
-                      <Skeleton className="h-6 w-56 rounded-md bg-secondary-light" />
-                      <Skeleton className="size-6 rounded-md bg-secondary-light" />
-                    </div>
-                    <Skeleton className="h-4 w-32 rounded-md bg-secondary-light" />
-                    <Skeleton className="h-4 w-full rounded-md bg-secondary-light" />
-                    <Skeleton className="h-4 w-3/4 rounded-md bg-secondary-light" />
-                  </div>
-                ))}
-              </div>
+              <NotificationCardsSkeleton count={4} />
             ) : filteredNotifications.length > 0 ? (
               filteredNotifications.map((n) => (
                 <NotificationCard
@@ -287,19 +276,7 @@ export default function NotificationsView() {
           {/* Unread Notifications List */}
           <TabsContent value="unread" className="mt-0 outline-hidden pt-8 space-y-4">
             {isLoading ? (
-              <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="bg-white rounded-[12px] p-6 shadow-2xs border border-border-light space-y-3">
-                    <div className="flex justify-between items-center">
-                      <Skeleton className="h-6 w-56 rounded-md bg-secondary-light" />
-                      <Skeleton className="size-6 rounded-md bg-secondary-light" />
-                    </div>
-                    <Skeleton className="h-4 w-32 rounded-md bg-secondary-light" />
-                    <Skeleton className="h-4 w-full rounded-md bg-secondary-light" />
-                    <Skeleton className="h-4 w-3/4 rounded-md bg-secondary-light" />
-                  </div>
-                ))}
-              </div>
+              <NotificationCardsSkeleton count={3} />
             ) : unreadNotifications.length > 0 ? (
               unreadNotifications.map((n) => (
                 <NotificationCard

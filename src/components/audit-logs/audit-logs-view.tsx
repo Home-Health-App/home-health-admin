@@ -127,14 +127,14 @@ export default function AuditLogsView() {
       {/* Filters Row */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         {/* Search Input bar */}
-        <div className="relative w-full md:w-80">
-          <IconSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
+        <div className="relative h-14 w-full sm:w-110">
+          <IconSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 size-6 text-body-text opacity-40" />
           <Input
             type="text"
-            placeholder="Search activity logs..."
+            placeholder="Search Logs"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9.5 pr-4 h-10.5 rounded-full border border-zinc-200 focus-visible:border-zinc-300 focus-visible:ring-0 text-sm font-dm-san-regular font-normal text-body-text placeholder:text-zinc-400 shadow-none bg-white w-full"
+            className="pl-12 pr-4 h-full rounded-full border border-[#A1A1A1] shadow-none font-sans text-sm focus-visible:border-[#999999] focus-visible:ring-0 outline-hidden text-body-text bg-white w-full placeholder:text-zinc-400"
           />
         </div>
 
@@ -142,7 +142,7 @@ export default function AuditLogsView() {
         <div className="flex flex-wrap items-center gap-3 self-end md:self-auto">
           {/* Timeframe Select */}
           <Select value={timeframe} onValueChange={(val) => setTimeframe(val!)}>
-            <SelectTrigger className="h-10! rounded-[8px] border border-body-text bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[130px] shadow-none">
+            <SelectTrigger className="h-9.5 px-3 rounded-lg border border-zinc-200 bg-white font-dm-san-regular font-semibold text-xs text-body-text flex items-center justify-between shadow-none cursor-pointer focus:ring-0 focus:border-zinc-300 w-[130px]">
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
             <SelectContent>
@@ -163,7 +163,7 @@ export default function AuditLogsView() {
 
           {/* Event Type / Action Select */}
           <Select value={eventType} onValueChange={(val) => setEventType(val!)}>
-            <SelectTrigger className="h-10! rounded-[8px] border border-body-text bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[170px] shadow-none">
+            <SelectTrigger className="h-9.5 px-3 rounded-lg border border-zinc-200 bg-white font-dm-san-regular font-semibold text-xs text-body-text flex items-center justify-between shadow-none cursor-pointer focus:ring-0 focus:border-zinc-300 w-[170px]">
               <SelectValue placeholder="Event Type" />
             </SelectTrigger>
             <SelectContent>
@@ -184,7 +184,7 @@ export default function AuditLogsView() {
 
           {/* Log Type Select */}
           <Select value={logType} onValueChange={(val) => setLogType(val!)}>
-            <SelectTrigger className="h-10! rounded-[8px] border border-body-text bg-white font-dm-san-regular text-sm font-normal text-body-text focus:ring-0 w-[160px] shadow-none">
+            <SelectTrigger className="h-9.5 px-3 rounded-lg border border-zinc-200 bg-white font-dm-san-regular font-semibold text-xs text-body-text flex items-center justify-between shadow-none cursor-pointer focus:ring-0 focus:border-zinc-300 w-[160px]">
               <SelectValue placeholder="Log Type" />
             </SelectTrigger>
             <SelectContent>
@@ -208,8 +208,8 @@ export default function AuditLogsView() {
       {/* Main Content Pane */}
       {isLoading ? (
         <div className="border border-zinc-200/60 rounded-[8px] p-12 bg-white flex flex-col items-center justify-center gap-3">
-          <div className="size-8 rounded-full border-2 border-[#0B1E3F] border-t-transparent animate-spin" />
-          <p className="text-sm font-dm-san-regular text-zinc-500">Loading activity logs...</p>
+          <div className="size-8 rounded-full border-2 border-primary-color border-t-transparent animate-spin" />
+          <p className="text-sm font-dm-san-regular text-body-text/70">Loading activity logs...</p>
         </div>
       ) : filteredLogs.length > 0 ? (
         <DataTable
@@ -233,7 +233,7 @@ export default function AuditLogsView() {
           <Button
             onClick={handleClearFilters}
             variant="outline"
-            className="rounded-full border border-blue-500 bg-white font-dm-san-regular font-normal text-xs text-blue-500 hover:bg-blue-50 px-6.5 h-9.5 cursor-pointer outline-hidden shadow-none"
+            className="rounded-full border border-secondary-color bg-white font-dm-san-regular font-normal text-xs text-secondary-color hover:bg-secondary-light px-6.5 h-9.5 cursor-pointer outline-hidden shadow-none"
           >
             Clear Filters
           </Button>

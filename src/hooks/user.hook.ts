@@ -1,5 +1,12 @@
 import { useQuery, useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getUsers, getUserById, suspendCaregiver, SuspendCaregiverPayload } from "@/services/user.service"
+import {
+  getUsers,
+  getUserById,
+  suspendCaregiver,
+  SuspendCaregiverPayload,
+  suspendUser,
+  SuspendUserPayload,
+} from "@/services/user.service"
 import { GetUsersQueryParams } from "@/types/user.type"
 import { GeneralResponse } from "@/types/response.type"
 import { AxiosError } from "axios"
@@ -51,6 +58,23 @@ export const useSuspendCaregiver = () => {
   >({
     mutationFn: ({ id, payload }) => suspendCaregiver(id, payload),
     mutationKey: ["suspend_caregiver"],
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: userKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) })
+    },
+  })
+}
+
+export const useSuspendUser = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation<
+    GeneralResponse<any>,
+    AxiosError<GeneralResponse>,
+    { id: string; payload: SuspendUserPayload }
+  >({
+    mutationFn: ({ id, payload }) => suspendUser(id, payload),
+    mutationKey: ["suspend_user"],
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: userKeys.lists() })
       queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) })

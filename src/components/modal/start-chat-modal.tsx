@@ -166,7 +166,7 @@ export default function StartChatModal({
                       </div>
                     </div>
                     {roleBadge && (
-                      <span className="shrink-0 rounded-full border border-secondary-color bg-[#F4F7FC] px-2 py-0.5 text-3xs font-medium font-dm-san-regular text-[#1B335B]">
+                      <span className="shrink-0 rounded-full border border-secondary-color bg-secondary-light px-2 py-0.5 text-3xs font-medium font-dm-san-regular text-primary-color">
                         {roleBadge}
                       </span>
                     )}

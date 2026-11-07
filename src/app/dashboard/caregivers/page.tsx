@@ -2,7 +2,7 @@
 
 import React, { Suspense } from "react"
 import CaregiversListView from "@/components/caregivers/caregivers-list-view"
-import PatientLoader from "@/components/patients/patients-list/loader"
+import CaregiversListSkeleton from "@/components/caregivers/caregivers-list-skeleton"
 import { useSuspenseGetUsers } from "@/hooks/user.hook"
 import { useSuspenseGetInvitations } from "@/hooks/invitation.hook"
 
@@ -28,7 +28,7 @@ function CaregiversDataContainer() {
 
 export default function CaregiversPage() {
   return (
-    <Suspense fallback={<PatientLoader />}>
+    <Suspense fallback={<CaregiversListSkeleton />}>
       <CaregiversDataContainer />
     </Suspense>
   )

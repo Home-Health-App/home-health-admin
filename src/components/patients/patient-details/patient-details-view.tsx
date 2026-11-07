@@ -165,7 +165,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-[#2B2B2B]">
+            <h1 className="text-4xl font-semibold tracking-tight font-dm-san-regular text-body-text">
               {patientName}
             </h1>
             {isSuspended ? (
@@ -178,7 +178,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
             ) : patient.status === "ACTIVE" ? (
               <Badge
                 variant="outline"
-                className="bg-active-btn text-[#0A432C] border-active-border font-dm-san-regular font-medium px-3 py-0.5 rounded-full shadow-none text-xs"
+                className="bg-active-btn text-active-border border-active-border font-dm-san-regular font-medium px-3 py-0.5 rounded-full shadow-none text-xs"
               >
                 Active
               </Badge>
@@ -199,7 +199,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
               </Badge>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[#2B2B2B] font-dm-san-regular text-sm mt-1">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-body-text font-dm-san-regular text-sm mt-1">
             {/* <span>ID: {patient.id}</span> */}
             {/* <span className="text-zinc-300">•</span> */}
             <span>Registered: {formattedDate}</span>
@@ -236,8 +236,8 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
             variant="outline"
             className={
               isSuspended
-                ? "rounded-full border border-emerald-600 bg-white font-sans font-semibold text-xs text-emerald-600 hover:bg-emerald-50 h-10 px-5 cursor-pointer outline-hidden shadow-none transition-colors"
-                : "rounded-full border border-[#EF4444] bg-white font-sans font-semibold text-xs text-[#EF4444] hover:bg-red-50 h-10 px-5 cursor-pointer outline-hidden shadow-none transition-colors"
+                ? "rounded-full border border-active-border bg-white font-sans font-semibold text-xs text-active-border hover:bg-active-btn h-10 px-5 cursor-pointer outline-hidden shadow-none transition-colors"
+                : "rounded-full border border-warning-border bg-white font-sans font-semibold text-xs text-error hover:bg-warning-btn h-10 px-5 cursor-pointer outline-hidden shadow-none transition-colors"
             }
           >
             {isSuspended ? "Unsuspend Account" : "Suspend Account"}
@@ -293,7 +293,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {/* Allergies */}
               <div className="space-y-2">
-                <span className="text-base font-bold text-[#2B2B2B] font-sans block">
+                <span className="text-base font-bold text-body-text font-sans block">
                   Allergies
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -318,7 +318,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
 
               {/* Chronic Conditions */}
               <div className="space-y-2">
-                <span className="text-base font-bold text-[#2B2B2B] font-sans block">
+                <span className="text-base font-bold text-body-text font-sans block">
                   Chronic Conditions
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -328,7 +328,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
                       <Badge
                         key={idx}
                         variant="outline"
-                        className="bg-[#FDF6E2] text-pending-border border-pending-border font-sans font-medium px-2 py-1 rounded-full shadow-none text-xs"
+                        className="bg-pending-btn text-pending-border border-pending-border font-sans font-medium px-2 py-1 rounded-full shadow-none text-xs"
                       >
                         {condition}
                       </Badge>
@@ -343,20 +343,20 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
 
               {/* Blood Type */}
               <div className="space-y-1">
-                <span className="text-base font-bold text-[#2B2B2B] block">
+                <span className="text-base font-bold text-body-text block">
                   Blood Type
                 </span>
-                <span className="text-base font-normal font-dm-san-regular text-[#2B2B2B]">
+                <span className="text-base font-normal font-dm-san-regular text-body-text">
                   {patient.blood_group || "-"}
                 </span>
               </div>
 
               {/* Genotype */}
               <div className="space-y-1">
-                <span className="text-base font-bold text-[#2B2B2B] font-sans block">
+                <span className="text-base font-bold text-body-text font-sans block">
                   Genotype
                 </span>
-                <span className="text-base font-normal font-dm-san-regular text-[#2B2B2B]">
+                <span className="text-base font-normal font-dm-san-regular text-body-text">
                   {patient.genotype || "-"}
                 </span>
               </div>
@@ -364,10 +364,10 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
               {/* Height */}
               {patient.height && (
                 <div className="space-y-1">
-                  <span className="text-base font-bold text-[#2B2B2B] font-sans block">
+                  <span className="text-base font-bold text-body-text font-sans block">
                     Height
                   </span>
-                  <span className="text-base font-normal font-dm-san-regular text-[#2B2B2B]">
+                  <span className="text-base font-normal font-dm-san-regular text-body-text">
                     {patient.height} cm
                   </span>
                 </div>
@@ -376,10 +376,10 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
               {/* Weight */}
               {patient.weight && (
                 <div className="space-y-1">
-                  <span className="text-base font-bold text-[#2B2B2B] font-sans block">
+                  <span className="text-base font-bold text-body-text font-sans block">
                     Weight
                   </span>
-                  <span className="text-base font-normal font-dm-san-regular text-[#2B2B2B]">
+                  <span className="text-base font-normal font-dm-san-regular text-body-text">
                     {patient.weight} kg
                   </span>
                 </div>
@@ -389,7 +389,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
 
           {/* Current Medications */}
           <div className="space-y-4">
-            <h2 className="text-base font-bold font-dm-san-regular text-[#2B2B2B]">
+            <h2 className="text-base font-bold font-dm-san-regular text-body-text">
               Current Medications
             </h2>
 
@@ -434,7 +434,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
 
           {/* Special Care Instructions */}
           <div className="space-y-4">
-            <h2 className="text-base font-bold font-dm-san-regular text-[#2B2B2B]">
+            <h2 className="text-base font-bold font-dm-san-regular text-body-text">
               Special Care Instructions
             </h2>
             <div className="p-5 rounded-[8px] bg-secondary-light text-body-text font-dm-san-regular text-base leading-relaxed">
@@ -448,7 +448,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
             <></>
             // <div className="space-y-4">
             //   <div className="flex items-center justify-between">
-            //     <h2 className="text-base font-bold font-dm-san-regular text-[#2B2B2B]">
+            //     <h2 className="text-base font-bold font-dm-san-regular text-body-text">
             //       Care Plan & Coverage
             //     </h2>
             //     {patient.plan.tier && (
@@ -464,7 +464,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
             //   <div className="p-5 bg-secondary-light rounded-[8px] space-y-4">
             //     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-zinc-200/60 pb-3">
             //       <div>
-            //         <h3 className="text-base font-semibold font-dm-san-medium text-[#2B2B2B]">
+            //         <h3 className="text-base font-semibold font-dm-san-medium text-body-text">
             //           {patient.plan.name}
             //         </h3>
             //         {patient.plan.category && (
@@ -492,8 +492,8 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
             //         </span>
             //         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             //           {patient.plan.coverage.map((item, idx) => (
-            //             <div key={idx} className="flex items-start gap-2 text-xs text-[#2B2B2B] font-dm-san-regular">
-            //               <IconCheck className="size-4 text-emerald-600 shrink-0 mt-0.5" />
+            //             <div key={idx} className="flex items-start gap-2 text-xs text-body-text font-dm-san-regular">
+            //               <IconCheck className="size-4 text-active-border shrink-0 mt-0.5" />
             //               <span>{item}</span>
             //             </div>
             //           ))}
@@ -509,23 +509,23 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
         <div className="space-y-8">
           {/* Contact Details */}
           <div className="space-y-4 p-6 rounded-[8px] bg-white">
-            <h2 className="text-[22px] font-medium font-dm-san-regular text-[#2B2B2B] pb-2">
+            <h2 className="text-[22px] font-medium font-dm-san-regular text-body-text pb-2">
               Contact Details
             </h2>
 
             <div className="space-y-4 font-sans text-sm text-body-text">
               <div className="flex items-center gap-3.5">
-                <IconPhone className="size-6 text-[#2B2B2B] shrink-0" />
-                <span className="font-normal font-dm-san-regular text-[#2B2B2B] text-sm">
+                <IconPhone className="size-6 text-body-text shrink-0" />
+                <span className="font-normal font-dm-san-regular text-body-text text-sm">
                   {patient.phone || "-"}
                 </span>
               </div>
               <div className="flex items-center gap-3.5">
-                <IconMail className="size-6 text-[#2B2B2B] shrink-0" />
+                <IconMail className="size-6 text-body-text shrink-0" />
                 <span className="font-medium">{patient.email || "-"}</span>
               </div>
               <div className="flex items-start gap-3.5">
-                <IconMapPin className="size-6 text-[#2B2B2B] shrink-0" />
+                <IconMapPin className="size-6 text-body-text shrink-0" />
                 <span className="font-medium leading-relaxed">
                   {patient.address || "-"}
                   {(patient.state || patient.country) && (
@@ -541,7 +541,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
 
           {/* Family Members */}
           <div className="space-y-4 p-6 bg-white rounded-[8px]">
-            <h2 className="text-[22px] font-medium font-dm-san-regular text-[#2B2B2B] pb-2">
+            <h2 className="text-[22px] font-medium font-dm-san-regular text-body-text pb-2">
               Family Members
             </h2>
 
@@ -549,7 +549,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
               {patient.user ? (
                 <div className="flex items-center justify-between gap-3">
                   <div className="space-y-0.5">
-                    <h4 className="font-normal text-[#2B2B2B] text-base font-dm-san-regular">
+                    <h4 className="font-normal text-body-text text-base font-dm-san-regular">
                       {patient.user.first_name} {patient.user.last_name}
                     </h4>
                     {patient.user.email && (
@@ -557,7 +557,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
                         {patient.user.email}
                       </p>
                     )}
-                    <p className="text-xs text-[#2B2B2B] font-dm-san-regular font-medium pt-0.5">
+                    <p className="text-xs text-body-text font-dm-san-regular font-medium pt-0.5">
                       {patient.relationship || "Primary Contact"}
                     </p>
                   </div>
@@ -578,7 +578,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
 
           {/* Assigned Care Giver */}
           <div className="space-y-4 p-6 rounded-[8px] bg-white">
-            <h2 className="text-[22px] font-medium font-dm-san-regular text-[#2B2B2B] pb-2">
+            <h2 className="text-[22px] font-medium font-dm-san-regular text-body-text pb-2">
               Assigned Care Giver
             </h2>
 
@@ -597,7 +597,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
                   </Avatar>
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-normal text-zinc-900 text-sm font-dm-san-regular">
+                      <h4 className="font-normal text-heading-text text-sm font-dm-san-regular">
                         {caregiverName}
                       </h4>
                     </div>
@@ -619,7 +619,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
                     <Button
                       onClick={() => handleSendMessage(caregiverUserId, "USER")}
                       disabled={isCreatingChat}
-                      className="flex-1 rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-sans font-semibold text-xs h-9 cursor-pointer outline-hidden border-none shadow-none disabled:opacity-50"
+                      className="flex-1 rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-sans font-semibold text-xs h-9 cursor-pointer outline-hidden border-none shadow-none disabled:opacity-50"
                     >
                       {isCreatingChat ? "Opening..." : "Send Message"}
                     </Button>
@@ -641,7 +641,7 @@ export default function PatientDetailsView({ patientId }: PatientDetailsViewProp
                 </p>
                 <Button
                   onClick={() => setIsAssignModalOpen(true)}
-                  className="w-full rounded-full bg-[#0B1E3F] hover:bg-[#1B335B] text-white font-sans font-semibold text-xs h-9 cursor-pointer outline-hidden border-none shadow-none"
+                  className="w-full rounded-full bg-primary-color hover:bg-primary-color/90 text-white font-sans font-semibold text-xs h-9 cursor-pointer outline-hidden border-none shadow-none"
                 >
                   Assign Caregiver
                 </Button>
