@@ -17,6 +17,7 @@ import { getBillingDetailColumns } from "./billing-detail-columns"
 import { AdminPaymentItem } from "@/types/billing.type"
 import { useGetPaymentByPatientId } from "@/hooks/billing.hook"
 import { useGetPatientById } from "@/hooks/patient.hook"
+import { useGetPatientPaymentAnalytics } from "@/hooks/analytic.hook"
 import { cn } from "@/libs/utils"
 
 interface BillingDetailProps {
@@ -50,6 +51,13 @@ export default function BillingDetail({
     data: patientResponse,
     isPending: isPatientPending,
   } = useGetPatientById(patientId)
+
+  // 3. Fetch patient payment analytics (total amount paid & subscription count)
+  const {
+    data: paymentAnalyticsResponse,
+    isPending: isPaymentAnalyticsPending,
+  } = useGetPatientPaymentAnalytics(patientId)
+  const paymentAnalytics = paymentAnalyticsResponse?.data
 
   const isLoading = isPaymentPending || isPatientPending
 
@@ -296,6 +304,31 @@ export default function BillingDetail({
         >
           Override Subscription
         </Button>
+      </div>
+
+      {/* Patient Payment Analytics Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="p-6 bg-primary-light rounded-[8px] shadow-2xs space-y-2">
+          <span className="text-sm font-semibold text-body-text font-dm-san-regular block">
+            Total Amount Paid
+          </span>
+          <span className="text-2xl font-bold font-dm-san-regular text-body-text block">
+            {isPaymentAnalyticsPending
+              ? "-"
+              : `${planCurrency === "USD" ? "$" : "₦"}${(paymentAnalytics?.totalAmount ?? 0).toLocaleString()}`}
+          </span>
+        </div>
+
+        <div className="p-6 bg-primary-light rounded-[8px] shadow-2xs space-y-2">
+          <span className="text-sm font-semibold text-body-text font-dm-san-regular block">
+            Total Subscriptions
+          </span>
+          <span className="text-2xl font-bold font-dm-san-regular text-body-text block">
+            {isPaymentAnalyticsPending
+              ? "-"
+              : (paymentAnalytics?.totalSubscriptionCount ?? 0).toLocaleString()}
+          </span>
+        </div>
       </div>
 
       {/* Subscription info and Family columns */}

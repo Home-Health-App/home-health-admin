@@ -46,3 +46,11 @@ export const createAdminChat = async (
     payload
   )
 }
+
+export const markAdminChatAsRead = async (
+  chatId: string
+): Promise<GeneralResponse<{ chat_id: string; updated_count: number; read_at: string }>> => {
+  return api.patch<GeneralResponse<{ chat_id: string; updated_count: number; read_at: string }>>(
+    URLs.chat["mark-admin-chat-read"](chatId)
+  )
+}

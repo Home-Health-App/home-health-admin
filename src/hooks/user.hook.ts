@@ -10,6 +10,7 @@ import {
 import { GetUsersQueryParams } from "@/types/user.type"
 import { GeneralResponse } from "@/types/response.type"
 import { AxiosError } from "axios"
+import { analyticKeys } from "@/hooks/analytic.hook"
 
 export const userKeys = {
   all: ["users"] as const,
@@ -61,6 +62,7 @@ export const useSuspendCaregiver = () => {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: userKeys.lists() })
       queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) })
+      queryClient.invalidateQueries({ queryKey: analyticKeys.caregiver })
     },
   })
 }
@@ -78,6 +80,7 @@ export const useSuspendUser = () => {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: userKeys.lists() })
       queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) })
+      queryClient.invalidateQueries({ queryKey: analyticKeys.caregiver })
     },
   })
 }

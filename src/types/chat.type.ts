@@ -40,6 +40,7 @@ export interface AdminChatData {
   receiver?: ChatUser | null
   last_message?: ChatMessageData | null
   messages?: ChatMessageData[]
+  unread_count?: number
 }
 
 export interface ChatSender {
@@ -62,6 +63,8 @@ export interface ChatMessageData {
   updated_at: string
   deleted_at: string | null
   isDeleted: boolean
+  user_has_read?: boolean
+  admin_has_read?: boolean
   user_sender: ChatSender | null
   admin_sender: ChatSender | null
 }

@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation"
 import InviteModal from "@/components/modal/invite-modal"
 import Link from "next/link"
 import { useGetAdminPayments } from "@/hooks/billing.hook"
+import { useGetAdminAnalytics } from "@/hooks/analytic.hook"
 import { AdminPaymentItem } from "@/types/billing.type"
 
 interface BillingOverviewProps {
@@ -32,6 +33,28 @@ export default function BillingOverview({
   // Fetch real payments from /payment/admin
   const { data: paymentsResponse, isPending: isPaymentsPending } = useGetAdminPayments()
   const payments: AdminPaymentItem[] = paymentsResponse?.data || []
+
+  const { data: adminAnalyticsResponse } = useGetAdminAnalytics()
+  const adminAnalytics = adminAnalyticsResponse?.data
+
+  const [thirtyDaysAgo] = useState(() => Date.now() - 30 * 24 * 60 * 60 * 1000)
+
+  const displayedRevenue = useMemo(() => {
+    if (timeframe === "All Time" && adminAnalytics) {
+      return adminAnalytics.totalRevenue
+    }
+    return payments
+      .filter((p) => {
+        const status = (p.status || "").toUpperCase()
+        const isSuccess = ["SUCCESS", "PAID", "ACTIVE"].includes(status)
+        if (!isSuccess) return false
+        if (timeframe === "30 Days" && p.created_at) {
+          return new Date(p.created_at).getTime() >= thirtyDaysAgo
+        }
+        return true
+      })
+      .reduce((acc, p) => acc + Number(p.plan?.price || 0), 0)
+  }, [timeframe, adminAnalytics, payments, thirtyDaysAgo])
 
   // Filter list
   const filteredBilling = useMemo(() => {
@@ -120,7 +143,7 @@ export default function BillingOverview({
             </Select>
           </div>
           <div className="text-2xl font-bold font-dm-san-regular text-body-text mt-3">
-            {isEmpty ? "$0" : "$42,500"}
+            ₦{displayedRevenue.toLocaleString()}
           </div>
         </div>
 

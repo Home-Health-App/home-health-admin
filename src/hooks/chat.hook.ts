@@ -4,6 +4,7 @@ import {
   getChatMessages,
   sendAdminMessage,
   createAdminChat,
+  markAdminChatAsRead,
 } from "@/services/chat.service"
 import {
   CreateAdminChatPayload,
@@ -83,6 +84,35 @@ export const useCreateAdminChat = () => {
     mutationKey: ["create_admin_chat"],
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chatKeys.all })
+    },
+  })
+}
+
+export const useMarkAdminChatAsRead = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation<
+    GeneralResponse<{ chat_id: string; updated_count: number; read_at: string }>,
+    AxiosError<GeneralResponse>,
+    string
+  >({
+    mutationFn: markAdminChatAsRead,
+    mutationKey: ["mark_admin_chat_read"],
+    onSuccess: (_data, chatId) => {
+      queryClient.setQueriesData<PaginatedResponse<AdminChatData[]>>(
+        { queryKey: chatKeys.lists() },
+        (old) => {
+          if (!old?.data) return old
+          return {
+            ...old,
+            data: old.data.map((chat) =>
+              chat.id === chatId ? { ...chat, unread_count: 0 } : chat
+            ),
+          }
+        }
+      )
+      queryClient.invalidateQueries({ queryKey: chatKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: chatKeys.messages(chatId) })
     },
   })
 }

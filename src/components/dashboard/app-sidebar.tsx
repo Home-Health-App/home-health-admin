@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useMemo } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { IconLogout } from "@tabler/icons-react"
@@ -59,12 +60,17 @@ export default function AppSidebar() {
       className="bg-primary-color text-white border-none **:data-[sidebar=sidebar]:bg-primary-color **:data-[sidebar=sidebar]:text-white **:data-[sidebar=sidebar]:border-none"
     >
       {/* Sidebar Header with Logo */}
-      <SidebarHeader className="py-6 pl-12">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl font-bold tracking-wider text-white select-none">
-            LOGO
-          </span>
-        </div>
+      <SidebarHeader className="py-6 pl-10">
+        <Link href="/dashboard/home" className="flex items-center gap-2 w-fit">
+          <Image
+            src="/logo.png"
+            alt="Home Health logo"
+            width={48}
+            height={48}
+            className="w-12 h-12 rounded-xl object-contain select-none"
+            priority
+          />
+        </Link>
       </SidebarHeader>
 
       {/* Sidebar Navigation Items */}

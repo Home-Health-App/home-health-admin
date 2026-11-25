@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -133,9 +134,14 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-147.5 flex flex-col items-center gap-18 px-4">
 
         {/* LOGO */}
-        <h1 className="text-2xl font-bold tracking-[0.2em] text-primary-color uppercase font-dm-san-regular">
-          Logo
-        </h1>
+        <Image
+          src="/logo.png"
+          alt="Home Health logo"
+          width={96}
+          height={96}
+          className="w-24 h-24 rounded-3xl object-contain select-none"
+          priority
+        />
 
         {/* Card Body */}
         <Card className="w-full bg-white border border-zinc-200/60 rounded-[8px] p-6 shadow-2xs font-dm-san-regular">
