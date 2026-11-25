@@ -15,6 +15,7 @@ import {
   useGetUserCreatedPatients,
 } from "@/hooks/patient.hook"
 import { useGetUserActivityLogs } from "@/hooks/activity-log.hook"
+import { useGetAdminUserAnalytics } from "@/hooks/analytic.hook"
 import { useCreateAdminChat } from "@/hooks/chat.hook"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -79,6 +80,13 @@ export default function FamilyMemberView({ patientId }: FamilyMemberViewProps) {
     enabled: !!familyMemberId,
   })
   const activityLogs = activityLogsResponse?.data || []
+
+  // 4. Fetch Admin User Analytics (Linked Patients, Active Subscriptions, Last Payment)
+  const {
+    data: userAnalyticsResponse,
+    isLoading: isLoadingUserAnalytics,
+  } = useGetAdminUserAnalytics(familyMemberId, !!familyMemberId)
+  const userAnalytics = userAnalyticsResponse?.data
 
   // Chat initiation
   const { mutate: createChat, isPending: isCreatingChat } = useCreateAdminChat()
@@ -159,11 +167,28 @@ export default function FamilyMemberView({ patientId }: FamilyMemberViewProps) {
     })
   }, [userPatients, patient])
 
-  // Summary counts
-  const linkedPatientsCount = userPatientsResponse?.pagination?.total ?? (userPatients.length || (patient ? 1 : 0))
-  const activeSubscriptionsCount = userPatients.length > 0
-    ? userPatients.filter((p) => !!p.plan && p.status !== "CANCELLED" && p.status !== "EXPIRED" && p.status !== "NOT_ACTIVE").length
-    : patient?.plan && patient?.status === "ACTIVE" ? 1 : 0
+  // Summary counts (preferring /analytics/admin/user/:userId)
+  const linkedPatientsCount =
+    userAnalytics?.totalPatients ??
+    userPatientsResponse?.pagination?.total ??
+    (userPatients.length || (patient ? 1 : 0))
+  const activeSubscriptionsCount =
+    userAnalytics?.totalActivePatientsWithActiveSubscriptions ??
+    (userPatients.length > 0
+      ? userPatients.filter((p) => !!p.plan && p.status !== "CANCELLED" && p.status !== "EXPIRED" && p.status !== "NOT_ACTIVE").length
+      : patient?.plan && patient?.status === "ACTIVE" ? 1 : 0)
+
+  const lastPayment = userAnalytics?.lastPayment ?? null
+  const lastPaymentAmount = lastPayment
+    ? `${lastPayment.currency === "USD" ? "$" : "₦"}${lastPayment.amount.toLocaleString()}`
+    : "No payments"
+  const lastPaymentDate = lastPayment?.created_at
+    ? new Date(lastPayment.created_at).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : null
 
   const latestActivityTime = activityLogs[0]?.created_at
     ? formatActivityTime(activityLogs[0].created_at)
@@ -203,14 +228,14 @@ export default function FamilyMemberView({ patientId }: FamilyMemberViewProps) {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Linked Patients */}
         <div className="p-4 flex flex-col gap-4 bg-primary-light border border-border-light rounded-[8px] shadow-2xs space-y-2">
           <span className="text-base font-semibold text-body-text font-sans block">
             Linked Patients
           </span>
           <span className="text-2xl font-bold font-sans text-body-text block">
-            {isLoadingPatients ? (
+            {isLoadingUserAnalytics && isLoadingPatients ? (
               <span className="text-sm font-normal text-body-text">Loading...</span>
             ) : (
               linkedPatientsCount
@@ -224,12 +249,34 @@ export default function FamilyMemberView({ patientId }: FamilyMemberViewProps) {
             Active Subscriptions
           </span>
           <span className="text-2xl font-bold font-sans text-body-text block">
-            {isLoadingPatients ? (
+            {isLoadingUserAnalytics && isLoadingPatients ? (
               <span className="text-sm font-normal text-body-text">Loading...</span>
             ) : (
               activeSubscriptionsCount
             )}
           </span>
+        </div>
+
+        {/* Last Payment */}
+        <div className="p-4 flex flex-col gap-4 bg-primary-light border border-body-text/40 rounded-[8px] shadow-2xs space-y-2">
+          <span className="text-base font-semibold text-body-text font-sans block">
+            Last Payment
+          </span>
+          <div className="space-y-0.5">
+            <span className="text-xl font-bold font-sans text-heading-text block truncate">
+              {isLoadingUserAnalytics ? (
+                <span className="text-sm font-normal text-body-text">Loading...</span>
+              ) : (
+                lastPaymentAmount
+              )}
+            </span>
+            {!isLoadingUserAnalytics && lastPaymentDate && (
+              <span className="text-xs text-zinc-500 font-sans block truncate">
+                {lastPaymentDate}
+                {lastPayment?.plan?.name ? ` • ${lastPayment.plan.name}` : ""}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Last Activity */}

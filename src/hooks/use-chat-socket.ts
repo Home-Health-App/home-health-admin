@@ -82,12 +82,39 @@ export function useChatSocket({
       }
     }
 
+    const handleMessagesRead = (payload: { chat_id?: string }) => {
+      queryClient.invalidateQueries({ queryKey: chatKeys.lists() })
+      if (payload?.chat_id) {
+        queryClient.invalidateQueries({
+          queryKey: chatKeys.messages(payload.chat_id),
+        })
+      }
+    }
+
     Socket.on("new_message", handleNewMessage)
+    Socket.on("messages_read", handleMessagesRead)
 
     return () => {
       Socket.off("new_message", handleNewMessage)
+      Socket.off("messages_read", handleMessagesRead)
     }
   }, [chatId, queryClient])
+
+  const markAsRead = useCallback(
+    (targetChatId?: string | null) => {
+      const id = targetChatId || chatId
+      if (!id) return
+      if (!Socket.connected) {
+        Socket.connect()
+      }
+      Socket.emit("mark_as_read", {
+        chat_id: id,
+        is_admin: isAdmin,
+        reader_id: senderId || undefined,
+      })
+    },
+    [chatId, isAdmin, senderId]
+  )
 
   // Send message via WebSocket
   const sendSocketMessage = useCallback(
@@ -140,6 +167,7 @@ export function useChatSocket({
   return {
     isConnected,
     sendMessage: sendSocketMessage,
+    markAsRead,
     socket: Socket,
   }
 }

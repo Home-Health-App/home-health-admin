@@ -21,7 +21,7 @@ interface RefundDetailViewProps {
 const MOCK_REFERENCE: PaymentReferenceItem[] = [
   {
     reference: "PM-26-89A1",
-    amount: "$200",
+    amount: "₦200",
     date: "Aug. 5 2026",
     method: "Card Payment",
   },
@@ -113,7 +113,7 @@ export default function RefundDetailView({
             </h3>
             <div className="flex items-center gap-1.5 font-dm-san-regular">
               <span className="text-sm text-body-text font-normal">Amount Requested</span>
-              <span className="text-4xl font-bold text-body-text">$300</span>
+              <span className="text-4xl font-bold text-body-text">₦300</span>
             </div>
           </div>
 

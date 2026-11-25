@@ -22,6 +22,7 @@ import {
   useGetAdminChats,
   useGetChatMessages,
   useSendAdminMessage,
+  useMarkAdminChatAsRead,
 } from "@/hooks/chat.hook"
 import { formatNotificationTime } from "@/libs/helper"
 import { format } from "date-fns"
@@ -76,7 +77,7 @@ function MessagesContent() {
 
   const [isStartChatOpen, setIsStartChatOpen] = useState(false)
   const [search, setSearch] = useState("")
-  const [activeTab, setActiveTab] = useState<"read" | "unread">("read")
+  const [activeTab, setActiveTab] = useState<"all" | "unread">("all")
   const [newMessageText, setNewMessageText] = useState("")
   const [stagedAttachments, setStagedAttachments] = useState<StagedAttachment[]>([])
   const [isUploadingFiles, setIsUploadingFiles] = useState(false)
@@ -113,12 +114,29 @@ function MessagesContent() {
     return chats.find((c) => c.id === selectedChatId) || null
   }, [chats, selectedChatId])
 
+  const { mutate: markChatReadRest } = useMarkAdminChatAsRead()
+
   // Real-time Socket.IO connection
-  const { isConnected, sendMessage: sendSocketMessage } = useChatSocket({
+  const { isConnected, sendMessage: sendSocketMessage, markAsRead } = useChatSocket({
     chatId: selectedChatId,
     senderId: adminId,
     isAdmin: true,
+    onNewMessage: (incoming) => {
+      if (!incoming.is_admin && selectedChatId && incoming.chat_id === selectedChatId) {
+        markAsRead(selectedChatId)
+        markChatReadRest(selectedChatId)
+      }
+    },
   })
+
+  // Auto-mark selected chat as read when opened with unread messages
+  useEffect(() => {
+    if (!selectedChatId || !selectedChat) return
+    if ((selectedChat.unread_count ?? 0) > 0) {
+      markAsRead(selectedChatId)
+      markChatReadRest(selectedChatId)
+    }
+  }, [selectedChatId, selectedChat?.unread_count, markAsRead, markChatReadRest])
 
   // Fetch messages for selected chat (Socket updates live, polling reduced/disabled when live)
   const { data: messagesResponse } = useGetChatMessages(
@@ -136,10 +154,18 @@ function MessagesContent() {
     )
   }, [messages])
 
+  const unreadChatsCount = useMemo(
+    () => chats.filter((c) => (c.unread_count ?? 0) > 0).length,
+    [chats]
+  )
+
   // Filter conversations
   const filteredChats = useMemo(() => {
     return chats.filter((c) => {
-      const rec = c.receiver || c.reciever
+      if (activeTab === "unread" && (c.unread_count ?? 0) === 0) {
+        return false
+      }
+      const rec = c.receiver || c.reciever || c.user_creator
       const fullName = `${rec?.first_name || ""} ${rec?.last_name || ""}`.toLowerCase()
       const email = (rec?.email || "").toLowerCase()
       const matchesSearch =
@@ -147,7 +173,7 @@ function MessagesContent() {
         email.includes(search.toLowerCase())
       return matchesSearch
     })
-  }, [chats, search])
+  }, [chats, search, activeTab])
 
   // REST fallback mutation
   const { mutate: sendRestMessage, isPending: isRestSending } = useSendAdminMessage()
@@ -279,7 +305,8 @@ function MessagesContent() {
   }
 
   // Active receiver info
-  const activeReceiver = selectedChat?.receiver || selectedChat?.reciever
+  const activeReceiver =
+    selectedChat?.receiver || selectedChat?.reciever || selectedChat?.user_creator
   const isCaregiver =
     activeReceiver?.type === "CARE_GIVER" || selectedChat?.type === "CARE_GIVER"
   const activeReceiverName = activeReceiver
@@ -348,26 +375,26 @@ function MessagesContent() {
               </div>
             </div>
 
-            {/* Read / Unread Tabs */}
+            {/* All / Unread Tabs */}
             <div className="px-5 pt-4 pb-3">
               <Tabs
-                defaultValue="read"
+                defaultValue="all"
                 value={activeTab}
-                onValueChange={(val) => setActiveTab(val as "read" | "unread")}
+                onValueChange={(val) => setActiveTab(val as "all" | "unread")}
                 className="w-auto font-dm-san-regular text-sm font-normal"
               >
                 <TabsList className="bg-white p-1 h-9 rounded-lg border-none flex w-fit gap-1">
                   <TabsTrigger
-                    value="read"
+                    value="all"
                     className="rounded-md px-4 py-1.5 text-xs font-normal font-dm-san-regular transition-all data-active:bg-secondary-color data-active:text-white text-body-text data-active:hover:text-body-text shadow-none bg-transparent cursor-pointer"
                   >
-                    Read
+                    All
                   </TabsTrigger>
                   <TabsTrigger
                     value="unread"
                     className="rounded-md px-4 py-1.5 text-xs font-normal font-dm-san-regular transition-all data-active:bg-secondary-color data-active:text-white text-body-text data-active:hover:text-body-text shadow-none bg-transparent cursor-pointer"
                   >
-                    Unread (0)
+                    Unread ({unreadChatsCount})
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -377,10 +404,12 @@ function MessagesContent() {
             <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 space-y-2">
               {filteredChats.map((c) => {
                 const isSelected = selectedChatId === c.id
-                const rec = c.receiver || c.reciever
+                const rec = c.receiver || c.reciever || c.user_creator
+                const unreadCount = c.unread_count ?? 0
                 const name =
                   `${rec?.first_name || ""} ${rec?.last_name || ""}`.trim() ||
-                  rec?.email
+                  rec?.email ||
+                  "User"
                 const isCaregiverItem =
                   rec?.type === "CARE_GIVER" || c.type === "CARE_GIVER"
                 // const typeLabel = isCaregiverItem ? "Caregiver" : null
@@ -431,10 +460,15 @@ function MessagesContent() {
                         </p>
                       </div>
 
-                      <div className="flex shrink-0 items-center gap-2 self-start pt-0.5">
+                      <div className="flex shrink-0 flex-col items-end gap-1.5 self-start pt-0.5">
                         <span className="text-[10px] font-dm-san-regular text-zinc-400 font-normal">
                           {timeDisplay}
                         </span>
+                        {unreadCount > 0 && (
+                          <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-primary-color px-1.5 text-[10px] font-semibold text-white">
+                            {unreadCount > 99 ? "99+" : unreadCount}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </button>
@@ -466,12 +500,28 @@ function MessagesContent() {
                     )}
                   </div>
 
-                  <button
-                    type="button"
-                    className="flex size-8 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 cursor-pointer outline-hidden transition-colors"
-                  >
-                    <IconDots className="size-6 text-body-text" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {(selectedChat?.unread_count ?? 0) > 0 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          if (!selectedChatId) return
+                          markAsRead(selectedChatId)
+                          markChatReadRest(selectedChatId)
+                        }}
+                        className="h-8 rounded-full border-zinc-200 px-3 text-xs font-dm-san-regular font-medium text-body-text shadow-none cursor-pointer"
+                      >
+                        Mark as read
+                      </Button>
+                    )}
+                    <button
+                      type="button"
+                      className="flex size-8 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 cursor-pointer outline-hidden transition-colors"
+                    >
+                      <IconDots className="size-6 text-body-text" />
+                    </button>
+                  </div>
                 </header>
 
                 {/* Messages Stream */}
