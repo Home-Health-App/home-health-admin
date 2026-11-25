@@ -14,6 +14,7 @@ import { InvitationType } from "@/types/invitation.type"
 import { IconUser, IconMail, IconPhone, IconMapPin, IconCalendar, IconUserCheck } from "@tabler/icons-react"
 
 import { useGetUserById, useSuspendUser } from "@/hooks/user.hook"
+import { useGetAdminUserAnalytics } from "@/hooks/analytic.hook"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import ConfirmationModal, { useConfirmation } from "@/components/modal/confirmation-modal"
@@ -36,6 +37,10 @@ export default function UserDetailsModal({
   // Query user by id dynamically when modal is open and userId is present
   const { data: userResponse, isPending } = useGetUserById(userId || "", open && !!userId)
   const user = userResponse?.data || null
+
+  const { data: userAnalyticsResponse, isPending: isAnalyticsPending } =
+    useGetAdminUserAnalytics(userId || "", open && !!userId)
+  const userAnalytics = userAnalyticsResponse?.data || null
 
   const { mutate: suspendMutate, isPending: isSuspendPending } = useSuspendUser()
   const { state: confirmState, confirm, close: closeConfirm } = useConfirmation()
@@ -89,7 +94,7 @@ export default function UserDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[500px] p-6 rounded-[8px] gap-0 outline-hidden border-none shadow-xl bg-white text-body-text select-none font-dm-san-regular">
+      <DialogContent className="max-w-[500px] max-h-[90vh] overflow-y-auto p-6 rounded-[8px] gap-0 outline-hidden border-none shadow-xl bg-white text-body-text select-none font-dm-san-regular">
         <DialogHeader className="pb-4 border-b border-zinc-100 flex flex-row items-center justify-between">
           <DialogTitle className="text-2xl font-bold font-dm-san-regular text-body-text">
             {isRegistered ? "User Profile Details" : "Pending Invitation Details"}
@@ -203,16 +208,50 @@ export default function UserDetailsModal({
               </div>
 
               {/* Statistics details */}
-              {/* <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-zinc-50 border border-zinc-100 rounded-lg text-center space-y-1">
-                  <span className="text-xs text-zinc-500 block">Linked Patients</span>
-                  <span className="text-2xl font-bold text-body-text block">{user._count?.patients ?? 0}</span>
+              <div className="space-y-3 p-4 bg-zinc-50 border border-zinc-100 rounded-lg">
+                <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                  Account analytics
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-white border border-zinc-100 rounded-md space-y-1">
+                    <span className="text-xs text-zinc-500 block">Total Patients</span>
+                    <span className="text-xl font-bold text-body-text block">
+                      {isAnalyticsPending ? "-" : (userAnalytics?.totalPatients ?? 0)}
+                    </span>
+                  </div>
+                  <div className="p-3 bg-white border border-zinc-100 rounded-md space-y-1">
+                    <span className="text-xs text-zinc-500 block">Active Subscriptions</span>
+                    <span className="text-xl font-bold text-body-text block">
+                      {isAnalyticsPending
+                        ? "-"
+                        : (userAnalytics?.totalActivePatientsWithActiveSubscriptions ?? 0)}
+                    </span>
+                  </div>
                 </div>
-                <div className="p-4 bg-zinc-50 border border-zinc-100 rounded-lg text-center space-y-1">
-                  <span className="text-xs text-zinc-500 block">Emergency Contacts</span>
-                  <span className="text-2xl font-bold text-body-text block">{user._count?.emergencyContacts ?? 0}</span>
+                <div className="p-3 bg-white border border-zinc-100 rounded-md flex items-center justify-between gap-3">
+                  <div className="space-y-0.5 min-w-0">
+                    <span className="text-xs text-zinc-500 block">Last Payment</span>
+                    {isAnalyticsPending ? (
+                      <span className="text-sm font-medium text-body-text block">-</span>
+                    ) : userAnalytics?.lastPayment ? (
+                      <span className="text-xs text-zinc-500 block truncate">
+                        {formatDate(userAnalytics.lastPayment.created_at)}
+                        {userAnalytics.lastPayment.plan?.name
+                          ? ` • ${userAnalytics.lastPayment.plan.name}`
+                          : ""}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-zinc-400 block">No payments yet</span>
+                    )}
+                  </div>
+                  {!isAnalyticsPending && userAnalytics?.lastPayment && (
+                    <span className="text-base font-bold text-body-text shrink-0">
+                      {userAnalytics.lastPayment.currency === "USD" ? "$" : "₦"}
+                      {userAnalytics.lastPayment.amount.toLocaleString()}
+                    </span>
+                  )}
                 </div>
-              </div> */}
+              </div>
             </div>
           </div>
         ) : invitation ? (

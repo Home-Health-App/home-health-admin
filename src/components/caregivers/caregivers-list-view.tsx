@@ -14,16 +14,19 @@ import ConfirmationModal, { useConfirmation } from "@/components/modal/confirmat
 import { PaginatedResponse } from "@/types/response.type"
 import { UserType } from "@/types/user.type"
 import { InvitationType } from "@/types/invitation.type"
+import { CaregiverAnalyticType } from "@/types/analytic.type"
 import { toast } from "sonner"
 
 interface CaregiversListViewProps {
   usersData?: PaginatedResponse<UserType[]>
   invitationsData?: PaginatedResponse<InvitationType[]>
+  analyticsData?: CaregiverAnalyticType
 }
 
 export default function CaregiversListView({
   usersData,
   invitationsData,
+  analyticsData,
 }: CaregiversListViewProps) {
   const [globalFilter, setGlobalFilter] = useState<string>("")
   const [isInviteOpen, setIsInviteOpen] = useState(false)
@@ -147,9 +150,17 @@ export default function CaregiversListView({
     })
   }, [registeredCaregivers, pendingInvitations, globalFilter, statusFilter, assignmentFilter, invitationFilter])
 
-  const totalCaregiversCount = usersData?.pagination?.total ?? registeredCaregivers.length
-  const pendingInvitationsCount = invitationsData?.pagination?.total ?? pendingInvitations.length
-  const suspendedCount = registeredCaregivers.filter(c => c.isSuspended).length
+  const totalCaregiversCount =
+    analyticsData?.totalCaregivers ??
+    usersData?.pagination?.total ??
+    registeredCaregivers.length
+  const pendingInvitationsCount =
+    analyticsData?.pendingInvitations ??
+    invitationsData?.pagination?.total ??
+    pendingInvitations.length
+  const suspendedCount =
+    analyticsData?.suspendedAccounts ??
+    registeredCaregivers.filter((c) => c.isSuspended).length
 
   const isEmpty = filteredData.length === 0
 

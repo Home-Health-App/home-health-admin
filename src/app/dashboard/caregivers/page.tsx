@@ -5,6 +5,7 @@ import CaregiversListView from "@/components/caregivers/caregivers-list-view"
 import CaregiversListSkeleton from "@/components/caregivers/caregivers-list-skeleton"
 import { useSuspenseGetUsers } from "@/hooks/user.hook"
 import { useSuspenseGetInvitations } from "@/hooks/invitation.hook"
+import { useSuspenseGetCareGiverAnalytics } from "@/hooks/analytic.hook"
 
 function CaregiversDataContainer() {
   const { data: usersData } = useSuspenseGetUsers({
@@ -18,10 +19,13 @@ function CaregiversDataContainer() {
     limit: 100,
   })
 
+  const { data: analyticsData } = useSuspenseGetCareGiverAnalytics()
+
   return (
     <CaregiversListView
       usersData={usersData}
       invitationsData={invitationsData}
+      analyticsData={analyticsData?.data}
     />
   )
 }

@@ -33,8 +33,11 @@ export const URLs = {
 
     analytics: {
         'admin-analytic': 'analytics/admin',
+        'admin-graphs': 'analytics/admin/graphs',
+        'admin-user-analytic': (userId: string) => `analytics/admin/user/${userId}`,
         'user-analytic': (userId: string) => `analytics/user/${userId}`,
         'caregiver-analytic': 'analytics/caregivers',
+        'patient-payment-analytic': (patientId: string) => `analytics/patient/${patientId}/payments`,
     },
 
     notificationPreferences: {
@@ -83,6 +86,7 @@ export const URLs = {
         'get-admin-chats': "chat/admin",
         'get-chat-messages': (chatId: string) => `chat/${chatId}/messages`,
         'send-admin-message': "chat/admin/message",
+        'mark-admin-chat-read': (chatId: string) => `chat/admin/${chatId}/read`,
     },
 
     activityLogs: {
